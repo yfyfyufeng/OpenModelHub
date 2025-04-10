@@ -72,12 +72,63 @@ CREATE TABLE model_tags (
 
 Example: [https://huggingface.co/meta-llama/Llama-2-7b-hf/tree/main](https://huggingface.co/meta-llama/Llama-2-7b-hf/tree/main)
 
-### Model
+### model
 
-| schema        | model_id (PK) | model_name | param_num | media_type (FK) | arch_id (FK) | train_ID (FK) | task_id (FK)     |
+| schema        | model_id (PK) | model_name | param_num | media_type (FK) | arch_name (FK) | train_ID (FK) | task_id (FK)     |
 |---------------|---------------|------------|-----------|------------------|---------------|----------------|------------------|
-| data type     | int           | varchar    | int       | multivalued,int  | multivalued,int | multivluaed,int | multivalued, int |
+| data type     | int           | varchar    | int       | multivalued,int  | multivalued,varchar | multivluaed,int | multivalued, int |
 | example       | 000000001     | llama_2_7b | 6.74B     | 01               | 01            | 1              | {01,03}          |
+
+### model_author
+
+|schema|model_id (PK)|user_id|
+|-|-|-|
+|data example|0000001|123090342|
+
+#### transformer
+
+|schema|model_id|decoder_num|attn_size|up_size|down_size|embed_size|
+|-|-|-|-|-|-|-|
+
+#### cnn
+
+|model_id|module_num|module_id|
+|-|-|-|
+
+##### module_id
+
+|conv_size|pool_type|...|
+|-|-|-|
+
+##### RNN
+
+|model_id|input_num|output_num|
+
+### dataset
+
+|schema|ds_id|ds_name|ds_size|ds_col_id|media|task|
+|-|-|-|-|-|-|-|
+
+### user
+
+|user_id|user_name|m_id|ds_id|affiliate|
+|-|-|-|-|-|
+
+
+#### user_affil
+
+|user_id|affil_id|
+|-|-|
+
+
+#### affil
+
+|affil_id|affil_name|
+|-|-|
+
+#### ds_col
+
+|schema|ds_id(PK)|ds_col_id(PK)|col_name|col_datatype|
 
 #### -- media
 
