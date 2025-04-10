@@ -74,10 +74,10 @@ Example: [https://huggingface.co/meta-llama/Llama-2-7b-hf/tree/main](https://hug
 
 ### model
 
-| schema        | model_id (PK) | model_name | param_num | media_type (FK) | arch_name (FK) | train_ID (FK) | task_id (FK)     |
-|---------------|---------------|------------|-----------|------------------|---------------|----------------|------------------|
+| schema        | model_id (PK) | model_name | param_num | media_type (FK) | arch_name (FK) | train_name (FK) | task_name (FK)   |
+|---------------|---------------|------------|-----------|------------------|---------------|-----------------|------------------|
 | data type     | int           | varchar    | int       | multivalued,int  | multivalued,varchar | multivluaed,int | multivalued, int |
-| example       | 000000001     | llama_2_7b | 6.74B     | 01               | 01            | 1              | {01,03}          |
+| example       | 000000001     | llama_2_7b | 6.74B     | 01               | 01            | 1               | {01,03}          |
 
 ### model_author
 
@@ -97,12 +97,13 @@ Example: [https://huggingface.co/meta-llama/Llama-2-7b-hf/tree/main](https://hug
 
 ##### module_id
 
-|conv_size|pool_type|...|
+|model_id|conv_size|pool_type|
 |-|-|-|
 
 ##### RNN
 
-|model_id|input_num|output_num|
+|model_id|criteria|batch_size|input_size|
+|-|-|-|-|
 
 ### dataset
 
@@ -129,6 +130,8 @@ Example: [https://huggingface.co/meta-llama/Llama-2-7b-hf/tree/main](https://hug
 #### ds_col
 
 |schema|ds_id(PK)|ds_col_id(PK)|col_name|col_datatype|
+|-|-|-|-|-|
+---
 
 #### -- media
 
