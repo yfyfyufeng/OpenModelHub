@@ -72,7 +72,7 @@ CREATE TABLE model_tags (
 
 Example: [https://huggingface.co/meta-llama/Llama-2-7b-hf/tree/main](https://huggingface.co/meta-llama/Llama-2-7b-hf/tree/main)
 
-_---
+---
 
 #### **model**
 | **Attribute**       | **Description**                                                                                                       | **Data Type**    | **Example**  |
