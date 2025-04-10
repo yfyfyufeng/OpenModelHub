@@ -278,3 +278,15 @@ ORDER BY download_count DESC LIMIT 10;
 |                       | Frontend Development    |                |
 
 ---
+
+## Current Work
+| Task     | Member   | Status |
+|----------|----------|--------|
+| Model    | lyf, gly | R      |
+| Dataset  | lyx      | R      |
+| User     | zzr      | R      |
+| Agent    | tym      | R      |
+| Security | zsh      | PD     |
+
+## Schedule
+Meet in 4/18
