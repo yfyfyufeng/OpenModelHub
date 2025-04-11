@@ -227,7 +227,7 @@ class ModelDataset(Base):
     __tablename__ = 'model_dataset'
 
     model_id = Column(Integer, ForeignKey("model.model_id"), primary_key=True)
-    dataset_id = Column(Integer, ForeignKey("dataset.dataset_id"), primary_key=True)
+    dataset_id = Column(Integer, ForeignKey("dataset.ds_id"), primary_key=True)
 
     model = relationship("Model", back_populates="datasets")
     dataset = relationship("Dataset", back_populates="models")
