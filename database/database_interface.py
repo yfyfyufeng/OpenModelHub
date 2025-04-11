@@ -2,12 +2,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy import delete
 from typing import Sequence, Optional
-from database import (
+from database_schema import (
     Model, CNN, RNN, Transformer, ModelTask, ModelAuthor,
     Dataset, ModelDataset,
-    User, UserDataset, UserAffil, Affil, text
+    User, UserDataset, UserAffil, Affil, text,  Base
 )
-from database import Base
 
 # --------------------------------------
 # 🔧 Model-related Operations
