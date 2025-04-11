@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from database import Base, clear_all_tables
-from db_interface import *
+from database_interface import *
 
 # ========= Load Env =========
 load_dotenv()
