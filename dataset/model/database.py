@@ -52,7 +52,6 @@ Session = sessionmaker()
 # ---------------------------
 # 模型表
 # ---------------------------
-
 class ArchType(enum.Enum):
     CNN = "CNN"
     RNN = "RNN"
@@ -86,7 +85,6 @@ class ModelTask(Base):
 # ---------------------------
 # Transformer 模型（子表）
 # ---------------------------
-
 class Transformer(Base):
     __tablename__ = 'transformer'
 
@@ -102,7 +100,6 @@ class Transformer(Base):
 # ---------------------------
 # CNN 模型（子表）
 # ---------------------------
-
 class CNN(Base):
     __tablename__ = 'cnn'
 
@@ -125,7 +122,6 @@ class ModuleID(Base):
 # ---------------------------
 # RNN 模型（子表）
 # ---------------------------
-
 class RNN(Base):
     __tablename__ = 'rnn'
 
@@ -139,7 +135,6 @@ class RNN(Base):
 # ---------------------------
 # 数据集表（Dataset）
 # ---------------------------
-
 class Dataset(Base):
     __tablename__ = 'dataset'
 
@@ -167,7 +162,6 @@ class DsCol(Base):
 # ---------------------------
 # 用户表(User)
 # ---------------------------
-
 class User(Base):
     __tablename__ = 'user'
 
@@ -182,7 +176,6 @@ class User(Base):
 # ---------------------------
 # 机构表（Affil）
 # ---------------------------
-
 class Affil(Base):
     __tablename__ = 'affil'
 
@@ -194,7 +187,6 @@ class Affil(Base):
 # ---------------------------
 # 用户-机构 多对多中间表
 # ---------------------------
-
 class UserAffil(Base):
     __tablename__ = 'user_affil'
 
@@ -207,7 +199,6 @@ class UserAffil(Base):
 # ---------------------------
 # 用户-数据集 多对多中间表
 # ---------------------------
-
 class UserDataset(Base):
     __tablename__ = 'user_ds'
 
@@ -220,7 +211,6 @@ class UserDataset(Base):
 # ---------------------------
 # 模型-作者 多对多中间表
 # ---------------------------
-
 class ModelAuthor(Base):
     __tablename__ = 'model_author'
 
@@ -233,7 +223,6 @@ class ModelAuthor(Base):
 # ---------------------------
 # 模型-数据集 多对多中间表
 # ---------------------------
-
 class ModelDataset(Base):
     __tablename__ = 'model_dataset'
 
