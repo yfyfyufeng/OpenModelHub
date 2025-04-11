@@ -66,9 +66,9 @@ class Model(Base):
     media_type = Column(String(50))
     arch_name = Column(Enum(ArchType), nullable=False)
 
-    tasks = relationship("ModelTask", back_populates="model")
-    authors = relationship("ModelAuthor", back_populates="model")
-    datasets = relationship("ModelDataset", back_populates="model")
+    authors = relationship("ModelAuthor", back_populates="model", cascade="all, delete-orphan")
+    datasets = relationship("ModelDataset", back_populates="model", cascade="all, delete-orphan")
+    tasks = relationship("ModelTask", back_populates="model", cascade="all, delete-orphan")
 
     cnn = relationship("CNN", uselist=False, back_populates="model")
     rnn = relationship("RNN", uselist=False, back_populates="model")
@@ -80,7 +80,7 @@ class ModelTask(Base):
     model_id = Column(Integer, ForeignKey("model.model_id"), primary_key=True)
     task_name = Column(String(50), primary_key=True)
 
-    model = relationship("Model", back_populates="tasks")
+    model = relationship("Model", back_populates="tasks", passive_deletes=True)
 
 # ---------------------------
 # Transformer 模型（子表）
@@ -169,9 +169,9 @@ class User(Base):
     user_name = Column(String(50))
     affiliate = Column(String(50))
 
-    models = relationship("ModelAuthor", back_populates="user")
-    datasets = relationship("UserDataset", back_populates="user")
-    affiliations = relationship("UserAffil", back_populates="user")
+    models = relationship("ModelAuthor", back_populates="user", cascade="all, delete-orphan", passive_deletes=True)
+    datasets = relationship("UserDataset", back_populates="user", cascade="all, delete-orphan", passive_deletes=True)
+    affiliations = relationship("UserAffil", back_populates="user", cascade="all, delete-orphan", passive_deletes=True)
 
 # ---------------------------
 # 机构表（Affil）
@@ -193,8 +193,8 @@ class UserAffil(Base):
     user_id = Column(Integer, ForeignKey("user.user_id"), primary_key=True)
     affil_id = Column(Integer, ForeignKey("affil.affil_id"), primary_key=True)
 
-    user = relationship("User", back_populates="affiliations")
-    affiliation = relationship("Affil", back_populates="users")
+    user = relationship("User", back_populates="affiliations", passive_deletes=True)
+    affiliation = relationship("Affil", back_populates="users", passive_deletes=True)
 
 # ---------------------------
 # 用户-数据集 多对多中间表
@@ -205,8 +205,8 @@ class UserDataset(Base):
     user_id = Column(Integer, ForeignKey("user.user_id"), primary_key=True)
     ds_id = Column(Integer, ForeignKey("dataset.ds_id"), primary_key=True)
 
-    user = relationship("User", back_populates="datasets")
-    dataset = relationship("Dataset", back_populates="users")
+    user = relationship("User", back_populates="datasets", passive_deletes=True)
+    dataset = relationship("Dataset", back_populates="users", passive_deletes=True)
 
 # ---------------------------
 # 模型-作者 多对多中间表
@@ -217,8 +217,8 @@ class ModelAuthor(Base):
     model_id = Column(Integer, ForeignKey("model.model_id"), primary_key=True)
     user_id = Column(Integer, ForeignKey("user.user_id"), primary_key=True)
 
-    model = relationship("Model", back_populates="authors")
-    user = relationship("User", back_populates="models")
+    model = relationship("Model", back_populates="authors", passive_deletes=True)
+    user = relationship("User", back_populates="models", passive_deletes=True)
 
 # ---------------------------
 # 模型-数据集 多对多中间表
@@ -229,8 +229,8 @@ class ModelDataset(Base):
     model_id = Column(Integer, ForeignKey("model.model_id"), primary_key=True)
     dataset_id = Column(Integer, ForeignKey("dataset.ds_id"), primary_key=True)
 
-    model = relationship("Model", back_populates="datasets")
-    dataset = relationship("Dataset", back_populates="models")
+    model = relationship("Model", back_populates="datasets", passive_deletes=True)
+    dataset = relationship("Dataset", back_populates="models", passive_deletes=True)
 
 # ========= Init DB =========
 def init_db():
