@@ -1,51 +1,11 @@
-import pymysql
-import os
 from sqlalchemy import (
-    create_engine, Column, Integer, String, Enum, ForeignKey, text
+    Column, Integer, String, Enum, ForeignKey, text
 )
 from sqlalchemy.orm import relationship, sessionmaker, declarative_base
 from sqlalchemy.dialects.mysql import BIGINT
-from dotenv import load_dotenv
 import enum
 
-# ========= Load Env =========
-load_dotenv()
-DB_USERNAME = os.getenv("DB_USERNAME")
-DB_PASSWORD = os.getenv("DB_PASSWORD")
-DB_HOST = os.getenv("DB_HOST", "localhost")
-DB_PORT = int(os.getenv("DB_PORT", "3306"))
-TARGET_DB = os.getenv("TARGET_DB", "openmodelhub")
-
-# ========= Create Database =========
-def create_database_if_not_exists():
-    conn = pymysql.connect(
-        host=DB_HOST,
-        port=DB_PORT,
-        user=DB_USERNAME,
-        password=DB_PASSWORD,
-        database='mysql'
-    )
-    cursor = conn.cursor()
-    cursor.execute(f"SHOW DATABASES LIKE '{TARGET_DB}'")
-    result = cursor.fetchone()
-    if not result:
-        print(f"📦 数据库 `{TARGET_DB}` 不存在，正在创建...")
-        cursor.execute(f"CREATE DATABASE {TARGET_DB} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;")
-        print(f"✅ 数据库 `{TARGET_DB}` 创建成功！")
-    else:
-        print(f"✅ 数据库 `{TARGET_DB}` 已存在")
-    cursor.close()
-    conn.close()
-
-# ========= SQLAlchemy Engine =========
-def get_engine():
-    return create_engine(
-        f"mysql+pymysql://{DB_USERNAME}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{TARGET_DB}?charset=utf8mb4",
-        echo=True
-    )
-
 Base = declarative_base()
-Session = sessionmaker()
 
 # ========= Tables =========
 
@@ -231,22 +191,3 @@ class ModelDataset(Base):
 
     model = relationship("Model", back_populates="datasets", passive_deletes=True)
     dataset = relationship("Dataset", back_populates="models", passive_deletes=True)
-
-# ========= Init DB =========
-def init_db():
-    create_database_if_not_exists()
-    engine = get_engine()
-    Base.metadata.create_all(engine)
-    Session.configure(bind=engine)
-    print("\u2705 所有表结构已初始化完成")
-    return Session()
-
-# ========= Optional Clear for Test =========
-async def clear_all_tables(async_session_maker):
-    async with async_session_maker() as session:
-        await session.execute(text("SET FOREIGN_KEY_CHECKS=0;"))
-        for table in reversed(Base.metadata.sorted_tables):
-            await session.execute(table.delete())
-        await session.execute(text("SET FOREIGN_KEY_CHECKS=1;"))
-        await session.commit()
-        print("\U0001f9f9 所有表数据已清空")
