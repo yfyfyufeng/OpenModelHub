@@ -1,5 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy import delete
 from typing import Sequence, Optional
 from database import (
     Model, CNN, RNN, Transformer, ModelTask, ModelAuthor,
@@ -26,6 +27,13 @@ async def list_models(session: AsyncSession) -> Sequence[Model]:
     return result.scalars().all()
 
 async def delete_model(session: AsyncSession, model_id: int) -> bool:
+    await session.execute(delete(ModelTask).where(ModelTask.model_id == model_id))
+    await session.execute(delete(ModelAuthor).where(ModelAuthor.model_id == model_id))
+    await session.execute(delete(ModelDataset).where(ModelDataset.model_id == model_id))
+    await session.execute(delete(CNN).where(CNN.model_id == model_id))
+    await session.execute(delete(RNN).where(RNN.model_id == model_id))
+    await session.execute(delete(Transformer).where(Transformer.model_id == model_id))
+
     model = await get_model_by_id(session, model_id)
     if model:
         await session.delete(model)
@@ -62,6 +70,9 @@ async def list_datasets(session: AsyncSession) -> Sequence[Dataset]:
     return result.scalars().all()
 
 async def delete_dataset(session: AsyncSession, ds_id: int) -> bool:
+    await session.execute(delete(UserDataset).where(UserDataset.ds_id == ds_id))
+    await session.execute(delete(ModelDataset).where(ModelDataset.dataset_id == ds_id))
+
     dataset = await get_dataset_by_id(session, ds_id)
     if dataset:
         await session.delete(dataset)
@@ -98,6 +109,12 @@ async def list_users(session: AsyncSession) -> Sequence[User]:
     return result.scalars().all()
 
 async def delete_user(session: AsyncSession, user_id: int) -> bool:
+    # 清理关联表
+    await session.execute(delete(UserAffil).where(UserAffil.user_id == user_id))
+    await session.execute(delete(UserDataset).where(UserDataset.user_id == user_id))
+    await session.execute(delete(ModelAuthor).where(ModelAuthor.user_id == user_id))
+
+    # 删除主表记录
     user = await get_user_by_id(session, user_id)
     if user:
         await session.delete(user)
@@ -134,6 +151,8 @@ async def get_affiliation_by_id(session: AsyncSession, affil_id: int) -> Optiona
     return result.scalar_one_or_none()
 
 async def delete_affiliation(session: AsyncSession, affil_id: int) -> bool:
+    await session.execute(delete(UserAffil).where(UserAffil.affil_id == affil_id))
+
     affil = await get_affiliation_by_id(session, affil_id)
     if affil:
         await session.delete(affil)
