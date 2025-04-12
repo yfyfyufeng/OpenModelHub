@@ -433,5 +433,42 @@ def init_database():
     # Return a session for further operations
     return Session()
 
+def drop_database():
+    load_dotenv()
+    DB_USERNAME = os.getenv("DB_USERNAME")
+    DB_PASSWORD = os.getenv("DB_PASSWORD")
+    DB_HOST = os.getenv("DB_HOST", "127.0.0.1")
+    DB_PORT = int(os.getenv("DB_PORT", 3306))
+    TARGET_DB = os.getenv("TARGET_DB")
+    try:
+        # Connect to MySQL (connect to 'mysql' database to be able to drop others)
+        conn = pymysql.connect(
+            host=DB_HOST,
+            port=DB_PORT,
+            user=DB_USERNAME,
+            password=DB_PASSWORD,
+            database='mysql'  # Connect to the default "mysql" database
+        )
+        cursor = conn.cursor()
+
+        # Check if the target database exists
+        cursor.execute(f"SHOW DATABASES LIKE '{TARGET_DB}'")
+        result = cursor.fetchone()
+
+        if result:
+            print(f"📦 数据库 `{TARGET_DB}` 存在，正在删除...")
+            cursor.execute(f"DROP DATABASE {TARGET_DB};")
+            print(f"✅ 数据库 `{TARGET_DB}` 删除成功！")
+        else:
+            print(f"❌ 数据库 `{TARGET_DB}` 不存在，无法删除。")
+
+        # Close cursor and connection
+        cursor.close()
+        conn.close()
+
+    except Exception as e:
+        print(f"❌ 发生错误: {e}")
+
 if __name__ == "__main__":
+    drop_database()
     session = init_database()
