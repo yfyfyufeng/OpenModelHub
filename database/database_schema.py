@@ -18,6 +18,7 @@ class ArchType(enum.Enum):
     RNN = "RNN"
     TRANSFORMER = "Transformer"
 
+
 class Model(Base):
     __tablename__ = 'model'
 
@@ -35,6 +36,7 @@ class Model(Base):
     rnn = relationship("RNN", uselist=False, back_populates="model")
     transformer = relationship("Transformer", uselist=False, back_populates="model")
 
+
 class ModelTask(Base):
     __tablename__ = 'model_tasks'
 
@@ -44,6 +46,7 @@ class ModelTask(Base):
         PrimaryKeyConstraint('model_id', 'task_name', name='pk_model_task'),
     )
     model = relationship("Model", back_populates="tasks", passive_deletes=True)
+
 
 # ---------------------------
 # Transformer 模型（子表）
@@ -59,6 +62,7 @@ class Transformer(Base):
     embed_size = Column(Integer)
 
     model = relationship("Model", back_populates="transformer")
+
 
 # ---------------------------
 # CNN 模型（子表）
@@ -84,6 +88,7 @@ class Module(Base):
     )
     cnn = relationship("CNN", back_populates="modules")
 
+
 # ---------------------------
 # RNN 模型（子表）
 # ---------------------------
@@ -96,6 +101,7 @@ class RNN(Base):
     input_size = Column(Integer)
 
     model = relationship("Model", back_populates="rnn")
+
 
 # ---------------------------
 # 数据集表（Dataset）
@@ -126,6 +132,7 @@ class DsCol(Base):
 
     dataset = relationship("Dataset", back_populates="columns")
 
+
 # ---------------------------
 # 用户表(User)
 # ---------------------------
@@ -140,6 +147,7 @@ class User(Base):
     datasets = relationship("UserDataset", back_populates="user", cascade="all, delete-orphan", passive_deletes=True)
     affiliations = relationship("UserAffil", back_populates="user", cascade="all, delete-orphan", passive_deletes=True)
 
+
 # ---------------------------
 # 机构表（Affil）
 # ---------------------------
@@ -150,6 +158,7 @@ class Affil(Base):
     affil_name = Column(String(100))
 
     users = relationship("UserAffil", back_populates="affiliation")
+
 
 # ---------------------------
 # 用户-机构 多对多中间表
@@ -163,6 +172,7 @@ class UserAffil(Base):
     user = relationship("User", back_populates="affiliations", passive_deletes=True)
     affiliation = relationship("Affil", back_populates="users", passive_deletes=True)
 
+
 # ---------------------------
 # 用户-数据集 多对多中间表
 # ---------------------------
@@ -175,6 +185,7 @@ class UserDataset(Base):
     user = relationship("User", back_populates="datasets", passive_deletes=True)
     dataset = relationship("Dataset", back_populates="users", passive_deletes=True)
 
+
 # ---------------------------
 # 模型-作者 多对多中间表
 # ---------------------------
@@ -186,6 +197,7 @@ class ModelAuthor(Base):
 
     model = relationship("Model", back_populates="authors", passive_deletes=True)
     user = relationship("User", back_populates="models", passive_deletes=True)
+
 
 # ---------------------------
 # 模型-数据集 多对多中间表
