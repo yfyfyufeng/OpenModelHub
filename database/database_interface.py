@@ -179,22 +179,17 @@ async def update_model(session: AsyncSession, model_id: int, update_data: Dict) 
 # ❌ 删除模型
 # --------------------------------------
 async def delete_model(session: AsyncSession, model_id: int) -> bool:
-    # ✅ 直接删除任务（ModelTask 是任务本体）
     await session.execute(delete(ModelTask).where(ModelTask.model_id == model_id))
 
-    # ✅ 删除模型与作者的关联（不删 User）
     await session.execute(delete(ModelAuthor).where(ModelAuthor.model_id == model_id))
 
-    # ✅ 删除模型与数据集的关联（不删 Dataset）
     await session.execute(delete(ModelDataset).where(ModelDataset.model_id == model_id))
 
-    # ✅ 删除子架构信息
     await session.execute(delete(Module).where(Module.model_id == model_id))
     await session.execute(delete(CNN).where(CNN.model_id == model_id))
     await session.execute(delete(RNN).where(RNN.model_id == model_id))
     await session.execute(delete(Transformer).where(Transformer.model_id == model_id))
 
-    # ✅ 删除模型本体
     model = await get_model_by_id(session, model_id)
     if model:
         await session.delete(model)
@@ -461,7 +456,7 @@ async def drop_database():
         print(f"❌ 发生错误: {e}")
 
 async def run_all():
-    # 1. 清空数据库（如果需要）
+    # 1. 清空数据库
     await drop_database()
 
     # 2. 初始化数据库结构
