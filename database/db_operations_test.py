@@ -124,7 +124,7 @@ async def run_tests(session: AsyncSession):
     # -----------------------------
     # 测试删除已经删除的模型
     # -----------------------------
-    assert await delete_model(session, cnn_model.model_id) is False  # 已经删除，返回 False
+    assert await delete_model(session, cnn_model.model_id) is False
 
     # -----------------------------
     # 测试删除多个数据集
@@ -145,7 +145,7 @@ async def run_tests(session: AsyncSession):
 
     assert await delete_dataset(session, dataset2_id) is True
     dataset_check2 = await get_dataset_by_id(session, dataset2_id)
-    assert dataset_check2 is None  # 应该已经被删除
+    assert dataset_check2 is None
 
     # -----------------------------
     # 删除用户、数据集、机构
@@ -164,7 +164,7 @@ async def run_tests(session: AsyncSession):
     # 删除机构时，相关的用户不应删除
     assert await delete_affiliation(session, affil2.affil_id) is True
     user_check2 = await get_user_by_id(session, user2.user_id)
-    assert user_check2 is not None  # 用户不应被删除
+    assert user_check2 is not None
 
     print("\n✅ 所有测试已成功通过！")
 
