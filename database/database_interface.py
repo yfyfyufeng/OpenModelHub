@@ -8,7 +8,12 @@ from database_schema import (
     User, UserDataset, UserAffil, Affil, text,  Base, ArchType
 )
 from sqlalchemy.orm import joinedload
-
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from database_schema import Base
+import os
+import pymysql
+from dotenv import load_dotenv
 # --------------------------------------
 # 🔧 Model-related Operations
 # --------------------------------------
@@ -384,3 +389,49 @@ async def clear_all_tables(get_session):
         await session.execute(text("SET FOREIGN_KEY_CHECKS=1;"))
         await session.commit()
         print("🧹 所有表数据已清空")
+
+
+def init_database():
+    load_dotenv()
+    DB_USERNAME = os.getenv("DB_USERNAME")
+    DB_PASSWORD = os.getenv("DB_PASSWORD")
+    DB_HOST = os.getenv("DB_HOST", "127.0.0.1")
+    DB_PORT = int(os.getenv("DB_PORT", 3306))
+    TARGET_DB = os.getenv("TARGET_DB")
+
+    conn = pymysql.connect(
+        host=DB_HOST,
+        port=DB_PORT,
+        user=DB_USERNAME,
+        password=DB_PASSWORD,
+        database='mysql'
+    )
+    cursor = conn.cursor()
+    cursor.execute(f"SHOW DATABASES LIKE '{TARGET_DB}'")
+    result = cursor.fetchone()
+    if not result:
+        print(f"📦 数据库 `{TARGET_DB}` 不存在，正在创建...")
+        cursor.execute(f"CREATE DATABASE {TARGET_DB} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;")
+        print(f"✅ 数据库 `{TARGET_DB}` 创建成功！")
+    else:
+        print(f"✅ 数据库 `{TARGET_DB}` 已存在")
+    cursor.close()
+    conn.close()
+
+    db_url = f"mysql+pymysql://{DB_USERNAME}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{TARGET_DB}"
+    engine = create_engine(db_url, echo=True)
+
+    # Create all tables based on the Base model
+    Base.metadata.create_all(engine)
+
+    # Create the sessionmaker and bind it to the engine
+    Session = sessionmaker(bind=engine)
+
+    # Print success message
+    print("\u2705 所有表结构已初始化完成")
+
+    # Return a session for further operations
+    return Session()
+
+if __name__ == "__main__":
+    session = init_database()
