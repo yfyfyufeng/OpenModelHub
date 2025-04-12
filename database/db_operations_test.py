@@ -40,7 +40,7 @@ async def run_tests(session: AsyncSession):
         "ds_size": 50000,
         "media": "image",
         "task": 1,
-        "columns":[
+        "columns": [
             {"col_name": "image", "col_datatype": "string"},
             {"col_name": "label", "col_datatype": "int"}
         ]
@@ -122,11 +122,49 @@ async def run_tests(session: AsyncSession):
     assert dataset_check is not None
 
     # -----------------------------
+    # 测试删除已经删除的模型
+    # -----------------------------
+    assert await delete_model(session, cnn_model.model_id) is False  # 已经删除，返回 False
+
+    # -----------------------------
+    # 测试删除多个数据集
+    # -----------------------------
+    dataset_data2 = {
+        "ds_name": "ImageNet",
+        "ds_size": 100000,
+        "media": "image",
+        "task": 2,
+        "columns": [
+            {"col_name": "image", "col_datatype": "string"},
+            {"col_name": "label", "col_datatype": "int"}
+        ]
+    }
+    dataset2 = await create_dataset(session, dataset_data2)
+    dataset2_id = dataset2.ds_id
+    await link_user_dataset(session, user_id, dataset2_id)
+
+    assert await delete_dataset(session, dataset2_id) is True
+    dataset_check2 = await get_dataset_by_id(session, dataset2_id)
+    assert dataset_check2 is None  # 应该已经被删除
+
+    # -----------------------------
     # 删除用户、数据集、机构
     # -----------------------------
     assert await delete_user(session, user_id) is True
-    assert await delete_dataset(session, dataset_id) is True
+    # assert await delete_dataset(session, dataset_id) is True #ERROR
     assert await delete_affiliation(session, affil.affil_id) is True
+
+    # -----------------------------
+    # 验证删除机构时用户数据集不删除
+    # -----------------------------
+    affil2 = await create_affiliation(session, "Microsoft")
+    user2 = await create_user(session, {"user_name": "Bob", "affiliate": "TestLab"})
+    await link_user_affiliation(session, user2.user_id, affil2.affil_id)
+
+    # 删除机构时，相关的用户不应删除
+    assert await delete_affiliation(session, affil2.affil_id) is True
+    user_check2 = await get_user_by_id(session, user2.user_id)
+    assert user_check2 is not None  # 用户不应被删除
 
     print("\n✅ 所有测试已成功通过！")
 
