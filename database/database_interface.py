@@ -5,7 +5,7 @@ from typing import Sequence, Optional, Dict, Union
 from database_schema import (
     Model, CNN, RNN, Transformer, ModelTask, ModelAuthor,
     Dataset, ModelDataset, Module, DsCol,
-    User, UserDataset, UserAffil, Affil, text,  Base, ArchType
+    User, UserDataset, UserAffil, Affil,  Base, ArchType
 )
 from sqlalchemy.orm import joinedload
 from sqlalchemy import create_engine
@@ -15,6 +15,8 @@ import os
 import pymysql
 from dotenv import load_dotenv
 import asyncio
+from sqlalchemy.orm import selectinload
+
 # --------------------------------------
 # 🔧 Model-related Operations
 # --------------------------------------
@@ -100,12 +102,12 @@ async def get_model_by_id(session: AsyncSession, model_id: int) -> Optional[Mode
     result = await session.execute(
         select(Model)
         .options(
-            joinedload(Model.tasks),
-            joinedload(Model.authors),
-            joinedload(Model.datasets),
-            joinedload(Model.cnn),
-            joinedload(Model.rnn),
-            joinedload(Model.transformer),
+            selectinload(Model.tasks),
+            selectinload(Model.authors),
+            selectinload(Model.datasets),
+            selectinload(Model.cnn),
+            selectinload(Model.rnn),
+            selectinload(Model.transformer),
         )
         .filter_by(model_id=model_id)
     )
@@ -187,6 +189,7 @@ async def delete_model(session: AsyncSession, model_id: int) -> bool:
     await session.execute(delete(ModelDataset).where(ModelDataset.model_id == model_id))
 
     # ✅ 删除子架构信息
+    await session.execute(delete(Module).where(Module.model_id == model_id))
     await session.execute(delete(CNN).where(CNN.model_id == model_id))
     await session.execute(delete(RNN).where(RNN.model_id == model_id))
     await session.execute(delete(Transformer).where(Transformer.model_id == model_id))
@@ -238,6 +241,7 @@ async def list_datasets(session: AsyncSession) -> Sequence[Dataset]:
     return result.scalars().all()
 
 async def delete_dataset(session: AsyncSession, ds_id: int) -> bool:
+    await session.execute(delete(DsCol).where(DsCol.ds_id == ds_id))
     await session.execute(delete(UserDataset).where(UserDataset.ds_id == ds_id))
     await session.execute(delete(ModelDataset).where(ModelDataset.dataset_id == ds_id))
 
