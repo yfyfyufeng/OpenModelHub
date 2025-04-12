@@ -202,7 +202,7 @@ async def delete_model(session: AsyncSession, model_id: int) -> bool:
 # 🔧 Dataset-related Operations
 # --------------------------------------
 # 创建数据集并添加列的函数
-async def create_dataset(session: AsyncSession, dataset_data: dict, columns_data: list) -> Dataset:
+async def create_dataset(session: AsyncSession, dataset_data: dict) -> Dataset:
     dataset = Dataset(
         ds_name=dataset_data["ds_name"],
         ds_size=dataset_data["ds_size"],
@@ -212,10 +212,10 @@ async def create_dataset(session: AsyncSession, dataset_data: dict, columns_data
     session.add(dataset)
     await session.flush()
 
-    if not columns_data:
+    if not dataset_data['columns']:
         raise ValueError("A dataset must have at least one column")
 
-    for col_data in columns_data:
+    for col_data in dataset_data['columns']:
         ds_col = DsCol(
             ds_id=dataset.ds_id,
             col_name=col_data["col_name"],

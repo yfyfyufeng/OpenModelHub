@@ -16,7 +16,7 @@ DATABASE_URL = f"mysql+aiomysql://{DB_USERNAME}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT
 # ========= Run All Tests =========
 async def run_tests(session: AsyncSession):
     # -----------------------------
-    # 1️⃣ 创建 Affiliation
+    # 创建 Affiliation
     # -----------------------------
     affil = await create_affiliation(session, "OpenAI")
     assert affil.affil_name == "OpenAI"
@@ -24,7 +24,7 @@ async def run_tests(session: AsyncSession):
     assert affil.affil_name == "OpenAI Research"
 
     # -----------------------------
-    # 2️⃣ 创建 User
+    # 创建 User
     # -----------------------------
     user = await create_user(session, {"user_name": "Alice", "affiliate": "TestLab"})
     user_id = user.user_id
@@ -33,26 +33,26 @@ async def run_tests(session: AsyncSession):
     assert user.user_name == "Alice A."
 
     # -----------------------------
-    # 3️⃣ 创建 Dataset（含列）
+    # 创建 Dataset
     # -----------------------------
     dataset_data = {
         "ds_name": "COCO",
         "ds_size": 50000,
         "media": "image",
-        "task": 1
+        "task": 1,
+        "columns":[
+            {"col_name": "image", "col_datatype": "string"},
+            {"col_name": "label", "col_datatype": "int"}
+        ]
     }
-    columns_data = [
-        {"col_name": "image", "col_datatype": "string"},
-        {"col_name": "label", "col_datatype": "int"}
-    ]
-    dataset = await create_dataset(session, dataset_data, columns_data)
+    dataset = await create_dataset(session, dataset_data)
     dataset_id = dataset.ds_id
     await link_user_dataset(session, user_id, dataset_id)
     dataset = await update_dataset(session, dataset_id, {"ds_size": 55000})
     assert dataset.ds_size == 55000
 
     # -----------------------------
-    # 4️⃣ 创建 CNN 模型
+    # 创建 CNN 模型
     # -----------------------------
     cnn_model_data = {
         "model_name": "YOLOv7",
@@ -71,7 +71,7 @@ async def run_tests(session: AsyncSession):
     await link_model_dataset(session, cnn_model.model_id, dataset_id)
 
     # -----------------------------
-    # 5️⃣ 创建 RNN 模型
+    # 创建 RNN 模型
     # -----------------------------
     rnn_model_data = {
         "model_name": "LSTM",
@@ -87,7 +87,7 @@ async def run_tests(session: AsyncSession):
     await link_model_author(session, rnn_model.model_id, user_id)
 
     # -----------------------------
-    # 6️⃣ 创建 Transformer 模型
+    # 创建 Transformer 模型
     # -----------------------------
     transformer_model_data = {
         "model_name": "BERT",
@@ -105,7 +105,7 @@ async def run_tests(session: AsyncSession):
     await link_model_author(session, transformer_model.model_id, user_id)
 
     # -----------------------------
-    # 7️⃣ 删除模型，验证任务删除、关系删除、用户数据集不删
+    # 删除模型，验证任务删除、关系删除、用户数据集不删
     # -----------------------------
     assert await delete_model(session, cnn_model.model_id) is True
     assert await delete_model(session, rnn_model.model_id) is True
@@ -122,7 +122,7 @@ async def run_tests(session: AsyncSession):
     assert dataset_check is not None
 
     # -----------------------------
-    # 8️⃣ 删除用户、数据集、机构
+    # 删除用户、数据集、机构
     # -----------------------------
     assert await delete_user(session, user_id) is True
     assert await delete_dataset(session, dataset_id) is True
