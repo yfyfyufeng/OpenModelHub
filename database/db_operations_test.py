@@ -1,7 +1,7 @@
 import asyncio
 import os
 from dotenv import load_dotenv
-from sqlalchemy.ext.asyncio import create_async_engine
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from database_interface import *
 
@@ -67,24 +67,59 @@ async def run_tests(session: AsyncSession):
     assert any(ds.ds_id == dataset_id for ds in datasets)
 
     # -----------------------------
-    # Model
+    # Model (CNN)
     # -----------------------------
-    model = await create_model(session, {
-        "model_name": "YOLOv7",
-        "param_num": 64000000,
-        "media_type": "image",
-        "arch_name": "CNN"
-    })
-    model_id = model.model_id
-    model = await update_model(session, model_id, {"model_name": "YOLOv7x"})
-    assert model.model_name == "YOLOv7x"
+    cnn_model = await create_cnn_model(
+        session,
+        model_data={
+            "model_name": "YOLOv7",
+            "param_num": 64000000,
+            "media_type": "image",
+            "arch_name": "CNN",
+            "module_num": 10,
+        }
+    )
+    assert cnn_model.model_name == "YOLOv7"
+
+    # -----------------------------
+    # Model (RNN)
+    # -----------------------------
+    rnn_model = await create_rnn_model(
+        session,
+        model_data={
+            "model_name": "LSTM",
+            "param_num": 22000000,
+            "media_type": "text",
+            "arch_name": "RNN"
+        }
+    )
+    assert rnn_model.model_name == "LSTM"
+
+    # -----------------------------
+    # Model (Transformer)
+    # -----------------------------
+    transformer_model = await create_transformer_model(
+        session,
+        model_data={
+            "model_name": "BERT",
+            "param_num": 110000000,
+            "media_type": "text",
+            "arch_name": "TRANSFORMER",
+            "decoder_num": 6,
+            "attn_size": 512,
+            "up_size": 2048,
+            "down_size": 1024,
+            "embed_size": 768
+        }
+    )
+    assert transformer_model.model_name == "BERT"
 
     # -----------------------------
     # Linking
     # -----------------------------
-    await link_model_author(session, model_id, user_id)
-    await link_model_dataset(session, model_id, dataset_id)
-    await add_task_to_model(session, model_id, "Detection")
+    await link_model_author(session, cnn_model.model_id, user_id)
+    await link_model_dataset(session, cnn_model.model_id, dataset_id)
+    await add_task_to_model(session, cnn_model.model_id, "Detection")
     await link_user_dataset(session, user_id, dataset_id)
     affil = await create_affiliation(session, "OpenAI")
     await link_user_affiliation(session, user_id, affil.affil_id)
@@ -92,7 +127,9 @@ async def run_tests(session: AsyncSession):
     # -----------------------------
     # Deletion
     # -----------------------------
-    assert await delete_model(session, model_id) is True
+    assert await delete_model(session, cnn_model.model_id) is True
+    assert await delete_model(session, rnn_model.model_id) is True
+    assert await delete_model(session, transformer_model.model_id) is True
     assert await delete_user(session, user_id) is True
     assert await delete_dataset(session, dataset_id) is True
     assert await delete_affiliation(session, affil.affil_id) is True
@@ -115,7 +152,6 @@ async def run_all():
 
     # ---- 执行测试逻辑 ----
     async with SessionLocal() as session:
-        # 你之前的 run_tests 中的所有测试逻辑写在这里即可
         await run_tests(session)
 
     # ---- 主动关闭引擎连接池 ----

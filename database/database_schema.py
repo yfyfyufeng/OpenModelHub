@@ -67,11 +67,11 @@ class CNN(Base):
     module_num = Column(Integer)
 
     model = relationship("Model", back_populates="cnn")
-    modules = relationship("ModuleID", back_populates="cnn")
+    modules = relationship("Module", back_populates="cnn")
 
 
-class ModuleID(Base):
-    __tablename__ = 'module_id'
+class Module(Base):
+    __tablename__ = 'module'
 
     model_id = Column(Integer, ForeignKey("cnn.model_id"), primary_key=True)
     conv_size = Column(Integer)
