@@ -95,6 +95,7 @@ async def create_model(session: AsyncSession, model_data: Dict) -> Union[Model, 
     else:
         raise ValueError(f"Unsupported architecture type: {arch_name}")
 
+
 # --------------------------------------
 # 🔍 查询模型
 # --------------------------------------
@@ -127,6 +128,7 @@ async def list_models(session: AsyncSession) -> Sequence[Model]:
         )
     )
     return result.scalars().all()
+
 
 # --------------------------------------
 # 🔧 更新模型
@@ -175,6 +177,7 @@ async def update_model(session: AsyncSession, model_id: int, update_data: Dict) 
     await session.refresh(model)
     return model
 
+
 # --------------------------------------
 # ❌ 删除模型
 # --------------------------------------
@@ -197,6 +200,7 @@ async def delete_model(session: AsyncSession, model_id: int) -> bool:
         return True
 
     return False
+
 
 # --------------------------------------
 # 🔧 Dataset-related Operations
@@ -297,13 +301,16 @@ async def create_user(session: AsyncSession, user_data: dict) -> User:
     await session.refresh(user)
     return user
 
+
 async def get_user_by_id(session: AsyncSession, user_id: int) -> Optional[User]:
     result = await session.execute(select(User).filter_by(user_id=user_id))
     return result.scalar_one_or_none()
 
+
 async def list_users(session: AsyncSession) -> Sequence[User]:
     result = await session.execute(select(User))
     return result.scalars().all()
+
 
 async def delete_user(session: AsyncSession, user_id: int) -> bool:
     # 清理关联表
@@ -319,6 +326,7 @@ async def delete_user(session: AsyncSession, user_id: int) -> bool:
         return True
     return False
 
+
 async def update_user(session: AsyncSession, user_id: int, update_data: dict) -> Optional[User]:
     user = await get_user_by_id(session, user_id)
     if user:
@@ -328,6 +336,7 @@ async def update_user(session: AsyncSession, user_id: int, update_data: dict) ->
         await session.refresh(user)
         return user
     return None
+
 
 # --------------------------------------
 # 🔧 Affiliation Operations
@@ -339,13 +348,16 @@ async def create_affiliation(session: AsyncSession, affil_name: str) -> Affil:
     await session.refresh(affil)
     return affil
 
+
 async def list_affiliations(session: AsyncSession) -> Sequence[Affil]:
     result = await session.execute(select(Affil))
     return result.scalars().all()
 
+
 async def get_affiliation_by_id(session: AsyncSession, affil_id: int) -> Optional[Affil]:
     result = await session.execute(select(Affil).filter_by(affil_id=affil_id))
     return result.scalar_one_or_none()
+
 
 async def delete_affiliation(session: AsyncSession, affil_id: int) -> bool:
     await session.execute(delete(UserAffil).where(UserAffil.affil_id == affil_id))
@@ -357,6 +369,7 @@ async def delete_affiliation(session: AsyncSession, affil_id: int) -> bool:
         return True
     return False
 
+
 async def update_affiliation(session: AsyncSession, affil_id: int, update_data: dict) -> Optional[Affil]:
     affil = await get_affiliation_by_id(session, affil_id)
     if affil:
@@ -367,6 +380,7 @@ async def update_affiliation(session: AsyncSession, affil_id: int, update_data: 
         return affil
     return None
 
+
 # --------------------------------------
 # 🔧 User-Affiliation Linking
 # --------------------------------------
@@ -374,6 +388,7 @@ async def link_user_affiliation(session: AsyncSession, user_id: int, affil_id: i
     relation = UserAffil(user_id=user_id, affil_id=affil_id)
     session.add(relation)
     await session.commit()
+
 
 # --------------------------------------
 # 🔧 Model-Dataset Linking
@@ -383,6 +398,7 @@ async def link_model_dataset(session: AsyncSession, model_id: int, ds_id: int):
     session.add(link)
     await session.commit()
 
+
 # --------------------------------------
 # 🔧 Model-Author Linking
 # --------------------------------------
@@ -391,6 +407,7 @@ async def link_model_author(session: AsyncSession, model_id: int, user_id: int):
     session.add(link)
     await session.commit()
 
+
 # --------------------------------------
 # 🔧 User-Dataset Linking
 # --------------------------------------
@@ -398,6 +415,7 @@ async def link_user_dataset(session: AsyncSession, user_id: int, ds_id: int):
     link = UserDataset(user_id=user_id, ds_id=ds_id)
     session.add(link)
     await session.commit()
+
 
 async def init_database():
     load_dotenv()
@@ -441,6 +459,7 @@ async def init_database():
     # Return a session for further operations
     return Session()
 
+
 async def drop_database():
     load_dotenv()
     DB_USERNAME = os.getenv("DB_USERNAME")
@@ -477,12 +496,14 @@ async def drop_database():
     except Exception as e:
         print(f"❌ 发生错误: {e}")
 
+
 async def run_all():
     # 1. 清空数据库
     await drop_database()
 
     # 2. 初始化数据库结构
     await init_database()
+
 
 if __name__ == "__main__":
     asyncio.run(run_all())
