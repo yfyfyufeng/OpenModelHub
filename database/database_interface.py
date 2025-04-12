@@ -378,20 +378,6 @@ async def link_user_dataset(session: AsyncSession, user_id: int, ds_id: int):
     session.add(link)
     await session.commit()
 
-# ========= Clear All Tables =========
-async def clear_all_tables(get_session):
-    """
-    get_session: lambda or async function that returns an AsyncSession
-    """
-    async with get_session() as session:
-        await session.execute(text("SET FOREIGN_KEY_CHECKS=0;"))
-        for table in reversed(Base.metadata.sorted_tables):
-            await session.execute(table.delete())
-        await session.execute(text("SET FOREIGN_KEY_CHECKS=1;"))
-        await session.commit()
-        print("🧹 所有表数据已清空")
-
-
 async def init_database():
     load_dotenv()
     DB_USERNAME = os.getenv("DB_USERNAME")

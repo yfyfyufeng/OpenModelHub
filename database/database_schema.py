@@ -4,6 +4,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import relationship, sessionmaker, declarative_base
 from sqlalchemy.dialects.mysql import BIGINT
 import enum
+from sqlalchemy import PrimaryKeyConstraint
 
 Base = declarative_base()
 
@@ -37,9 +38,11 @@ class Model(Base):
 class ModelTask(Base):
     __tablename__ = 'model_tasks'
 
-    model_id = Column(Integer, ForeignKey("model.model_id"), primary_key=True)
+    model_id = Column(Integer, ForeignKey("model.model_id"))
     task_name = Column(String(50), primary_key=True)
-
+    __table_args__ = (
+        PrimaryKeyConstraint('model_id', 'task_name', name='pk_model_task'),  # 可以按需要选择合适的列作为复合主键
+    )
     model = relationship("Model", back_populates="tasks", passive_deletes=True)
 
 # ---------------------------
@@ -73,10 +76,12 @@ class CNN(Base):
 class Module(Base):
     __tablename__ = 'module'
 
-    model_id = Column(Integer, ForeignKey("cnn.model_id"), primary_key=True)
+    model_id = Column(Integer, ForeignKey("cnn.model_id"))
     conv_size = Column(Integer)
     pool_type = Column(String(20))
-
+    __table_args__ = (
+        PrimaryKeyConstraint('model_id', 'conv_size', name='pk_module'),  # 可以按需要选择合适的列作为复合主键
+    )
     cnn = relationship("CNN", back_populates="modules")
 
 # ---------------------------
@@ -112,10 +117,12 @@ class Dataset(Base):
 class DsCol(Base):
     __tablename__ = 'ds_col'
 
-    ds_col_id = Column(Integer, primary_key=True, autoincrement=True)
     ds_id = Column(Integer, ForeignKey("dataset.ds_id"))
     col_name = Column(String(50))
     col_datatype = Column(String(20))
+    __table_args__ = (
+        PrimaryKeyConstraint('ds_id', 'col_name', 'col_datatype', name='pk_dscol'),  # 可以按需要选择合适的列作为复合主键
+    )
 
     dataset = relationship("Dataset", back_populates="columns")
 
