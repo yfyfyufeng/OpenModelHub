@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy import delete
-from typing import Sequence, Optional
+from typing import Sequence, Optional, Dict, Union
 from database_schema import (
     Model, CNN, RNN, Transformer, ModelTask, ModelAuthor,
     Dataset, ModelDataset, Module, DsCol,
@@ -15,8 +15,7 @@ from sqlalchemy.orm import joinedload
 # --------------------------------------
 # 🔧 创建模型（按类型分发）
 # --------------------------------------
-
-async def create_model_with_tasks(session: AsyncSession, model_data: dict) -> Model:
+async def create_model(session: AsyncSession, model_data: Dict) -> Union[Model, CNN, RNN, Transformer]:
     if not model_data.get("task"):
         raise ValueError("A model must have at least one task")
 
@@ -37,55 +36,56 @@ async def create_model_with_tasks(session: AsyncSession, model_data: dict) -> Mo
         session.add(task)
 
     await session.commit()
-
     await session.refresh(model)
-    return model
 
-async def create_cnn_model(session: AsyncSession, model_data: dict) -> CNN:
-    model = await create_model_with_tasks(session, model_data)
+    arch_name = model_data["arch_name"]
 
-    cnn = CNN(model_id=model.model_id, module_num=model_data["module_num"])
+    if arch_name == ArchType.CNN:
+        cnn = CNN(model_id=model.model_id, module_num=model_data["module_num"])
+        session.add(cnn)
+        await session.commit()
+        await session.refresh(cnn)
 
-    session.add(cnn)
-    await session.commit()
-    await session.refresh(cnn)
+        for module_data in model_data.get("modules", []):
+            module = Module(
+                model_id=cnn.model_id,
+                conv_size=module_data["conv_size"],
+                pool_type=module_data["pool_type"]
+            )
+            session.add(module)
 
-    for module_data in model_data.get("modules", []):
-        module = Module(model_id=cnn.model_id, conv_size=module_data["conv_size"], pool_type=module_data["pool_type"])
-        session.add(module)
+        await session.commit()
+        await session.refresh(cnn)
+        return cnn
 
-    await session.commit()
-    await session.refresh(cnn)
+    elif arch_name == ArchType.RNN:
+        rnn = RNN(
+            model_id=model.model_id,
+            criteria=model_data["criteria"],
+            batch_size=model_data["batch_size"],
+            input_size=model_data["input_size"]
+        )
+        session.add(rnn)
+        await session.commit()
+        await session.refresh(rnn)
+        return rnn
 
-    return cnn
+    elif arch_name == ArchType.TRANSFORMER:
+        tf = Transformer(
+            model_id=model.model_id,
+            decoder_num=model_data["decoder_num"],
+            attn_size=model_data["attn_size"],
+            up_size=model_data["up_size"],
+            down_size=model_data["down_size"],
+            embed_size=model_data["embed_size"]
+        )
+        session.add(tf)
+        await session.commit()
+        await session.refresh(tf)
+        return tf
 
-async def create_rnn_model(session: AsyncSession, model_data: dict) -> Model:
-    model = await create_model_with_tasks(session, model_data)
-    rnn = RNN(
-        model_id=model.model_id,
-        criteria=model_data["criteria"],
-        batch_size=model_data["batch_size"],
-        input_size=model_data["input_size"]
-    )
-    session.add(rnn)
-    await session.commit()
-    await session.refresh(model)
-    return model
-
-async def create_transformer_model(session: AsyncSession, model_data: dict) -> Model:
-    model = await create_model_with_tasks(session, model_data)
-    tf = Transformer(
-        model_id=model.model_id,
-        decoder_num=model_data["decoder_num"],
-        attn_size=model_data["attn_size"],
-        up_size=model_data["up_size"],
-        down_size=model_data["down_size"],
-        embed_size=model_data["embed_size"]
-    )
-    session.add(tf)
-    await session.commit()
-    await session.refresh(model)
-    return model
+    else:
+        raise ValueError(f"Unsupported architecture type: {arch_name}")
 
 # --------------------------------------
 # 🔍 查询模型
@@ -94,20 +94,25 @@ async def get_model_by_id(session: AsyncSession, model_id: int) -> Optional[Mode
     result = await session.execute(
         select(Model)
         .options(
-            joinedload(Model.cnn),
-            joinedload(Model.rnn),
-            joinedload(Model.transformer),
             joinedload(Model.tasks),
             joinedload(Model.authors),
             joinedload(Model.datasets),
+            joinedload(Model.cnn),
+            joinedload(Model.rnn),
+            joinedload(Model.transformer),
         )
         .filter_by(model_id=model_id)
     )
     return result.scalar_one_or_none()
 
+
 async def list_models(session: AsyncSession) -> Sequence[Model]:
     result = await session.execute(
-        select(Model).options(
+        select(Model)
+        .options(
+            joinedload(Model.tasks),
+            joinedload(Model.authors),
+            joinedload(Model.datasets),
             joinedload(Model.cnn),
             joinedload(Model.rnn),
             joinedload(Model.transformer),
@@ -118,7 +123,7 @@ async def list_models(session: AsyncSession) -> Sequence[Model]:
 # --------------------------------------
 # 🔧 更新模型
 # --------------------------------------
-async def update_model(session: AsyncSession, model_id: int, update_data: dict) -> Optional[Model]:
+async def update_model(session: AsyncSession, model_id: int, update_data: Dict) -> Optional[Model]:
     model = await get_model_by_id(session, model_id)
     if not model:
         return None
@@ -126,6 +131,24 @@ async def update_model(session: AsyncSession, model_id: int, update_data: dict) 
     for key, value in update_data.items():
         if hasattr(model, key):
             setattr(model, key, value)
+
+    if "task" in update_data:
+        await session.execute(delete(ModelTask).where(ModelTask.model_id == model_id))
+        for task_name in update_data["task"]:
+            task = ModelTask(model_id=model.model_id, task_name=task_name)
+            session.add(task)
+
+    if "authors" in update_data:
+        await session.execute(delete(ModelAuthor).where(ModelAuthor.model_id == model_id))
+        for author_id in update_data["authors"]:
+            author = ModelAuthor(model_id=model.model_id, user_id=author_id)
+            session.add(author)
+
+    if "datasets" in update_data:
+        await session.execute(delete(ModelDataset).where(ModelDataset.model_id == model_id))
+        for dataset_id in update_data["datasets"]:
+            dataset = ModelDataset(model_id=model.model_id, dataset_id=dataset_id)
+            session.add(dataset)
 
     if model.arch_name == ArchType.CNN and "cnn" in update_data:
         cnn = model.cnn
@@ -148,19 +171,27 @@ async def update_model(session: AsyncSession, model_id: int, update_data: dict) 
 # ❌ 删除模型
 # --------------------------------------
 async def delete_model(session: AsyncSession, model_id: int) -> bool:
+    # ✅ 直接删除任务（ModelTask 是任务本体）
     await session.execute(delete(ModelTask).where(ModelTask.model_id == model_id))
+
+    # ✅ 删除模型与作者的关联（不删 User）
     await session.execute(delete(ModelAuthor).where(ModelAuthor.model_id == model_id))
+
+    # ✅ 删除模型与数据集的关联（不删 Dataset）
     await session.execute(delete(ModelDataset).where(ModelDataset.model_id == model_id))
 
+    # ✅ 删除子架构信息
     await session.execute(delete(CNN).where(CNN.model_id == model_id))
     await session.execute(delete(RNN).where(RNN.model_id == model_id))
     await session.execute(delete(Transformer).where(Transformer.model_id == model_id))
 
+    # ✅ 删除模型本体
     model = await get_model_by_id(session, model_id)
     if model:
         await session.delete(model)
         await session.commit()
         return True
+
     return False
 
 # --------------------------------------
