@@ -130,6 +130,7 @@ async def run_tests(session: AsyncSession):
 
     print("\n✅ 所有测试已成功通过！")
 
+
 async def run_all():
     # 1. 清空数据库（如果需要）
     await drop_database()
@@ -147,6 +148,7 @@ async def run_all():
 
     # 5. 主动关闭引擎连接池
     await engine.dispose()
+
 
 if __name__ == "__main__":
     asyncio.run(run_all())

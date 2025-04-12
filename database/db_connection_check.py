@@ -48,5 +48,6 @@ async def test_aiomysql():
     except Exception as e:
         print("❌ [aiomysql] 无法连接：", e)
 
+
 if __name__ == "__main__":
     asyncio.run(test_aiomysql())
