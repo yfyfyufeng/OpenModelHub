@@ -471,4 +471,4 @@ def drop_database():
 
 if __name__ == "__main__":
     drop_database()
-    session = init_database()
+    init_database()
