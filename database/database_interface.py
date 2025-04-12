@@ -234,7 +234,7 @@ async def create_dataset(session: AsyncSession, dataset_data: dict) -> Dataset:
 async def get_dataset_by_id(session: AsyncSession, ds_id: int) -> Optional[Dataset]:
     result = await session.execute(
         select(Dataset)
-        .options(joinedload(Dataset.columns))
+        .options(selectinload(Dataset.columns))
         .filter_by(ds_id=ds_id)
     )
     return result.scalar_one_or_none()
@@ -250,9 +250,7 @@ async def list_datasets(session: AsyncSession) -> Sequence[Dataset]:
 
 async def delete_dataset(session: AsyncSession, ds_id: int) -> bool:
     await session.execute(delete(DsCol).where(DsCol.ds_id == ds_id))
-
     await session.execute(delete(UserDataset).where(UserDataset.ds_id == ds_id))
-
     await session.execute(delete(ModelDataset).where(ModelDataset.dataset_id == ds_id))
 
     dataset = await get_dataset_by_id(session, ds_id)

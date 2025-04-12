@@ -40,7 +40,7 @@ class Model(Base):
 class ModelTask(Base):
     __tablename__ = 'model_tasks'
 
-    model_id = Column(Integer, ForeignKey("model.model_id"))
+    model_id = Column(Integer, ForeignKey("model.model_id", ondelete='CASCADE'))
     task_name = Column(String(50), primary_key=True)
     __table_args__ = (
         PrimaryKeyConstraint('model_id', 'task_name', name='pk_model_task'),
@@ -80,7 +80,7 @@ class CNN(Base):
 class Module(Base):
     __tablename__ = 'module'
 
-    model_id = Column(Integer, ForeignKey("cnn.model_id"))
+    model_id = Column(Integer, ForeignKey("cnn.model_id", ondelete='CASCADE'))
     conv_size = Column(Integer)
     pool_type = Column(String(20))
     __table_args__ = (
@@ -123,7 +123,7 @@ class Dataset(Base):
 class DsCol(Base):
     __tablename__ = 'ds_col'
 
-    ds_id = Column(Integer, ForeignKey("dataset.ds_id"))
+    ds_id = Column(Integer, ForeignKey("dataset.ds_id", ondelete='CASCADE'))
     col_name = Column(String(50))
     col_datatype = Column(String(20))
     __table_args__ = (
@@ -166,8 +166,8 @@ class Affil(Base):
 class UserAffil(Base):
     __tablename__ = 'user_affil'
 
-    user_id = Column(Integer, ForeignKey("user.user_id"), primary_key=True)
-    affil_id = Column(Integer, ForeignKey("affil.affil_id"), primary_key=True)
+    user_id = Column(Integer, ForeignKey("user.user_id", ondelete='CASCADE'), primary_key=True)
+    affil_id = Column(Integer, ForeignKey("affil.affil_id", ondelete='CASCADE'), primary_key=True)
 
     user = relationship("User", back_populates="affiliations", passive_deletes=True)
     affiliation = relationship("Affil", back_populates="users", passive_deletes=True)
@@ -179,8 +179,8 @@ class UserAffil(Base):
 class UserDataset(Base):
     __tablename__ = 'user_ds'
 
-    user_id = Column(Integer, ForeignKey("user.user_id"), primary_key=True)
-    ds_id = Column(Integer, ForeignKey("dataset.ds_id"), primary_key=True)
+    user_id = Column(Integer, ForeignKey("user.user_id", ondelete='CASCADE'), primary_key=True)
+    ds_id = Column(Integer, ForeignKey("dataset.ds_id", ondelete='CASCADE'), primary_key=True)
 
     user = relationship("User", back_populates="datasets", passive_deletes=True)
     dataset = relationship("Dataset", back_populates="users", passive_deletes=True)
@@ -192,8 +192,8 @@ class UserDataset(Base):
 class ModelAuthor(Base):
     __tablename__ = 'model_author'
 
-    model_id = Column(Integer, ForeignKey("model.model_id"), primary_key=True)
-    user_id = Column(Integer, ForeignKey("user.user_id"), primary_key=True)
+    model_id = Column(Integer, ForeignKey("model.model_id", ondelete='CASCADE'), primary_key=True)
+    user_id = Column(Integer, ForeignKey("user.user_id", ondelete='CASCADE'), primary_key=True)
 
     model = relationship("Model", back_populates="authors", passive_deletes=True)
     user = relationship("User", back_populates="models", passive_deletes=True)
@@ -205,8 +205,8 @@ class ModelAuthor(Base):
 class ModelDataset(Base):
     __tablename__ = 'model_dataset'
 
-    model_id = Column(Integer, ForeignKey("model.model_id"), primary_key=True)
-    dataset_id = Column(Integer, ForeignKey("dataset.ds_id"), primary_key=True)
+    model_id = Column(Integer, ForeignKey("model.model_id", ondelete='CASCADE'), primary_key=True)
+    dataset_id = Column(Integer, ForeignKey("dataset.ds_id", ondelete='CASCADE'), primary_key=True)
 
     model = relationship("Model", back_populates="datasets", passive_deletes=True)
     dataset = relationship("Dataset", back_populates="models", passive_deletes=True)
