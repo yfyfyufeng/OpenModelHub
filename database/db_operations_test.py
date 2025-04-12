@@ -151,7 +151,7 @@ async def run_tests(session: AsyncSession):
     # 删除用户、数据集、机构
     # -----------------------------
     assert await delete_user(session, user_id) is True
-    # assert await delete_dataset(session, dataset_id) is True #ERROR
+    assert await delete_dataset(session, dataset_id) is True
     assert await delete_affiliation(session, affil.affil_id) is True
 
     # -----------------------------

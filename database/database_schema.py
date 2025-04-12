@@ -116,7 +116,7 @@ class Dataset(Base):
     task = Column(Integer)
 
     models = relationship("ModelDataset", back_populates="dataset")
-    columns = relationship("DsCol", back_populates="dataset")
+    columns = relationship("DsCol", back_populates="dataset", cascade='all, delete-orphan')
     users = relationship("UserDataset", back_populates="dataset")
 
 
