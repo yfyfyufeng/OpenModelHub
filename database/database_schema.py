@@ -1,7 +1,7 @@
 from sqlalchemy import (
-    Column, Integer, String, Enum, ForeignKey, text
+    Column, Integer, String, Enum, ForeignKey
 )
-from sqlalchemy.orm import relationship, sessionmaker, declarative_base
+from sqlalchemy.orm import relationship, declarative_base
 from sqlalchemy.dialects.mysql import BIGINT
 import enum
 from sqlalchemy import PrimaryKeyConstraint
@@ -41,7 +41,7 @@ class ModelTask(Base):
     model_id = Column(Integer, ForeignKey("model.model_id"))
     task_name = Column(String(50), primary_key=True)
     __table_args__ = (
-        PrimaryKeyConstraint('model_id', 'task_name', name='pk_model_task'),  # 可以按需要选择合适的列作为复合主键
+        PrimaryKeyConstraint('model_id', 'task_name', name='pk_model_task'),
     )
     model = relationship("Model", back_populates="tasks", passive_deletes=True)
 
