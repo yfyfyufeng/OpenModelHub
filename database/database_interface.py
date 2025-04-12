@@ -14,6 +14,7 @@ from database_schema import Base
 import os
 import pymysql
 from dotenv import load_dotenv
+import asyncio
 # --------------------------------------
 # 🔧 Model-related Operations
 # --------------------------------------
@@ -391,7 +392,7 @@ async def clear_all_tables(get_session):
         print("🧹 所有表数据已清空")
 
 
-def init_database():
+async def init_database():
     load_dotenv()
     DB_USERNAME = os.getenv("DB_USERNAME")
     DB_PASSWORD = os.getenv("DB_PASSWORD")
@@ -433,7 +434,7 @@ def init_database():
     # Return a session for further operations
     return Session()
 
-def drop_database():
+async def drop_database():
     load_dotenv()
     DB_USERNAME = os.getenv("DB_USERNAME")
     DB_PASSWORD = os.getenv("DB_PASSWORD")
@@ -469,6 +470,12 @@ def drop_database():
     except Exception as e:
         print(f"❌ 发生错误: {e}")
 
+async def run_all():
+    # 1. 清空数据库（如果需要）
+    await drop_database()
+
+    # 2. 初始化数据库结构
+    await init_database()
+
 if __name__ == "__main__":
-    drop_database()
-    init_database()
+    asyncio.run(run_all())
