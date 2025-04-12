@@ -201,7 +201,6 @@ async def delete_model(session: AsyncSession, model_id: int) -> bool:
 # --------------------------------------
 # 🔧 Dataset-related Operations
 # --------------------------------------
-# 创建数据集并添加列的函数
 async def create_dataset(session: AsyncSession, dataset_data: dict) -> Dataset:
     dataset = Dataset(
         ds_name=dataset_data["ds_name"],
@@ -227,17 +226,29 @@ async def create_dataset(session: AsyncSession, dataset_data: dict) -> Dataset:
     await session.refresh(dataset)
     return dataset
 
+
 async def get_dataset_by_id(session: AsyncSession, ds_id: int) -> Optional[Dataset]:
-    result = await session.execute(select(Dataset).filter_by(ds_id=ds_id))
+    result = await session.execute(
+        select(Dataset)
+        .options(joinedload(Dataset.columns))
+        .filter_by(ds_id=ds_id)
+    )
     return result.scalar_one_or_none()
 
+
 async def list_datasets(session: AsyncSession) -> Sequence[Dataset]:
-    result = await session.execute(select(Dataset))
+    result = await session.execute(
+        select(Dataset)
+        .options(joinedload(Dataset.columns))
+    )
     return result.scalars().all()
+
 
 async def delete_dataset(session: AsyncSession, ds_id: int) -> bool:
     await session.execute(delete(DsCol).where(DsCol.ds_id == ds_id))
+
     await session.execute(delete(UserDataset).where(UserDataset.ds_id == ds_id))
+
     await session.execute(delete(ModelDataset).where(ModelDataset.dataset_id == ds_id))
 
     dataset = await get_dataset_by_id(session, ds_id)
@@ -247,15 +258,34 @@ async def delete_dataset(session: AsyncSession, ds_id: int) -> bool:
         return True
     return False
 
+
 async def update_dataset(session: AsyncSession, ds_id: int, update_data: dict) -> Optional[Dataset]:
     dataset = await get_dataset_by_id(session, ds_id)
     if dataset:
         for key, value in update_data.items():
             setattr(dataset, key, value)
+
+        if 'columns' in update_data:
+            for col_data in update_data['columns']:
+                existing_col = await session.execute(
+                    select(DsCol).filter_by(ds_id=ds_id, col_name=col_data["col_name"])
+                )
+                col = existing_col.scalar_one_or_none()
+                if col:
+                    col.col_datatype = col_data["col_datatype"]
+                else:
+                    ds_col = DsCol(
+                        ds_id=ds_id,
+                        col_name=col_data["col_name"],
+                        col_datatype=col_data["col_datatype"]
+                    )
+                    session.add(ds_col)
+
         await session.commit()
         await session.refresh(dataset)
         return dataset
     return None
+
 
 # --------------------------------------
 # 🔧 User-related Operations
@@ -343,14 +373,6 @@ async def update_affiliation(session: AsyncSession, affil_id: int, update_data: 
 async def link_user_affiliation(session: AsyncSession, user_id: int, affil_id: int):
     relation = UserAffil(user_id=user_id, affil_id=affil_id)
     session.add(relation)
-    await session.commit()
-
-# --------------------------------------
-# 🔧 Task Operations
-# --------------------------------------
-async def add_task_to_model(session: AsyncSession, model_id: int, task_name: str):
-    task = ModelTask(model_id=model_id, task_name=task_name)
-    session.add(task)
     await session.commit()
 
 # --------------------------------------

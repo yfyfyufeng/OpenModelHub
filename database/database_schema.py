@@ -80,7 +80,7 @@ class Module(Base):
     conv_size = Column(Integer)
     pool_type = Column(String(20))
     __table_args__ = (
-        PrimaryKeyConstraint('model_id', 'conv_size', name='pk_module'),  # 可以按需要选择合适的列作为复合主键
+        PrimaryKeyConstraint('model_id', 'conv_size', name='pk_module'),
     )
     cnn = relationship("CNN", back_populates="modules")
 
@@ -121,7 +121,7 @@ class DsCol(Base):
     col_name = Column(String(50))
     col_datatype = Column(String(20))
     __table_args__ = (
-        PrimaryKeyConstraint('ds_id', 'col_name', 'col_datatype', name='pk_dscol'),  # 可以按需要选择合适的列作为复合主键
+        PrimaryKeyConstraint('ds_id', 'col_name', 'col_datatype', name='pk_dscol'),
     )
 
     dataset = relationship("Dataset", back_populates="columns")
