@@ -1,16 +1,14 @@
 import os
 import openai
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-from sqlalchemy.ext.asyncio import async_sessionmaker
-from sqlalchemy import text
+from sqlalchemy import create_engine, text
+from sqlalchemy.orm import sessionmaker
 from dotenv import load_dotenv
-import asyncio
 
+# --------------------
+# 🔧 环境配置
+# --------------------
 load_dotenv()
 
-# --------------------
-# 🔧 OpenAI & DB Config
-# --------------------
 openai.api_key = os.getenv("OPENAI_API_KEY")
 openai.api_base = os.getenv("OPENAI_BASE_URL")
 
@@ -20,9 +18,11 @@ DB_HOST = os.getenv("DB_HOST", "127.0.0.1")
 DB_PORT = int(os.getenv("DB_PORT", 3306))
 TARGET_DB = os.getenv("TARGET_DB")
 
-DATABASE_URL = f"mysql+aiomysql://{DB_USERNAME}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{TARGET_DB}"
-engine = create_async_engine(DATABASE_URL, echo=False)
-SessionLocal = async_sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
+DATABASE_URL = f"mysql+pymysql://{DB_USERNAME}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{TARGET_DB}"
+
+# 初始化数据库连接
+engine = create_engine(DATABASE_URL, echo=False)
+SessionLocal = sessionmaker(bind=engine)
 
 # ----------------------
 # 📘 Schema-aware Prompt
@@ -48,7 +48,7 @@ SYSTEM_PROMPT = """你是一个 SQL 生成器，请根据自然语言请求生�
 # ----------------------
 # 🔁 生成 SQL
 # ----------------------
-async def natural_language_to_sql(nl_input: str) -> str:
+def natural_language_to_sql(nl_input: str) -> str:
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=[
@@ -62,7 +62,7 @@ async def natural_language_to_sql(nl_input: str) -> str:
 # ----------------------
 # ❌ 错误自动修复
 # ----------------------
-async def fix_sql_with_error(nl_input: str, original_sql: str, error_msg: str) -> str:
+def fix_sql_with_error(nl_input: str, original_sql: str, error_msg: str) -> str:
     fix_prompt = f"""
 原始自然语言请求是：
 {nl_input}
@@ -88,34 +88,36 @@ async def fix_sql_with_error(nl_input: str, original_sql: str, error_msg: str) -
 # ----------------------
 # 🧪 执行 SQL
 # ----------------------
-async def execute_sql(sql: str):
-    async with SessionLocal() as session:
-        try:
-            result = await session.execute(text(sql))
-            rows = result.fetchall()
-            columns = result.keys()
-            return [dict(zip(columns, row)) for row in rows], None
-        except Exception as e:
-            return None, str(e)
+def execute_sql(sql: str):
+    session = SessionLocal()
+    try:
+        result = session.execute(text(sql))
+        rows = result.fetchall()
+        columns = result.keys()
+        return [dict(zip(columns, row)) for row in rows], None
+    except Exception as e:
+        return None, str(e)
+    finally:
+        session.close()
 
 # ----------------------
-# 🚀 Agent 主函数
+# 🚀 主逻辑
 # ----------------------
-async def query_agent(nl_input: str):
+def query_agent(nl_input: str):
     print("🎯 用户输入：", nl_input)
 
     # 第一次生成 SQL
-    sql = await natural_language_to_sql(nl_input)
+    sql = natural_language_to_sql(nl_input)
     print("\n🧠 GPT生成的SQL：", sql)
 
-    result, error = await execute_sql(sql)
+    result, error = execute_sql(sql)
 
-    # 如果第一次失败，尝试修复
+    # 如果出错，尝试修复
     if error:
         print("\n⚠️ 执行出错，尝试自动修复中...")
-        fixed_sql = await fix_sql_with_error(nl_input, sql, error)
+        fixed_sql = fix_sql_with_error(nl_input, sql, error)
         print("\n🔁 修复后的SQL：", fixed_sql)
-        result, error = await execute_sql(fixed_sql)
+        result, error = execute_sql(fixed_sql)
 
         if error:
             print("\n❌ 修复仍失败：", error)
@@ -127,8 +129,8 @@ async def query_agent(nl_input: str):
         print(result)
 
 # ----------------------
-# 🏃 入口测试
+# 🏃 入口
 # ----------------------
 if __name__ == "__main__":
     nl_input = input("📝 请输入你的自然语言查询：\n> ")
-    asyncio.run(query_agent(nl_input))
+    query_agent(nl_input)
