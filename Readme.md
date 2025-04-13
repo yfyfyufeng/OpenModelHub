@@ -72,111 +72,118 @@ CREATE TABLE model_tags (
 
 Example: [https://huggingface.co/meta-llama/Llama-2-7b-hf/tree/main](https://huggingface.co/meta-llama/Llama-2-7b-hf/tree/main)
 
-### model
+---
 
-| schema        | model_id (PK) | model_name | param_num | media_type (FK) | arch_name (FK) | train_ID (FK) | task_id (FK)     |
-|---------------|---------------|------------|-----------|------------------|---------------|----------------|------------------|
-| data type     | int           | varchar    | int       | multivalued,int  | multivalued,varchar | multivluaed,int | multivalued, int |
-| example       | 000000001     | llama_2_7b | 6.74B     | 01               | 01            | 1              | {01,03}          |
+#### **model**
+| **Attribute**       | **Description**                                                                                                       | **Data Type**    | **Example**  |
+|---------------------|-----------------------------------------------------------------------------------------------------------------------|------------------|--------------|
+| **model_id (PK)**    | A unique identifier for the model (Primary Key).                                                                       | int              | 1001         |
+| **model_name**       | Name of the model.                                                                                                     | varchar          | gpt_4_13b    |
+| **param_num**        | The number of parameters in the model.                                                                                  | int              | 175000000000 |
+| **media_type**       | Foreign Key that links to a table that defines the type of media the model deals with.                                  | varchar          | text         |
+| **arch_name (FK)**   | Foreign Key linking to the architecture name.                                                                          | varchar          | transformer  |
+| **train_name (FK)**  | Foreign Key linking to the training process or dataset used for training.                                              | varchar          | pretrained   |
 
-### model_author
+#### **model_tasks**
+| **Attribute**       | **Description**                                                                                                       | **Data Type**    | **Example**  |
+|---------------------|-----------------------------------------------------------------------------------------------------------------------|------------------|--------------|
+| **model_id (FK)**    | Foreign Key referencing **model_id** in the model table.                                                                | int              | 1001         |
+| **task_name**        | The task associated with the model (e.g., classification, translation).                                                 | varchar          | classification |
 
-|schema|model_id (PK)|user_id|
-|-|-|-|
-|data example|0000001|123090342|
+#### **model_author**
+| **Attribute**       | **Description**                                                                                                       | **Data Type**    | **Example**  |
+|---------------------|-----------------------------------------------------------------------------------------------------------------------|------------------|--------------|
+| **model_id (FK)**    | Foreign Key referencing **model_id** in the model table.                                                                | int              | 1001         |
+| **user_id (FK)**     | Foreign Key referencing **user_id** in the user table.                                                                  | int              | 123090342    |
 
-#### transformer
+#### **transformer**
+| **Attribute**       | **Description**                                                                                                       | **Data Type**    | **Example**  |
+|---------------------|-----------------------------------------------------------------------------------------------------------------------|------------------|--------------|
+| **model_id (PK, FK)**| Primary Key, Foreign Key referencing **model_id** in the model table.                                                   | int              | 1001         |
+| **decoder_num**      | Number of decoders used in the model.                                                                                   | int              | 12           |
+| **attn_size**        | Size of the attention mechanism used in the model.                                                                    | int              | 64           |
+| **up_size**          | The upsampling size in the model.                                                                                      | int              | 256          |
+| **down_size**        | The downsampling size in the model.                                                                                    | int              | 64           |
+| **embed_size**       | The size of the embedding layer in the model.                                                                          | int              | 128          |
 
-|schema|model_id|decoder_num|attn_size|up_size|down_size|embed_size|
-|-|-|-|-|-|-|-|
+#### **cnn**
+| **Attribute**       | **Description**                                                                                                       | **Data Type**    | **Example**  |
+|---------------------|-----------------------------------------------------------------------------------------------------------------------|------------------|--------------|
+| **model_id (PK, FK)**| Primary Key, Foreign Key referencing **model_id** in the model table.                                                   | int              | 1001         |
+| **module_num**       | The number of modules (e.g., convolution layers) in the model.                                                         | int              | 3            |
 
-#### cnn
+#### **module_id**
+| **Attribute**       | **Description**                                                                                                       | **Data Type**    | **Example**  |
+|---------------------|-----------------------------------------------------------------------------------------------------------------------|------------------|--------------|
+| **model_id (FK)**    | Foreign Key referencing **model_id** in the cnn table.                                                                | int              | 1001         |
+| **conv_size**        | The size of the convolution layers in the model.                                                                      | int              | 3            |
+| **pool_type**        | The type of pooling used in the model (e.g., max pooling, average pooling).                                            | varchar          | max          |
 
-|model_id|module_num|module_id|
-|-|-|-|
+#### **RNN**
+| **Attribute**       | **Description**                                                                                                       | **Data Type**    | **Example**  |
+|---------------------|-----------------------------------------------------------------------------------------------------------------------|------------------|--------------|
+| **model_id (PK, FK)**| Primary Key, Foreign Key referencing **model_id** in the model table.                                                   | int              | 1001         |
+| **criteria**         | The training criteria or loss function used by the RNN model.                                                           | varchar          | cross_entropy|
+| **batch_size**       | The number of data samples processed together in one pass through the model (used in training).                         | int              | 64           |
+| **input_size**       | The size of the input data (e.g., number of features for each data point).                                              | int              | 256          |
 
-##### module_id
+#### **dataset**
+| **Attribute**       | **Description**                                                                                                       | **Data Type**    | **Example**  |
+|---------------------|-----------------------------------------------------------------------------------------------------------------------|------------------|--------------|
+| **ds_id (PK)**       | Unique identifier for the dataset.                                                                                     | int              | 1            |
+| **ds_name**          | The name of the dataset (e.g., "Coco", "ImageNet").                                                                    | varchar          | Coco         |
+| **ds_size**          | The size of the dataset (e.g., number of images or data points).                                                       | int              | 1000000      |
+| **media**            | The type of media in the dataset (e.g., image, text, video).                                                           | varchar          | image        |
+| **task**             | The task associated with the dataset (e.g., classification, segmentation).                                             | int              | 1            |
 
-|conv_size|pool_type|...|
-|-|-|-|
+#### **ds_col**
+| **Attribute**       | **Description**                                                                                                       | **Data Type**    | **Example**  |
+|---------------------|-----------------------------------------------------------------------------------------------------------------------|------------------|--------------|
+| **ds_col_id (PK)**   | Unique identifier for the column within the dataset.                                                                  | int              | 01           |
+| **ds_id (FK)**       | Foreign Key referencing **ds_id** in the dataset table.                                                               | int              | 1            |
+| **col_name**         | Name of the column within the dataset (e.g., "image_id", "label").                                                      | varchar          | image_id     |
+| **col_datatype**     | The data type of the column (e.g., integer, float, text).                                                              | varchar          | integer      |
 
-##### RNN
+#### **user**
+| **Attribute**       | **Description**                                                                                                       | **Data Type**    | **Example**  |
+|---------------------|-----------------------------------------------------------------------------------------------------------------------|------------------|--------------|
+| **user_id (PK)**     | Unique identifier for the user.                                                                                         | int              | 123090342    |
+| **user_name**        | The name of the user (e.g., "JohnDoe").                                                                                  | varchar          | JohnDoe      |
+| **model_id (FK)**    | Foreign Key referencing **model_id** in the model table.                                                               | int              | 1001         |
+| **ds_id (FK)**       | Foreign Key referencing **ds_id** in the dataset table.                                                                | int              | 1            |
+| **affiliate**        | A reference to the affiliate company or group the user is associated with.                                             | varchar          | AffiliateX   |
 
-|model_id|input_num|output_num|
+#### **user_affil**
+| **Attribute**       | **Description**                                                                                                       | **Data Type**    | **Example**  |
+|---------------------|-----------------------------------------------------------------------------------------------------------------------|------------------|--------------|
+| **user_id (FK)**     | Foreign Key referencing **user_id** in the user table.                                                                 | int              | 123090342    |
+| **affil_id (FK)**    | Foreign Key referencing **affil_id** in the affil table.                                                               | int              | 1            |
 
-### dataset
+#### **affil**
+| **Attribute**       | **Description**                                                                                                       | **Data Type**    | **Example**  |
+|---------------------|-----------------------------------------------------------------------------------------------------------------------|------------------|--------------|
+| **affil_id (PK)**    | Unique identifier for the affiliate.                                                                                   | int              | 1            |
+| **affil_name**       | Name of the affiliate organization.                                                                                     | varchar          | AffiliateX   |
 
-|schema|ds_id|ds_name|ds_size|ds_col_id|media|task|
-|-|-|-|-|-|-|-|
+#### **model_user**
+| **Attribute**   | **Description**                                                                  | **Data Type**   | **Example** |
+|-----------------|----------------------------------------------------------------------------------|-----------------|-------------|
+| **model_id (FK)**| 外键，引用 **model** 表中的 `model_id`                                           | int             | 1001        |
+| **user_id (FK)** | 外键，引用 **user** 表中的 `user_id`                                             | int             | 123090342   |
 
-### user
+#### **model_ds**
 
-|user_id|user_name|m_id|ds_id|affiliate|
-|-|-|-|-|-|
+| **Attribute**   | **Description**                                                                  | **Data Type**   | **Example** |
+|-----------------|----------------------------------------------------------------------------------|-----------------|-------------|
+| **model_id (FK)**| 外键，引用 **model** 表中的 `model_id`                                           | int             | 1001        |
+| **ds_id (FK)**   | 外键，引用 **dataset** 表中的 `ds_id`                                           | int             | 1           |
 
+#### **user_ds**
 
-#### user_affil
-
-|user_id|affil_id|
-|-|-|
-
-
-#### affil
-
-|affil_id|affil_name|
-|-|-|
-
-#### ds_col
-
-|schema|ds_id(PK)|ds_col_id(PK)|col_name|col_datatype|
-
-#### -- media
-
-| media_type | media_name  |
-|------------|-------------|
-| 01         | language    |
-| 02         | vision      |
-| 03         | audio       |
-| 04         | multimodal  |
-
-#### -- arch
-
-| arch_id | arch_name   |
-|---------|-------------|
-| 01      | transformer |
-| 02      | CNN         |
-| 03      | RNN         |
-| 04      | …           |
-
-#### -- task
-
-| task_id  |
-|----------|
-| 01       | classification |
-| 02       | regression     |
-| 03       | generation     |
-| 04       | …              |
-
-#### -- train_ID
-
-| train_ID | train_name |
-|----------|------------|
-| 01       | pretrained |
-| 02       | finetuned  |
-| …        | …          |
-
-#### ---- model_lang (could also be model_vis ...)
-
-| model_id (PK) | content_len |
-|---------------|-------------|
-| 00000001      | 4k          |
-
-#### ---- model_tf (tf short for transformer)
-
-*(乱写的)*  
-| model_id | decoder_layer | head_number | head_size |
-|----------|----------------|-------------|-----------|
-|          | 32             | 24          | 2048      |
+| **Attribute**   | **Description**                                                                  | **Data Type**   | **Example** |
+|-----------------|----------------------------------------------------------------------------------|-----------------|-------------|
+| **user_id (FK)** | 外键，引用 **user** 表中的 `user_id`                                             | int             | 123090342   |
+| **ds_id (FK)**   | 外键，引用 **dataset** 表中的 `ds_id`                                           | int             | 1           |
 
 ---
 
@@ -271,3 +278,15 @@ ORDER BY download_count DESC LIMIT 10;
 |                       | Frontend Development    |                |
 
 ---
+
+## Current Work
+| Task     | Member   | Status |
+|----------|----------|--------|
+| Model    | lyf, gly | R      |
+| Dataset  | lyx      | R      |
+| User     | zzr      | R      |
+| Agent    | tym      | R      |
+| Security | zsh      | PD     |
+
+## Schedule
+Meet in 4/18
