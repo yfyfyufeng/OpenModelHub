@@ -41,7 +41,7 @@ class ModelTask(Base):
     __tablename__ = 'model_tasks'
 
     model_id = Column(Integer, ForeignKey("model.model_id", ondelete='CASCADE'))
-    task_name = Column(String(50), primary_key=True)
+    task_name = Column(String(50))
     __table_args__ = (
         PrimaryKeyConstraint('model_id', 'task_name', name='pk_model_task'),
     )
