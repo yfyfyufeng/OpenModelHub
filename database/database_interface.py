@@ -12,7 +12,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from database_schema import Base
 import os
-import pymysql
+import aiomysql
 from dotenv import load_dotenv
 import asyncio
 from sqlalchemy.orm import selectinload
@@ -423,38 +423,41 @@ async def init_database():
     DB_PORT = int(os.getenv("DB_PORT", 3306))
     TARGET_DB = os.getenv("TARGET_DB")
 
-    conn = pymysql.connect(
+    # 异步连接 MySQL 默认数据库
+    conn = await aiomysql.connect(
         host=DB_HOST,
         port=DB_PORT,
         user=DB_USERNAME,
         password=DB_PASSWORD,
-        database='mysql'
+        db='mysql'  # 确保连接默认库以便检查/创建目标库
     )
-    cursor = conn.cursor()
-    cursor.execute(f"SHOW DATABASES LIKE '{TARGET_DB}'")
-    result = cursor.fetchone()
-    if not result:
-        print(f"📦 数据库 `{TARGET_DB}` 不存在，正在创建...")
-        cursor.execute(f"CREATE DATABASE {TARGET_DB} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;")
-        print(f"✅ 数据库 `{TARGET_DB}` 创建成功！")
-    else:
-        print(f"✅ 数据库 `{TARGET_DB}` 已存在")
-    cursor.close()
+
+    async with conn.cursor() as cursor:
+        await cursor.execute(f"SHOW DATABASES LIKE '{TARGET_DB}'")
+        result = await cursor.fetchone()
+        if not result:
+            print(f"📦 数据库 `{TARGET_DB}` 不存在，正在创建...")
+            await cursor.execute(
+                f"CREATE DATABASE {TARGET_DB} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+            )
+            print(f"✅ 数据库 `{TARGET_DB}` 创建成功！")
+        else:
+            print(f"✅ 数据库 `{TARGET_DB}` 已存在")
+
     conn.close()
 
+    # 初始化 SQLAlchemy 引擎（注意：SQLAlchemy 仍然是同步操作）
     db_url = f"mysql+pymysql://{DB_USERNAME}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{TARGET_DB}"
     engine = create_engine(db_url, echo=True)
 
-    # Create all tables based on the Base model
+    # 创建所有表
     Base.metadata.create_all(engine)
 
-    # Create the sessionmaker and bind it to the engine
+    # 创建 Session
     Session = sessionmaker(bind=engine)
 
-    # Print success message
-    print("\u2705 所有表结构已初始化完成")
+    print("✅ 所有表结构已初始化完成")
 
-    # Return a session for further operations
     return Session()
 
 
@@ -465,31 +468,30 @@ async def drop_database():
     DB_HOST = os.getenv("DB_HOST", "127.0.0.1")
     DB_PORT = int(os.getenv("DB_PORT", 3306))
     TARGET_DB = os.getenv("TARGET_DB")
+
     try:
-        # Connect to MySQL (connect to 'mysql' database to be able to drop others)
-        conn = pymysql.connect(
+        # 连接到默认的 mysql 数据库
+        conn = await aiomysql.connect(
             host=DB_HOST,
             port=DB_PORT,
             user=DB_USERNAME,
             password=DB_PASSWORD,
-            database='mysql'  # Connect to the default "mysql" database
+            db='mysql'  # 确保连接到 'mysql' 而不是目标库
         )
-        cursor = conn.cursor()
 
-        # Check if the target database exists
-        cursor.execute(f"SHOW DATABASES LIKE '{TARGET_DB}'")
-        result = cursor.fetchone()
+        async with conn.cursor() as cursor:
+            await cursor.execute(f"SHOW DATABASES LIKE '{TARGET_DB}'")
+            result = await cursor.fetchone()
 
-        if result:
-            print(f"📦 数据库 `{TARGET_DB}` 存在，正在删除...")
-            cursor.execute(f"DROP DATABASE {TARGET_DB};")
-            print(f"✅ 数据库 `{TARGET_DB}` 删除成功！")
-        else:
-            print(f"❌ 数据库 `{TARGET_DB}` 不存在，无法删除。")
+            if result:
+                print(f"📦 数据库 `{TARGET_DB}` 存在，正在删除...")
+                await cursor.execute(f"DROP DATABASE {TARGET_DB};")
+                print(f"✅ 数据库 `{TARGET_DB}` 删除成功！")
+            else:
+                print(f"❌ 数据库 `{TARGET_DB}` 不存在，无法删除。")
 
-        # Close cursor and connection
-        cursor.close()
         conn.close()
+        await conn.wait_closed()
 
     except Exception as e:
         print(f"❌ 发生错误: {e}")
