@@ -1,19 +1,32 @@
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
+# 4/15 unset proxy
+
+env_proxy = [
+    "http_proxy", "https_proxy", "ftp_proxy", "all_proxy",
+    "HTTP_PROXY", "HTTPS_PROXY", "FTP_PROXY", "ALL_PROXY"
+]
+
+original_env = {}
+for i in env_proxy:
+    # ----- Step 1: 备份原始代理设置 -----
+    original_env[i] = os.environ.get(i)
+    # ----- Step 2: 临时清除代理 -----
+    os.environ.pop(i, None)
+
+
 import asyncio
 from openai import AsyncOpenAI
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from sqlalchemy import text
-from dotenv import load_dotenv
-
-# --------------------
-# 🔧 环境配置
-# --------------------
-load_dotenv()
 
 client = AsyncOpenAI(
     api_key=os.getenv("OPENAI_API_KEY"),
-    base_url=os.getenv("OPENAI_BASE_URL")
+    base_url=os.getenv("OPENAI_BASE_URL"),
+    # proxies= None
 )
 
 DB_USERNAME = os.getenv("DB_USERNAME")
@@ -133,3 +146,7 @@ async def query_agent(nl_input: str):
 if __name__ == "__main__":
     nl_input = input("📝 请输入你的自然语言查询：\n> ")
     asyncio.run(query_agent(nl_input))
+    # ----- Step 3: 恢复代理环境变量 -----
+    for key, value in original_env.items():
+        if value is not None:
+            os.environ[key] = value

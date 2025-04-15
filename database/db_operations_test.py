@@ -103,7 +103,9 @@ async def run_tests(session: AsyncSession):
     }
     transformer_model = await create_model(session, transformer_model_data)
     await link_model_author(session, transformer_model.model_id, user_id)
-
+    choice = input("Record creation is completed. Do you want to empty the dataset? y/n: ")
+    if choice != 'y':
+        return
     # -----------------------------
     # 删除模型，验证任务删除、关系删除、用户数据集不删
     # -----------------------------
