@@ -66,7 +66,7 @@ SYSTEM_PROMPT = """你是一个 SQL 生成器，请根据自然语言请求生�
 # ----------------------
 async def natural_language_to_sql(nl_input: str) -> str:
     response = await client.chat.completions.create(
-        model="gpt-3.5-turbo",
+        model="gpt-4o",
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": nl_input}
@@ -92,7 +92,7 @@ async def fix_sql_with_error(nl_input: str, original_sql: str, error_msg: str) -
 请修复这个 SQL 查询，返回正确语法的 SQL 查询语句。
 """
     response = await client.chat.completions.create(
-        model="gpt-3.5-turbo",
+        model="gpt-4o",
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": fix_prompt}
