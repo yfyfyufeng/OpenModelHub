@@ -1,5 +1,5 @@
 from sqlalchemy import (
-    Column, Integer, String, Enum, ForeignKey
+    Column, Integer, String, Enum, ForeignKey, Boolean
 )
 from sqlalchemy.orm import relationship, declarative_base
 from sqlalchemy.dialects.mysql import BIGINT
@@ -141,8 +141,10 @@ class User(Base):
 
     user_id = Column(Integer, primary_key=True, autoincrement=True)
     user_name = Column(String(50))
+    password_hash = Column(String(100))  # 应使用加密哈希
     affiliate = Column(String(50))
-
+    is_admin = Column(Boolean, default=True)  # 新增管理员字段
+    
     models = relationship("ModelAuthor", back_populates="user", cascade="all, delete-orphan", passive_deletes=True)
     datasets = relationship("UserDataset", back_populates="user", cascade="all, delete-orphan", passive_deletes=True)
     affiliations = relationship("UserAffil", back_populates="user", cascade="all, delete-orphan", passive_deletes=True)
