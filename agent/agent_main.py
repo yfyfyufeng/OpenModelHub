@@ -66,7 +66,7 @@ SYSTEM_PROMPT = """你是一个 SQL 生成器，请根据自然语言请求生�
 # ----------------------
 async def natural_language_to_sql(nl_input: str) -> str:
     response = await client.chat.completions.create(
-        model="gpt-3.5-turbo",
+        model="gpt-4o",
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": nl_input}
@@ -92,7 +92,7 @@ async def fix_sql_with_error(nl_input: str, original_sql: str, error_msg: str) -
 请修复这个 SQL 查询，返回正确语法的 SQL 查询语句。
 """
     response = await client.chat.completions.create(
-        model="gpt-3.5-turbo",
+        model="gpt-4o",
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": fix_prompt}
@@ -143,10 +143,17 @@ async def query_agent(nl_input: str):
 # ----------------------
 # 🏁 CLI 入口
 # ----------------------
+async def main():
+    try:
+        nl_input = input("📝 请输入你的自然语言查询：\n> ")
+        await query_agent(nl_input)
+    finally:
+        # Step 3: 恢复代理环境变量
+        for key, value in original_env.items():
+            if value is not None:
+                os.environ[key] = value
+        # Step 4: 正确释放数据库资源
+        await engine.dispose()
+
 if __name__ == "__main__":
-    nl_input = input("📝 请输入你的自然语言查询：\n> ")
-    asyncio.run(query_agent(nl_input))
-    # ----- Step 3: 恢复代理环境变量 -----
-    for key, value in original_env.items():
-        if value is not None:
-            os.environ[key] = value
+    asyncio.run(main())
