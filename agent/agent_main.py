@@ -143,10 +143,17 @@ async def query_agent(nl_input: str):
 # ----------------------
 # 🏁 CLI 入口
 # ----------------------
+async def main():
+    try:
+        nl_input = input("📝 请输入你的自然语言查询：\n> ")
+        await query_agent(nl_input)
+    finally:
+        # Step 3: 恢复代理环境变量
+        for key, value in original_env.items():
+            if value is not None:
+                os.environ[key] = value
+        # Step 4: 正确释放数据库资源
+        await engine.dispose()
+
 if __name__ == "__main__":
-    nl_input = input("📝 请输入你的自然语言查询：\n> ")
-    asyncio.run(query_agent(nl_input))
-    # ----- Step 3: 恢复代理环境变量 -----
-    for key, value in original_env.items():
-        if value is not None:
-            os.environ[key] = value
+    asyncio.run(main())
