@@ -4,3 +4,4 @@
 **/__pycache__/
 .env
 agent/agent_note.md
+.streamlit/
