@@ -1,9 +1,7 @@
 .venv/
 .idea/
 .vscode/
-__pycache__/
 **/__pycache__/
-*.py[cod]
 .env
 agent/agent_note.md
 .streamlit/
