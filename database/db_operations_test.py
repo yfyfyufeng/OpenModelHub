@@ -105,6 +105,7 @@ async def run_tests(session: AsyncSession):
     await link_model_author(session, transformer_model.model_id, user_id)
     choice = input("Record creation is completed. Do you want to empty the dataset? y/n: ")
     if choice != 'y':
+        print("\n✅ 所有测试已成功通过,数据库未清空。")
         return
     # -----------------------------
     # 删除模型，验证任务删除、关系删除、用户数据集不删
@@ -168,7 +169,7 @@ async def run_tests(session: AsyncSession):
     user_check2 = await get_user_by_id(session, user2.user_id)
     assert user_check2 is not None
 
-    print("\n✅ 所有测试已成功通过！")
+    print("\n✅ 所有测试已成功通过，数据库已清空。")
 
 
 async def run_all():
