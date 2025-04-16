@@ -1,8 +1,27 @@
 import os
+import re
 from dotenv import load_dotenv
 
 load_dotenv()
-# 4/15 unset proxy
+
+
+# ----------------------
+# Auxiliary Functions
+# ----------------------
+
+# language handling
+
+def clean_sql_output(output: str) -> str:
+    # 去除开头的 ```sql 或 sql
+    output = re.sub(r"^\s*```sql\s*", "", output, flags=re.IGNORECASE)
+    output = re.sub(r"^\s*sql\s*", "", output, flags=re.IGNORECASE)
+    # 去除末尾的 ```
+    output = re.sub(r"\s*```$", "", output)
+    return output.strip()
+
+# ----------------------
+# 🌐 Proxy Settings (done before importing asyncio)
+# -----------------------
 
 env_proxy = [
     "http_proxy", "https_proxy", "ftp_proxy", "all_proxy",
@@ -16,6 +35,9 @@ for i in env_proxy:
     # ----- Step 2: Temporarily clear proxy -----
     os.environ.pop(i, None)
 
+# ----------------------
+# 📦 Import Librarie
+# -----------------------
 
 import asyncio
 from openai import AsyncOpenAI
@@ -42,8 +64,13 @@ SessionLocal = async_sessionmaker(bind=engine, expire_on_commit=False, class_=As
 # ----------------------
 # 📘 Prompt
 # ----------------------
-SYSTEM_PROMPT = """You are an SQL generator. Please generate MySQL queries based on natural language requests. The data structure is as follows:
+SYSTEM_PROMPT = """
+You are an SQL generator. Please generate MySQL queries based on natural language requests. 
+You must only generate standard SQL (ANSI-compatible) queries. 
+Do NOT use MySQL-specific syntax like DESCRIBE or SHOW. 
+If the user asks to see the structure of a table, use the information_schema.columns table.
 
+The data structure is as follows:
 - model(model_id, model_name, param_num, media_type, arch_name)
 - model_tasks(model_id, task_name)
 - cnn(model_id, module_num)
@@ -61,6 +88,7 @@ SYSTEM_PROMPT = """You are an SQL generator. Please generate MySQL queries based
 Only return the SQL query. Do not add explanations.
 """
 
+
 # ----------------------
 # 🔁 Generate SQL with GPT
 # ----------------------
@@ -73,7 +101,7 @@ async def natural_language_to_sql(nl_input: str) -> str:
         ],
         temperature=0,
     )
-    return response.choices[0].message.content.strip("` \n")
+    return clean_sql_output(response.choices[0].message.content)
 
 # ----------------------
 # ❌ Error Fixing
@@ -99,7 +127,7 @@ Please fix this SQL query and return a correct SQL query.
         ],
         temperature=0,
     )
-    return response.choices[0].message.content.strip("` \n")
+    return clean_sql_output(response.choices[0].message.content)
 
 # ----------------------
 # 📦 Execute SQL
