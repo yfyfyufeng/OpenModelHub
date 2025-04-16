@@ -1,6 +1,6 @@
 .venv/
 .idea/
 .vscode/
-.__pycache__/
+**/__pycache__/
 .env
 agent/agent_note.md

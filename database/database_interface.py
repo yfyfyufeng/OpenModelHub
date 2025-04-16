@@ -422,7 +422,6 @@ async def init_database():
     DB_HOST = os.getenv("DB_HOST", "127.0.0.1")
     DB_PORT = int(os.getenv("DB_PORT", 3306))
     TARGET_DB = os.getenv("TARGET_DB")
-
     # 异步连接 MySQL 默认数据库
     conn = await aiomysql.connect(
         host=DB_HOST,
