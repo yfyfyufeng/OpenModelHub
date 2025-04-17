@@ -8,7 +8,15 @@ import sys
 from dotenv import load_dotenv
 current_dir = Path(__file__).parent
 project_root = current_dir.parent
+sys.path.extend([str(project_root), str(project_root/"database")])
 sys.path.extend([str(project_root), str(project_root/"frontend")])
+from database.database_interface import (
+    list_models, get_model_by_id, list_datasets, get_dataset_by_id,
+    list_users, get_user_by_id, list_affiliations, init_database,
+    create_user, update_user, delete_user
+)
+from database.database_interface import User
+from sqlalchemy import select
 
 def async_to_sync(async_func):
     def wrapper(*args, **kwargs):
@@ -18,8 +26,22 @@ def async_to_sync(async_func):
 # 模型操作
 @async_to_sync
 async def db_list_models():
+    """获取所有模型列表"""
     async with get_db_session()() as session:
-        return await list_models(session)
+        try:
+            # 首先获取所有模型
+            stmt = select(Model)
+            result = await session.execute(stmt)
+            models = result.scalars().all()
+            
+            # 为每个模型加载关联数据
+            for model in models:
+                await session.refresh(model, ['tasks', 'authors', 'datasets', 'cnn', 'rnn', 'transformer'])
+            
+            return models
+        except Exception as e:
+            print(f"获取模型列表时出错: {str(e)}")
+            return []
 
 @async_to_sync
 async def db_get_model(model_id: int):
@@ -51,23 +73,35 @@ async def db_list_users():
         return await list_users(session)
 
 @async_to_sync
-async def db_create_user(username: str, password: str):
+async def db_create_user(username: str, password: str, affiliate: str = None, is_admin: bool = False):
     async with get_db_session()() as session:
-        return await create_user(session, {
-            "user_name": username,
-            "password_hash": password,  # 应使用加密哈希
-            "affiliate": "default"
-        })
-        
+        user = User(
+            user_name=username,
+            password_hash=password,
+            affiliate=affiliate,
+            is_admin=is_admin
+        )
+        session.add(user)
+        await session.commit()
+        return user
+
 @async_to_sync
 async def db_authenticate_user(username: str, password: str):
     async with get_db_session()() as session:
-        result = await session.execute(select(User).filter_by(user_name=username))
+        stmt = select(User).where(User.user_name == username)
+        result = await session.execute(stmt)
         user = result.scalar_one_or_none()
-        if user and user.password_hash == password:  # 实际应使用密码哈希验证
+        if user and user.password_hash == password:
             return user
         return None
-    
+
+@async_to_sync
+async def db_get_user_by_username(username: str):
+    async with get_db_session()() as session:
+        stmt = select(User).where(User.user_name == username)
+        result = await session.execute(stmt)
+        return result.scalar_one_or_none()
+
 # 文件操作
 @async_to_sync
 async def db_save_file(file_data: bytes, filename: str):
@@ -87,7 +121,6 @@ async def db_get_file(filename: str):
     return None
 
 def get_db_session():
-  
     load_dotenv()
     DB_USERNAME = os.getenv("DB_USERNAME")
     DB_PASSWORD = os.getenv("DB_PASSWORD")
@@ -102,3 +135,4 @@ def get_db_session():
         echo=True
     )
     return async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+

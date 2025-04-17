@@ -1,13 +1,13 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy import delete
-from typing import Sequence, Optional, Dict, Union
+from typing import Sequence, Optional, Dict, Union, List
 from database_schema import (
     Model, CNN, RNN, Transformer, ModelTask, ModelAuthor,
     Dataset, ModelDataset, Module, DsCol,
     User, UserDataset, UserAffil, Affil,  Base, ArchType
 )
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, subqueryload
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from database_schema import Base
@@ -116,17 +116,16 @@ async def get_model_by_id(session: AsyncSession, model_id: int) -> Optional[Mode
 
 
 async def list_models(session: AsyncSession) -> Sequence[Model]:
-    result = await session.execute(
-        select(Model)
-        .options(
-            joinedload(Model.tasks),
-            joinedload(Model.authors),
-            joinedload(Model.datasets),
-            joinedload(Model.cnn),
-            joinedload(Model.rnn),
-            joinedload(Model.transformer),
-        )
+    """获取所有模型"""
+    stmt = select(Model).options(
+        selectinload(Model.tasks),
+        selectinload(Model.authors),
+        selectinload(Model.datasets),
+        selectinload(Model.cnn),
+        selectinload(Model.rnn),
+        selectinload(Model.transformer),
     )
+    result = await session.execute(stmt)
     return result.scalars().all()
 
 
@@ -241,10 +240,11 @@ async def get_dataset_by_id(session: AsyncSession, ds_id: int) -> Optional[Datas
 
 
 async def list_datasets(session: AsyncSession) -> Sequence[Dataset]:
-    result = await session.execute(
-        select(Dataset)
-        .options(joinedload(Dataset.columns))
+    """获取所有数据集"""
+    stmt = select(Dataset).options(
+        selectinload(Dataset.columns)
     )
+    result = await session.execute(stmt)
     return result.scalars().all()
 
 
@@ -293,6 +293,9 @@ async def update_dataset(session: AsyncSession, ds_id: int, update_data: dict) -
 # 🔧 User-related Operations
 # --------------------------------------
 async def create_user(session: AsyncSession, user_data: dict) -> User:
+    existing = await session.execute(select(User).where(User.username == user_data["username"]))
+    if existing.scalar_one_or_none():
+        raise ValueError("用户名已存在")
     user = User(**user_data)
     session.add(user)
     await session.commit()
@@ -416,12 +419,14 @@ async def link_user_dataset(session: AsyncSession, user_id: int, ds_id: int):
 
 
 async def init_database():
+    """初始化数据库"""
     load_dotenv()
     DB_USERNAME = os.getenv("DB_USERNAME")
     DB_PASSWORD = os.getenv("DB_PASSWORD")
     DB_HOST = os.getenv("DB_HOST", "127.0.0.1")
     DB_PORT = int(os.getenv("DB_PORT", 3306))
     TARGET_DB = os.getenv("TARGET_DB")
+    
     # 异步连接 MySQL 默认数据库
     conn = await aiomysql.connect(
         host=DB_HOST,
@@ -442,6 +447,13 @@ async def init_database():
             print(f"✅ 数据库 `{TARGET_DB}` 创建成功！")
         else:
             print(f"✅ 数据库 `{TARGET_DB}` 已存在")
+            # 删除数据库并重新创建
+            print(f"🔄 正在重新创建数据库 `{TARGET_DB}`...")
+            await cursor.execute(f"DROP DATABASE {TARGET_DB};")
+            await cursor.execute(
+                f"CREATE DATABASE {TARGET_DB} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+            )
+            print(f"✅ 数据库 `{TARGET_DB}` 重新创建成功！")
 
     conn.close()
 

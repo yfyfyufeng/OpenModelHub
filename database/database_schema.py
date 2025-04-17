@@ -1,10 +1,11 @@
 from sqlalchemy import (
-    Column, Integer, String, Enum, ForeignKey, Boolean
+    Column, Integer, String, Enum, ForeignKey, Boolean, DateTime
 )
 from sqlalchemy.orm import relationship, declarative_base
 from sqlalchemy.dialects.mysql import BIGINT
 import enum
 from sqlalchemy import PrimaryKeyConstraint
+from datetime import datetime
 
 Base = declarative_base()
 
@@ -110,10 +111,11 @@ class Dataset(Base):
     __tablename__ = 'dataset'
 
     ds_id = Column(Integer, primary_key=True, autoincrement=True)
-    ds_name = Column(String(100))
-    ds_size = Column(Integer)
-    media = Column(String(50))
-    task = Column(Integer)
+    ds_name = Column(String(255), nullable=False)
+    ds_size = Column(Integer, nullable=False)
+    media = Column(String(50), nullable=False)
+    task = Column(Integer, nullable=False)
+    created_at = Column(DateTime, default=datetime.now)
 
     models = relationship("ModelDataset", back_populates="dataset")
     columns = relationship("DsCol", back_populates="dataset", cascade='all, delete-orphan')
@@ -140,7 +142,7 @@ class User(Base):
     __tablename__ = 'user'
 
     user_id = Column(Integer, primary_key=True, autoincrement=True)
-    user_name = Column(String(50))
+    user_name = Column(String(50), unique = True )
     password_hash = Column(String(100))  # 应使用加密哈希
     affiliate = Column(String(50))
     is_admin = Column(Boolean, default=True)  # 新增管理员字段
