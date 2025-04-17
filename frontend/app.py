@@ -7,6 +7,7 @@ import pandas as pd
 import sys
 import asyncio
 from datetime import datetime
+import nest_asyncio
 current_dir = Path(__file__).parent
 project_root = current_dir.parent
 sys.path.extend([str(project_root), str(project_root/"database")])
@@ -17,13 +18,25 @@ from database.database_interface import (
     list_users, get_user_by_id, list_affiliations, init_database,
     create_user, update_user, delete_user
 )
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.orm import sessionmaker
 from sqlalchemy import select
 import os
 from dotenv import load_dotenv
 import hashlib
 from typing import List, Dict
 from io import BytesIO
+from frontend.config import APP_CONFIG
+from frontend.db import get_db_session
+from frontend.auth import AuthManager
+from frontend.components import Sidebar, DatasetUploader, UserManager
+
+# 允许嵌套事件循环
+nest_asyncio.apply()
+
+# 初始化页面配置（必须在最前面）
+st.set_page_config(**APP_CONFIG)
+
 def parse_csv_columns(file_data: bytes) -> List[Dict]:
     df = pd.read_csv(BytesIO(file_data), nrows=1)
     return [{"col_name": col, "col_datatype": "text"} for col in df.columns]
@@ -52,21 +65,12 @@ def get_db_session():
     )
     return async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
-
-
-# 初始化页面配置
-st.set_page_config(
-    page_title="OpenModelHub",
-    page_icon="🧠",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
-
 # 用户认证状态管理
 if 'authenticated' not in st.session_state:
     st.session_state.authenticated = False
 if 'current_user' not in st.session_state:
     st.session_state.current_user = None
+
 # 文件上传处理
 def handle_file_upload():
     with st.expander("上传新数据集"):
@@ -137,11 +141,10 @@ def sidebar():
 
 # 主页
 def render_home():
-    st.header("🏠 平台概览")
+    """渲染主页"""
+    st.header("平台概览")
     
-    # 获取实时统计信息
-    Session = get_db_session()
-    
+    # 直接调用数据库API
     models = db_api.db_list_models()
     datasets = db_api.db_list_datasets()
     users = db_api.db_list_users()
@@ -155,22 +158,13 @@ def render_home():
         st.metric("注册用户", len(users))
     with col4:
         st.metric("今日下载量", 2543)
-    
-    # 模型类型分布
-    st.subheader("📊 模型类型分布")
-    if models:
-        df = pd.DataFrame([{
-            "类型": model.arch_name.value,
-            "参数数量": model.param_num,
-            "创建时间": model.created_at
-        } for model in models])
-        st.bar_chart(df["类型"].value_counts())
 
 # 模型仓库
 def render_models():
-    st.header("🤖 模型仓库")
+    """渲染模型仓库页面"""
+    st.header("模型仓库")
     
-    Session = get_db_session()
+    # 直接调用数据库API
     models = db_api.db_list_models()
     
     # 搜索和过滤
@@ -185,9 +179,7 @@ def render_models():
         "ID": model.model_id,
         "名称": model.model_name,
         "类型": model.arch_name.value,
-        "参数数量": f"{model.param_num:,}",
-        "创建时间": model.created_at.strftime("%Y-%m-%d"),
-        "下载量": model.download_count
+        "参数数量": f"{model.param_num:,}"
     } for model in models])
     
     if filter_arch != "全部":
@@ -199,11 +191,7 @@ def render_models():
             "ID": "模型ID",
             "名称": "模型名称",
             "类型": "架构类型",
-            "参数数量": "参数量",
-            "下载量": st.column_config.NumberColumn(
-                "下载次数",
-                format="%d次"
-            )
+            "参数数量": "参数量"
         },
         hide_index=True,
         use_container_width=True
@@ -212,12 +200,10 @@ def render_models():
     # 模型详情侧边栏
     selected_id = st.number_input("输入模型ID查看详情", min_value=1)
     if selected_id:
-
         model = db_api.db_get_model(selected_id)
         if model:
             with st.expander(f"模型详情 - {model.model_name}"):
                 st.write(f"**架构类型**: {model.arch_name.value}")
-                st.write(f"**创建时间**: {model.created_at}")
                 st.write(f"**适用媒体类型**: {model.media_type}")
                 
                 if model.tasks:
@@ -229,53 +215,19 @@ def render_models():
                 if st.button("下载模型"):
                     st.success("下载开始...（演示用）")
 
-
 # 修改后的数据集管理
 def render_datasets():
+    """渲染数据集页面"""
     st.header("📁 数据集管理")
     
     # 数据集上传
-    with st.expander("📤 上传新数据集", expanded=False):
-        with st.form("dataset_upload", clear_on_submit=True):
-            name = st.text_input("数据集名称*")
-            desc = st.text_area("描述")
-            media_type = st.selectbox("媒体类型", ["text", "image", "audio", "video"])
-            task_type = st.selectbox("任务类型", ["classification", "detection", "generation"])
-            file = st.file_uploader("选择数据文件*", type=["csv", "zip"])
-            
-            if st.form_submit_button("提交"):
-                if not name or not file:
-                    st.error("带*的字段为必填项")
-                else:
-                    try:
-                        # 保存文件并获取元数据
-                        file_path = db_api.db_save_file(file.getvalue(), file.name)
-                        
-                        # 解析列信息
-                        columns = []
-                        if file.name.endswith(".csv"):
-                            columns =parse_csv_columns(file.getvalue())
-                        
-                        # 创建数据集记录
-                        dataset_data = {
-                            "ds_name": name,
-                            "ds_size": os.path.getsize(file_path),
-                            "media": media_type,
-                            "task": task_type,
-                            "columns": columns
-                        }
-                        
-                        async def create_dataset_wrapper():
-                            async with get_db_session()() as session:
-                                return await db_api.create_dataset(session, dataset_data)
-                        
-                        asyncio.run(create_dataset_wrapper())
-                        st.success("数据集上传成功！")
-                    except Exception as e:
-                        st.error(f"上传失败：{str(e)}")
-
-    # 数据集列表展示
+    uploader = DatasetUploader()
+    if uploader.render():
+        st.rerun()
+    
+    # 直接调用数据库API
     datasets = db_api.db_list_datasets()
+    
     if not datasets:
         st.info("暂无数据集")
         return
@@ -316,75 +268,40 @@ def render_datasets():
 
 # 用户管理（管理员功能）
 def render_users():
-    st.header("👥 用户管理")
-    
-    # 创建用户表单
-    with st.expander("➕ 添加新用户", expanded=False):
-        with st.form("new_user", clear_on_submit=True):
-            username = st.text_input("用户名*")
-            password = st.text_input("密码*", type="password")
-            is_admin = st.checkbox("管理员权限")
-            affiliate = st.text_input("所属机构")
-            
-            if st.form_submit_button("创建用户"):
-                if not username or not password:
-                    st.error("带*的字段为必填项")
-                else:
-                    try:
-                        # 密码哈希处理
-                  #      hashed_pwd = hashlib.sha256(password.encode()).hexdigest()
-                        hashed_pwd = password  # 直接使用明文密码
-                        db_api.db_create_user(username, hashed_pwd, affiliate)
-                        st.success("用户创建成功")
-                        st.rerun()
-                    except Exception as e:
-                        st.error(f"创建失败：{str(e)}")
-    
-    # 用户列表
-    users = db_api.db_list_users()
-    df = pd.DataFrame([{
-        "ID": user.user_id,
-        "用户名": user.user_name,
-        "所属机构": user.affiliate,
-        "管理员": "✅" if user.is_admin else "❌",
-        "注册时间": user.created_at.strftime("%Y-%m-%d")
-    } for user in users])
-    
-    st.dataframe(
-        df,
-        column_config={
-            "ID": "用户ID",
-            "管理员": st.column_config.CheckboxColumn("管理员状态")
-        },
-        use_container_width=True,
-        hide_index=True
-    )
+    """渲染用户管理页面"""
+    user_manager = UserManager()
+    user_manager.render()
 
 # 主程序逻辑
 def main():
-    page = sidebar()
- #   st.session_state.authenticated = True
-    db_api.db_create_user("admin", "admin")
-    if not st.session_state.authenticated and page != "主页":
+    """主程序入口"""
+    auth_manager = AuthManager()
+    sidebar = Sidebar(auth_manager)
+    
+    # 获取当前页面
+    page = sidebar.render()
+    
+    # 检查认证状态
+    if not auth_manager.is_authenticated() and page != "主页":
         st.warning("请先登录以访问该页面")
         return
     
+    # 路由到对应页面
     if page == "主页":
         render_home()
     elif page == "模型仓库":
         render_models()
     elif page == "数据集":
         render_datasets()
-    elif page == "用户管理" and st.session_state.current_user["role"] == "admin":
+    elif page == "用户管理" and auth_manager.is_admin():
         render_users()
     elif page == "系统管理":
         st.write("系统管理功能开发中...")
 
 if __name__ == "__main__":
-    # 初始化数据库连接
     try:
-        asyncio.run(init_database())
+        # 直接启动应用
+        main()
     except Exception as e:
-        st.error(f"数据库连接失败：{str(e)}")
-    
-    main()
+        st.error(f"应用启动失败：{str(e)}")
+        print(f"错误详情：{str(e)}")
