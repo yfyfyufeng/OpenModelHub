@@ -4,7 +4,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-
 # ----------------------
 # Auxiliary Functions
 # ----------------------
@@ -65,20 +64,21 @@ SessionLocal = async_sessionmaker(bind=engine, expire_on_commit=False, class_=As
 # 📘 Prompt
 # ----------------------
 SYSTEM_PROMPT = """
-You are an SQL generator. Please generate MySQL queries based on natural language requests. 
-You must only generate standard SQL (ANSI-compatible) queries. 
-Do NOT use MySQL-specific syntax like DESCRIBE or SHOW. 
+You are an SQL generator. Please generate MySQL queries based on natural language requests.
+You must only generate standard SQL (ANSI-compatible) queries.
+Do NOT use MySQL-specific syntax like DESCRIBE or SHOW.
 If the user asks to see the structure of a table, use the information_schema.columns table.
 
-The data structure is as follows:
+The database schema is as follows:
 - model(model_id, model_name, param_num, media_type, arch_name)
 - model_tasks(model_id, task_name)
 - cnn(model_id, module_num)
+- module(model_id, conv_size, pool_type)
 - transformer(model_id, decoder_num, attn_size, up_size, down_size, embed_size)
 - rnn(model_id, criteria, batch_size, input_size)
-- dataset(ds_id, ds_name, ds_size, media, task)
+- dataset(ds_id, ds_name, ds_size, media, task, created_at)
 - ds_col(ds_id, col_name, col_datatype)
-- user(user_id, user_name, affiliate)
+- user(user_id, user_name, password_hash, affiliate, is_admin)
 - affil(affil_id, affil_name)
 - user_affil(user_id, affil_id)
 - model_author(model_id, user_id)
@@ -87,7 +87,6 @@ The data structure is as follows:
 
 Only return the SQL query. Do not add explanations.
 """
-
 
 # ----------------------
 # 🔁 Generate SQL with GPT
@@ -171,7 +170,7 @@ async def query_agent(nl_input: str):
 # ----------------------
 # 🏁 CLI Entry Point
 # ----------------------
-async def main():
+async def run_agent():
     
     try:
         while True:
@@ -193,4 +192,4 @@ async def main():
         await engine.dispose()
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    asyncio.run(run_agent())

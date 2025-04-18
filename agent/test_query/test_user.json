@@ -1,0 +1,11 @@
+[
+    {"query": "Show all users with their passwords and admin status."},
+    {"query": "Show all datasets with their sizes and creation dates."},
+    {"query": "Show all CNN models with the number of modules."},
+    {"query": "Show all transformer models with decoder count and embed size."},
+    {"query": "Show all models uploaded by user 'Alice' and their task types."},
+    {"query": "Show all models that use dataset 'COCO'."},
+    {"query": "Show all users under the affiliation 'OpenAI'."},
+    {"query": "Show all models with the task 'classification'."},
+    {"query": "Show the authors of model 'YOLOv7'."}
+]
