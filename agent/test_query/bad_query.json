@@ -3,9 +3,5 @@
         "query": "Show all datasets with their sizes and creation dates.",
         "test_set": "test_user.json",
         "description": "field not found"
-    }, 
-    {
-        "query": "Return all language models.",
-        "description": "sysnonym"
     }
 ]
