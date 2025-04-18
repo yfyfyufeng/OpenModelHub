@@ -5,7 +5,13 @@
    1. [lm找不到]
 
 
+- [ ] 复合query
+
 ## 功能错误的query
+
+### attribute not in field: created_at
+
+`    {"query": "Show all datasets with their sizes and creation dates."},` from test_user.json
 
 ## 表现欠佳的query
 
@@ -47,3 +53,4 @@
     
     1. 本地部署一个小的encoder decoder模型让他学习同义词
     2. 提示词工程，但是否会被上下文长度所限制？
+
