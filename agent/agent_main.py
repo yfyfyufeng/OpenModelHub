@@ -206,9 +206,9 @@ async def run_agent():
         while True:
             nl_input = input("📝 Please input your natural language query:\n> ")
             
-            output_to_console = False
+            output_to_console = True
             result = await query_agent(nl_input, verbose=output_to_console)
-            if not output_to_console: print(result)
+            print(result)
                 # verbose = True: test mode;
                 # verbose = False: interface mode
             print("Would you like to continue? (y/n)")
