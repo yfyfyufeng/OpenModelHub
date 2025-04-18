@@ -1,5 +1,5 @@
 # main.py
-#streamlit run ~/OpenModelHub/frontend/app.py [ARGUMENTS]
+#streamlit run ./frontend/app.py [ARGUMENTS]
 #(replace by your absolute path)
 import streamlit as st
 from pathlib import Path

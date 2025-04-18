@@ -293,7 +293,7 @@ async def update_dataset(session: AsyncSession, ds_id: int, update_data: dict) -
 # 🔧 User-related Operations
 # --------------------------------------
 async def create_user(session: AsyncSession, user_data: dict) -> User:
-    existing = await session.execute(select(User).where(User.username == user_data["username"]))
+    existing = await session.execute(select(User).where(User.user_name == user_data["user_name"]))
     if existing.scalar_one_or_none():
         raise ValueError("用户名已存在")
     user = User(**user_data)
