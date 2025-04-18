@@ -85,6 +85,11 @@ The database schema is as follows:
 - model_dataset(model_id, dataset_id)
 - user_ds(user_id, ds_id)
 
+# Synonym Handling:
+If the user query refers to a "language model", but no such table or attribute exists,
+you should map "language model" to "models where media_type = 'text'".
+
+
 Only return the SQL query. Do not add explanations.
 """
 
