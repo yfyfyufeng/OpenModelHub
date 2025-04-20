@@ -55,16 +55,35 @@ async def db_list_datasets():
         return await list_datasets(session)
 
 @async_to_sync
-async def db_create_dataset(name: str, desc: str, file_path: str):
-    async with get_db_session()() as session:
+async def db_create_dataset(name: str, desc: str, file_path: str) -> Dataset:
+    """创建数据集
+    
+    Args:
+        name: 数据集名称
+        desc: 数据集描述
+        file_path: 文件路径
+        
+    Returns:
+        创建的Dataset对象
+    """
+    session = get_db_session()
+    try:
+        # 获取文件大小
+        file_size = os.path.getsize(file_path)
+        
+        # 创建数据集
         dataset_data = {
             "ds_name": name,
-            "ds_size": os.path.getsize(file_path),
-            "media": "text",
-            "task": "classification",
-            "columns": [{"col_name": "text", "col_datatype": "varchar(255)"}]
+            "ds_size": file_size,
+            "media": "text",  # 默认媒体类型
+            "task": "classification",  # 默认任务类型
+            "columns": []  # 空列列表，后续可以添加
         }
-        return await create_dataset(session, dataset_data)
+        
+        dataset = await create_dataset(session, dataset_data)
+        return dataset
+    finally:
+        await session.close()
 
 # 用户操作
 @async_to_sync

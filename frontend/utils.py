@@ -2,11 +2,26 @@ import asyncio
 import pandas as pd
 from io import BytesIO
 from typing import List, Dict
+import nest_asyncio
+
+# 允许嵌套事件循环
+nest_asyncio.apply()
+
+# 创建全局事件循环
+_loop = asyncio.new_event_loop()
+asyncio.set_event_loop(_loop)
 
 def async_to_sync(async_func):
-    """将异步函数转换为同步函数"""
+    """将异步函数转换为同步函数的装饰器
+    
+    Args:
+        async_func: 要转换的异步函数
+        
+    Returns:
+        同步版本的函数
+    """
     def wrapper(*args, **kwargs):
-        return asyncio.run(async_func(*args, **kwargs))
+        return _loop.run_until_complete(async_func(*args, **kwargs))
     return wrapper
 
 def parse_csv_columns(file_data: bytes) -> List[Dict]:

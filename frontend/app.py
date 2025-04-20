@@ -1,5 +1,5 @@
 # main.py
-#streamlit run ./frontend/app.py [ARGUMENTS]
+#streamlit run ~/OpenModelHub/frontend/app.py [ARGUMENTS]
 #(replace by your absolute path)
 import streamlit as st
 from pathlib import Path
@@ -12,7 +12,10 @@ current_dir = Path(__file__).parent
 project_root = current_dir.parent
 sys.path.extend([str(project_root), str(project_root/"database")])
 sys.path.extend([str(project_root), str(project_root/"frontend")])
+sys.path.extend([str(project_root), str(project_root/"agent")])
 import frontend.database_api as db_api
+import agent.agent_main as agent
+from frontend.utils import async_to_sync
 from database.database_interface import (
     list_models, get_model_by_id, list_datasets, get_dataset_by_id,
     list_users, get_user_by_id, list_affiliations, init_database,
@@ -40,12 +43,6 @@ st.set_page_config(**APP_CONFIG)
 def parse_csv_columns(file_data: bytes) -> List[Dict]:
     df = pd.read_csv(BytesIO(file_data), nrows=1)
     return [{"col_name": col, "col_datatype": "text"} for col in df.columns]
-
-# 异步执行装饰器
-def async_to_sync(async_func):
-    def wrapper(*args, **kwargs):
-        return asyncio.run(async_func(*args, **kwargs))
-    return wrapper
 
 # 数据库会话管理
 @st.cache_resource
@@ -80,9 +77,14 @@ def handle_file_upload():
             file = st.file_uploader("选择数据文件", type=["csv", "txt"])
             if st.form_submit_button("提交"):
                 if file:
-                    file_path = db_api.db_save_file(file.getvalue(), file.name)
-                    db_api.db_create_dataset(name, desc, file_path)
-                    st.success("数据集上传成功！")
+                    try:
+                        # 保存文件
+                        file_path = db_api.db_save_file(file.getvalue(), file.name)
+                        # 创建数据集
+                        dataset = db_api.db_create_dataset(name, desc, file_path)
+                        st.success("数据集上传成功！")
+                    except Exception as e:
+                        st.error(f"上传失败：{str(e)}")
                 else:
                     st.error("请选择文件")
 
@@ -174,6 +176,17 @@ def render_models():
     with col2:
         filter_arch = st.selectbox("架构类型", ["全部", "CNN", "RNN", "Transformer"])
     
+    # 如果用户输入了搜索查询，使用agent进行搜索
+    if search_query:
+        with st.spinner("正在处理查询..."):
+            try:
+                # 使用异步执行装饰器调用agent
+                result = async_to_sync(agent.query_agent)(f"在模型仓库中搜索：{search_query}")
+                st.info("智能搜索结果：")
+                st.write(result)
+            except Exception as e:
+                st.error(f"搜索失败：{str(e)}")
+    
     # 展示模型列表
     df = pd.DataFrame([{
         "ID": model.model_id,
@@ -232,7 +245,20 @@ def render_datasets():
         st.info("暂无数据集")
         return
     
-    search_term = st.text_input("🔍 搜索数据集")
+    # 搜索框
+    search_term = st.text_input("🔍 搜索数据集（支持自然语言）")
+    
+    # 如果用户输入了搜索查询，使用agent进行搜索
+    if search_term:
+        with st.spinner("正在处理查询..."):
+            try:
+                # 使用异步执行装饰器调用agent
+                result = async_to_sync(agent.query_agent)(f"在数据集中搜索：{search_term}")
+                st.info("智能搜索结果：")
+                st.write(result)
+            except Exception as e:
+                st.error(f"搜索失败：{str(e)}")
+    
     filtered_datasets = [d for d in datasets if search_term.lower() in d.ds_name.lower()]
     
     for dataset in filtered_datasets:
@@ -272,6 +298,28 @@ def render_users():
     user_manager = UserManager()
     user_manager.render()
 
+# 查询页面
+def render_query():
+    """渲染查询页面"""
+    st.header("🔍 智能查询")
+    
+    # 查询输入
+    query = st.text_area("输入您的查询", height=100)
+    
+    if st.button("查询"):
+        if query:
+            with st.spinner("正在处理查询..."):
+                try:
+                    # 使用异步执行装饰器调用agent
+                    result = async_to_sync(agent.query_agent)(query)
+                    st.success("查询完成！")
+                    st.write("查询结果：")
+                    st.write(result)
+                except Exception as e:
+                    st.error(f"查询失败：{str(e)}")
+        else:
+            st.warning("请输入查询内容")
+
 # 主程序逻辑
 def main():
     """主程序入口"""
@@ -297,6 +345,8 @@ def main():
         render_users()
     elif page == "系统管理":
         st.write("系统管理功能开发中...")
+    elif page == "智能查询":
+        render_query()
 
 if __name__ == "__main__":
     try:
