@@ -14,7 +14,7 @@ sys.path.extend([str(project_root), str(project_root/"database")])
 sys.path.extend([str(project_root), str(project_root/"frontend")])
 import frontend.database_api as db_api
 from database.database_interface import (
-    list_models, get_model_by_id, list_datasets, get_dataset_by_id,
+     get_model_by_id, list_datasets, get_dataset_by_id,
     list_users, get_user_by_id, list_affiliations, init_database,
     create_user, update_user, delete_user
 )
