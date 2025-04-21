@@ -128,14 +128,18 @@ Example: [https://huggingface.co/meta-llama/Llama-2-7b-hf/tree/main](https://hug
 | **ds_name**          | The name of the dataset (e.g., "Coco", "ImageNet").                                                                    | varchar          | Coco         |
 | **ds_size**          | The size of the dataset (e.g., number of images or data points).                                                       | int              | 1000000      |
 | **media**            | The type of media in the dataset (e.g., image, text, video).                                                           | varchar          | image        |
-| **task**             | The task associated with the dataset (e.g., classification, segmentation).                                             | int              | 1            |
 | **created_at**       | The date and time when the dataset was created.                                                                | timestamp        | 2025-04-01   |
+
+#### **Dataset_TASK**
+| **Attribute**       | **Description**                                                                                                       | **Data Type**    | **Example**  |
+|---------------------|-----------------------------------------------------------------------------------------------------------------------|------------------|--------------|
+| **ds_id (FK)**       | Foreign Key referencing **ds_id** in the dataset table.                                                               | int              | 1            |
+| **task**             | The task associated with the dataset (e.g., classification, segmentation).                                             | int              | 1            |
 
 #### **DsCol**
 | **Attribute**       | **Description**                                                                                                       | **Data Type**    | **Example**  |
 |---------------------|-----------------------------------------------------------------------------------------------------------------------|------------------|--------------|
-| **ds_col_id (PK)**   | Unique identifier for the column within the dataset.                                                                  | int              | 01           |
-| **ds_id (FK)**       | Foreign Key referencing **ds_id** in the dataset table.                                                               | int              | 1            |
+| **ds_id (PK)**       | Foreign Key referencing **ds_id** in the dataset table.                                                               | int              | 1            |
 | **col_name**         | Name of the column within the dataset (e.g., "image_id", "label").                                                      | varchar          | image_id     |
 | **col_datatype**     | The data type of the column (e.g., integer, float, text).                                                              | varchar          | integer      |
 
