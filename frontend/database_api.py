@@ -55,15 +55,8 @@ async def db_list_datasets():
         return await list_datasets(session)
 
 @async_to_sync
-async def db_create_dataset(name: str, desc: str, file_path: str):
+async def db_create_dataset(name: str, dataset_data: dict):
     async with get_db_session()() as session:
-        dataset_data = {
-            "ds_name": name,
-            "ds_size": os.path.getsize(file_path),
-            "media": "text",
-            "task": "classification",
-            "columns": [{"col_name": "text", "col_datatype": "varchar(255)"}]
-        }
         return await create_dataset(session, dataset_data)
 
 # 用户操作

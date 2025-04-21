@@ -154,9 +154,9 @@ class DatasetUploader:
                 "columns": columns
             }
             
-            db_api.create_dataset(dataset_data)
+            db_api.db_create_dataset(name, dataset_data)
             st.success("数据集上传成功！")
             return True
         except Exception as e:
             st.error(f"上传失败：{str(e)}")
-            return False 
+            return False
