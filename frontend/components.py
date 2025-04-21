@@ -18,11 +18,29 @@ from frontend.config import UPLOAD_CONFIG
 nest_asyncio.apply()
 
 class Sidebar:
+    """
+    侧边栏组件类，负责渲染和管理侧边栏的显示内容。
+    
+    Attributes:
+        auth_manager: 认证管理器实例，用于处理用户认证相关功能
+    """
     def __init__(self, auth_manager):
+        """
+        初始化侧边栏组件。
+
+        Args:
+            auth_manager: 认证管理器实例
+        """
         self.auth_manager = auth_manager
 
     def render(self):
-        """渲染侧边栏"""
+        """
+        渲染侧边栏的主要方法。
+        根据用户认证状态显示不同的内容。
+
+        Returns:
+            str: 当前选中的页面名称
+        """
         with st.sidebar:
             st.title("OpenModelHub")
             if not self.auth_manager.is_authenticated():
@@ -32,7 +50,10 @@ class Sidebar:
             return self._render_navigation()
 
     def _render_login_form(self):
-        """渲染登录表单"""
+        """
+        渲染登录表单。
+        处理用户登录请求并显示登录结果。
+        """
         with st.form("登录", clear_on_submit=True):
             username = st.text_input("用户名")
             password = st.text_input("密码", type="password")
@@ -45,7 +66,10 @@ class Sidebar:
                     st.error("用户名或密码错误")
 
     def _render_user_info(self):
-        """渲染用户信息"""
+        """
+        渲染当前登录用户的信息。
+        显示用户名和欢迎信息。
+        """
         user = self.auth_manager.get_current_user()
         st.success(f"欢迎，{user['username']}！")
         if st.button("退出登录"):
@@ -53,18 +77,31 @@ class Sidebar:
             st.rerun()
 
     def _render_navigation(self):
-        """渲染导航菜单"""
-        menu_items = ["主页", "模型仓库", "数据集", "用户管理"]
+        """
+        渲染导航菜单。
+        根据用户权限显示可访问的页面选项。
+
+        Returns:
+            str: 用户选择的页面名称
+        """
+        pages = ["首页", "模型仓库", "数据集管理", "智能查询"]
         if self.auth_manager.is_admin():
-            menu_items += ["系统管理"]
-        return st.radio("导航菜单", menu_items)
+            pages.append("用户管理")
+        return st.radio("导航", pages)
 
 class UserManager:
+    """
+    用户管理组件类，负责处理用户相关的管理功能。
+    """
     def __init__(self):
+        """初始化用户管理组件。"""
         self.users = db_api.db_list_users()
 
     def render(self):
-        """渲染用户管理界面"""
+        """
+        渲染用户管理界面。
+        显示用户列表和管理功能。
+        """
         st.header("👥 用户管理")
         
         # 创建用户表单
@@ -111,12 +148,19 @@ class UserManager:
         )
 
 class DatasetUploader:
+    """
+    数据集上传组件类，负责处理数据集的上传和管理。
+    """
     def __init__(self):
+        """初始化数据集上传组件。"""
         self.allowed_types = UPLOAD_CONFIG["allowed_types"]
         self.max_size = UPLOAD_CONFIG["max_size"]
 
     def render(self):
-        """渲染数据集上传组件"""
+        """
+        渲染数据集上传界面。
+        显示上传表单和处理上传逻辑。
+        """
         with st.expander("📤 上传新数据集", expanded=False):
             with st.form("dataset_upload", clear_on_submit=True):
                 name = st.text_input("数据集名称*")
@@ -130,7 +174,16 @@ class DatasetUploader:
         return False
 
     def _handle_submit(self, name: str, desc: str, media_type: str, task_type: str, file):
-        """处理表单提交"""
+        """
+        处理数据集上传提交。
+
+        Args:
+            name (str): 数据集名称
+            desc (str): 数据集描述
+            media_type (str): 媒体类型
+            task_type (str): 任务类型
+            file: 上传的文件对象
+        """
         if not name or not file:
             st.error("带*的字段为必填项")
             return False

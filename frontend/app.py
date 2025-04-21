@@ -41,12 +41,27 @@ nest_asyncio.apply()
 st.set_page_config(**APP_CONFIG)
 
 def parse_csv_columns(file_data: bytes) -> List[Dict]:
+    """
+    解析CSV文件的列信息。
+
+    Args:
+        file_data (bytes): CSV文件的二进制数据
+
+    Returns:
+        List[Dict]: 包含列信息的列表，每个元素是一个字典，包含列名和数据类型
+    """
     df = pd.read_csv(BytesIO(file_data), nrows=1)
     return [{"col_name": col, "col_datatype": "text"} for col in df.columns]
 
 # 数据库会话管理
 @st.cache_resource
 def get_db_session():
+    """
+    获取数据库会话。
+
+    Returns:
+        AsyncSession: 异步数据库会话对象
+    """
     load_dotenv()
     DB_USERNAME = os.getenv("DB_USERNAME")
     DB_PASSWORD = os.getenv("DB_PASSWORD")
@@ -70,6 +85,10 @@ if 'current_user' not in st.session_state:
 
 # 文件上传处理
 def handle_file_upload():
+    """
+    处理文件上传功能。
+    显示文件上传界面，处理用户上传的文件，并将文件信息保存到数据库。
+    """
     with st.expander("上传新数据集"):
         with st.form("dataset_upload"):
             name = st.text_input("数据集名称")
@@ -90,6 +109,12 @@ def handle_file_upload():
 
 # 文件下载处理
 def handle_file_download(dataset):
+    """
+    处理文件下载功能。
+
+    Args:
+        dataset: 要下载的数据集对象
+    """
     file_data = db_api._file(dataset.ds_name + ".zip")
     if file_data:
         st.download_button(
@@ -103,6 +128,10 @@ def handle_file_download(dataset):
         
 # 登录表单
 def login_form():
+    """
+    显示登录表单。
+    处理用户登录验证，并在成功登录后设置会话状态。
+    """
     with st.form("登录", clear_on_submit=True):
         username = st.text_input("用户名")
         password = st.text_input("密码", type="password")
@@ -124,6 +153,10 @@ def login_form():
 
 # 侧边栏导航
 def sidebar():
+    """
+    显示侧边栏导航。
+    根据用户登录状态显示不同的导航选项。
+    """
     with st.sidebar:
         st.title("OpenModelHub")
         if not st.session_state.authenticated:
@@ -143,7 +176,10 @@ def sidebar():
 
 # 主页
 def render_home():
-    """渲染主页"""
+    """
+    渲染首页内容。
+    显示欢迎信息和系统概述。
+    """
     st.header("平台概览")
     
     # 直接调用数据库API
@@ -163,7 +199,10 @@ def render_home():
 
 # 模型仓库
 def render_models():
-    """渲染模型仓库页面"""
+    """
+    渲染模型管理页面。
+    显示模型列表，支持模型的查看、编辑和删除操作。
+    """
     st.header("模型仓库")
     
     # 直接调用数据库API
@@ -230,7 +269,10 @@ def render_models():
 
 # 修改后的数据集管理
 def render_datasets():
-    """渲染数据集页面"""
+    """
+    渲染数据集管理页面。
+    显示数据集列表，支持数据集的查看、上传、下载和删除操作。
+    """
     st.header("📁 数据集管理")
     
     # 数据集上传
@@ -294,13 +336,19 @@ def render_datasets():
 
 # 用户管理（管理员功能）
 def render_users():
-    """渲染用户管理页面"""
+    """
+    渲染用户管理页面。
+    显示用户列表，支持用户的查看、编辑和删除操作。
+    """
     user_manager = UserManager()
     user_manager.render()
 
 # 查询页面
 def render_query():
-    """渲染查询页面"""
+    """
+    渲染查询页面。
+    提供模型查询和数据集查询功能。
+    """
     st.header("🔍 智能查询")
     
     # 查询输入
@@ -322,7 +370,10 @@ def render_query():
 
 # 主程序逻辑
 def main():
-    """主程序入口"""
+    """
+    应用程序的主入口函数。
+    初始化应用程序，设置页面配置，并处理用户会话。
+    """
     auth_manager = AuthManager()
     sidebar = Sidebar(auth_manager)
     
