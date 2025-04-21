@@ -74,29 +74,23 @@ Example: [https://huggingface.co/meta-llama/Llama-2-7b-hf/tree/main](https://hug
 
 ---
 
-#### **model**
+#### **Model**
 | **Attribute**       | **Description**                                                                                                       | **Data Type**    | **Example**  |
 |---------------------|-----------------------------------------------------------------------------------------------------------------------|------------------|--------------|
-| **model_id (PK)**    | A unique identifier for the model (Primary Key).                                                                       | int              | 1001         |
-| **model_name**       | Name of the model.                                                                                                     | varchar          | gpt_4_13b    |
-| **param_num**        | The number of parameters in the model.                                                                                  | int              | 175000000000 |
-| **media_type**       | Foreign Key that links to a table that defines the type of media the model deals with.                                  | varchar          | text         |
-| **arch_name (FK)**   | Foreign Key linking to the architecture name.                                                                          | varchar          | transformer  |
-| **train_name (FK)**  | Foreign Key linking to the training process or dataset used for training.                                              | varchar          | pretrained   |
+| **model_id (PK)**   | A unique identifier for the model (Primary Key).                                                                       | int              | 1001         |
+| **model_name**      | Name of the model.                                                                                                     | varchar          | gpt_4_13b    |
+| **param_num**       | The number of parameters in the model.                                                                                  | int              | 175000000000 |
+| **media_type**      | Foreign Key that links to a table that defines the type of media the model deals with.                                  | varchar          | text         |
+| **arch_name (FK)**  | Foreign Key linking to the architecture name.                                                                          | varchar          | transformer  |
+| **train_name (FK)** | Foreign Key linking to the training process or dataset used for training.                                              | varchar          | pretrained   |
 
-#### **model_tasks**
+#### **ModelTask**
 | **Attribute**       | **Description**                                                                                                       | **Data Type**    | **Example**  |
 |---------------------|-----------------------------------------------------------------------------------------------------------------------|------------------|--------------|
 | **model_id (FK)**    | Foreign Key referencing **model_id** in the model table.                                                                | int              | 1001         |
 | **task_name**        | The task associated with the model (e.g., classification, translation).                                                 | varchar          | classification |
 
-#### **model_author**
-| **Attribute**       | **Description**                                                                                                       | **Data Type**    | **Example**  |
-|---------------------|-----------------------------------------------------------------------------------------------------------------------|------------------|--------------|
-| **model_id (FK)**    | Foreign Key referencing **model_id** in the model table.                                                                | int              | 1001         |
-| **user_id (FK)**     | Foreign Key referencing **user_id** in the user table.                                                                  | int              | 123090342    |
-
-#### **transformer**
+#### **Transformer**
 | **Attribute**       | **Description**                                                                                                       | **Data Type**    | **Example**  |
 |---------------------|-----------------------------------------------------------------------------------------------------------------------|------------------|--------------|
 | **model_id (PK, FK)**| Primary Key, Foreign Key referencing **model_id** in the model table.                                                   | int              | 1001         |
@@ -106,13 +100,13 @@ Example: [https://huggingface.co/meta-llama/Llama-2-7b-hf/tree/main](https://hug
 | **down_size**        | The downsampling size in the model.                                                                                    | int              | 64           |
 | **embed_size**       | The size of the embedding layer in the model.                                                                          | int              | 128          |
 
-#### **cnn**
+#### **CNN**
 | **Attribute**       | **Description**                                                                                                       | **Data Type**    | **Example**  |
 |---------------------|-----------------------------------------------------------------------------------------------------------------------|------------------|--------------|
 | **model_id (PK, FK)**| Primary Key, Foreign Key referencing **model_id** in the model table.                                                   | int              | 1001         |
 | **module_num**       | The number of modules (e.g., convolution layers) in the model.                                                         | int              | 3            |
 
-#### **module_id**
+#### **Module**
 | **Attribute**       | **Description**                                                                                                       | **Data Type**    | **Example**  |
 |---------------------|-----------------------------------------------------------------------------------------------------------------------|------------------|--------------|
 | **model_id (FK)**    | Foreign Key referencing **model_id** in the cnn table.                                                                | int              | 1001         |
@@ -127,7 +121,7 @@ Example: [https://huggingface.co/meta-llama/Llama-2-7b-hf/tree/main](https://hug
 | **batch_size**       | The number of data samples processed together in one pass through the model (used in training).                         | int              | 64           |
 | **input_size**       | The size of the input data (e.g., number of features for each data point).                                              | int              | 256          |
 
-#### **dataset**
+#### **Dataset**
 | **Attribute**       | **Description**                                                                                                       | **Data Type**    | **Example**  |
 |---------------------|-----------------------------------------------------------------------------------------------------------------------|------------------|--------------|
 | **ds_id (PK)**       | Unique identifier for the dataset.                                                                                     | int              | 1            |
@@ -135,8 +129,9 @@ Example: [https://huggingface.co/meta-llama/Llama-2-7b-hf/tree/main](https://hug
 | **ds_size**          | The size of the dataset (e.g., number of images or data points).                                                       | int              | 1000000      |
 | **media**            | The type of media in the dataset (e.g., image, text, video).                                                           | varchar          | image        |
 | **task**             | The task associated with the dataset (e.g., classification, segmentation).                                             | int              | 1            |
+| **created_at**       | The date and time when the dataset was created.                                                                | timestamp        | 2025-04-01   |
 
-#### **ds_col**
+#### **DsCol**
 | **Attribute**       | **Description**                                                                                                       | **Data Type**    | **Example**  |
 |---------------------|-----------------------------------------------------------------------------------------------------------------------|------------------|--------------|
 | **ds_col_id (PK)**   | Unique identifier for the column within the dataset.                                                                  | int              | 01           |
@@ -152,37 +147,38 @@ Example: [https://huggingface.co/meta-llama/Llama-2-7b-hf/tree/main](https://hug
 | **model_id (FK)**    | Foreign Key referencing **model_id** in the model table.                                                               | int              | 1001         |
 | **ds_id (FK)**       | Foreign Key referencing **ds_id** in the dataset table.                                                                | int              | 1            |
 | **affiliate**        | A reference to the affiliate company or group the user is associated with.                                             | varchar          | AffiliateX   |
+| **password_hash**     || The hashed password of the user.                                                                                         | varchar          | $2b$12$...   |
+| **is_admin**          | | Boolean flag indicating if the user has admin privileges.                                                             | boolean          | true         |   
 
-#### **user_affil**
-| **Attribute**       | **Description**                                                                                                       | **Data Type**    | **Example**  |
-|---------------------|-----------------------------------------------------------------------------------------------------------------------|------------------|--------------|
-| **user_id (FK)**     | Foreign Key referencing **user_id** in the user table.                                                                 | int              | 123090342    |
-| **affil_id (FK)**    | Foreign Key referencing **affil_id** in the affil table.                                                               | int              | 1            |
-
-#### **affil**
+#### **Affil**
 | **Attribute**       | **Description**                                                                                                       | **Data Type**    | **Example**  |
 |---------------------|-----------------------------------------------------------------------------------------------------------------------|------------------|--------------|
 | **affil_id (PK)**    | Unique identifier for the affiliate.                                                                                   | int              | 1            |
 | **affil_name**       | Name of the affiliate organization.                                                                                     | varchar          | AffiliateX   |
 
-#### **model_user**
+#### **UserAffil**
+| **Attribute**       | **Description**                                                                                                       | **Data Type**    | **Example**  |
+|---------------------|-----------------------------------------------------------------------------------------------------------------------|------------------|--------------|
+| **user_id (FK)**     | Foreign Key referencing **user_id** in the user table.                                                                 | int              | 123090342    |
+| **affil_id (FK)**    | Foreign Key referencing **affil_id** in the affil table.                                                               | int              | 1            |
+
+#### **UserDataset**
 | **Attribute**   | **Description**                                                                  | **Data Type**   | **Example** |
 |-----------------|----------------------------------------------------------------------------------|-----------------|-------------|
-| **model_id (FK)**| 外键，引用 **model** 表中的 `model_id`                                           | int             | 1001        |
 | **user_id (FK)** | 外键，引用 **user** 表中的 `user_id`                                             | int             | 123090342   |
-
-#### **model_ds**
-
-| **Attribute**   | **Description**                                                                  | **Data Type**   | **Example** |
-|-----------------|----------------------------------------------------------------------------------|-----------------|-------------|
-| **model_id (FK)**| 外键，引用 **model** 表中的 `model_id`                                           | int             | 1001        |
 | **ds_id (FK)**   | 外键，引用 **dataset** 表中的 `ds_id`                                           | int             | 1           |
 
-#### **user_ds**
+#### **ModelAuthor**
+| **Attribute**   | **Description**                                                                  | **Data Type**   | **Example** |
+|-----------------|----------------------------------------------------------------------------------|-----------------|-------------|
+| **model_id (FK)**| 外键，引用 **model** 表中的 `model_id`                                           | int             | 1001        |
+| **user_id (FK)** | 外键，引用 **user** 表中的 `user_id`                                             | int             | 123090342   |
+
+#### **ModelDataset**
 
 | **Attribute**   | **Description**                                                                  | **Data Type**   | **Example** |
 |-----------------|----------------------------------------------------------------------------------|-----------------|-------------|
-| **user_id (FK)** | 外键，引用 **user** 表中的 `user_id`                                             | int             | 123090342   |
+| **model_id (FK)**| 外键，引用 **model** 表中的 `model_id`                                           | int             | 1001        |
 | **ds_id (FK)**   | 外键，引用 **dataset** 表中的 `ds_id`                                           | int             | 1           |
 
 ---
