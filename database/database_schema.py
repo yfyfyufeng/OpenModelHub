@@ -1,5 +1,5 @@
 from sqlalchemy import (
-    Column, Integer, String, Enum, ForeignKey, Boolean, DateTime
+    Column, Integer, String, Enum, ForeignKey, Boolean, DateTime, CheckConstraint
 )
 from sqlalchemy.orm import relationship, declarative_base
 from sqlalchemy.dialects.mysql import BIGINT
@@ -18,7 +18,15 @@ class ArchType(enum.Enum):
     CNN = "CNN"
     RNN = "RNN"
     TRANSFORMER = "Transformer"
-
+class Media_type(enum.Enum):
+    TEXT = "text"
+    IMAGE = "image"
+    AUDIO = "audio"
+    VIDEO = "video"
+class Trainname(enum.Enum):
+    PRETRAIN = "pretrain"
+    FINETUNE = "fine-tune"
+    RL = "reinforcement learning"
 
 class Model(Base):
     __tablename__ = 'model'
@@ -26,8 +34,9 @@ class Model(Base):
     model_id = Column(Integer, primary_key=True, autoincrement=True)
     model_name = Column(String(50))
     param_num = Column(BIGINT(unsigned=True))
-    media_type = Column(String(50))
+    media_type = Column(Enum(Media_type), nullable=False)
     arch_name = Column(Enum(ArchType), nullable=False)
+    trainname = Column(Enum(Trainname), nullable = False)
 
     authors = relationship("ModelAuthor", back_populates="model", cascade="all, delete-orphan")
     datasets = relationship("ModelDataset", back_populates="model", cascade="all, delete-orphan")
@@ -37,12 +46,16 @@ class Model(Base):
     rnn = relationship("RNN", uselist=False, back_populates="model")
     transformer = relationship("Transformer", uselist=False, back_populates="model")
 
-
+class Task_name(enum.Enum):
+    CLASSIFICATION = "classification"
+    DETECTION = "detection"
+    GENERATION = "generation"
+    SEGMENTATION = "segmentation"
 class ModelTask(Base):
     __tablename__ = 'model_tasks'
 
     model_id = Column(Integer, ForeignKey("model.model_id", ondelete='CASCADE'))
-    task_name = Column(String(50))
+    task_name = Column(Enum(Task_name), nullable=False)
     __table_args__ = (
         PrimaryKeyConstraint('model_id', 'task_name', name='pk_model_task'),
     )
@@ -61,7 +74,13 @@ class Transformer(Base):
     up_size = Column(Integer)
     down_size = Column(Integer)
     embed_size = Column(Integer)
-
+    __table_args__ = (
+        CheckConstraint('decoder_num >= 0', name='decoder_num'),
+        CheckConstraint('attn_size >= 0', name='attn_size'),
+        CheckConstraint('up_size >= 0', name='up_size'),
+        CheckConstraint('down_size >= 0', name='down_size'),
+        CheckConstraint('embed_size >= 0', name='embed_size'),
+    )
     model = relationship("Model", back_populates="transformer")
 
 
@@ -73,19 +92,27 @@ class CNN(Base):
 
     model_id = Column(Integer, ForeignKey("model.model_id"), primary_key=True)
     module_num = Column(Integer)
-
+    __table_args__ = (
+        CheckConstraint('module_num >= 0', name='module_num'),
+    )
     model = relationship("Model", back_populates="cnn")
     modules = relationship("Module", back_populates="cnn")
 
+class POOLING_TYPE(enum.Enum):
+    MAX = "max"
+    MIN = "min"
+    AVG = "avg"
+    OTHER = "other"
 
 class Module(Base):
     __tablename__ = 'module'
 
     model_id = Column(Integer, ForeignKey("cnn.model_id", ondelete='CASCADE'))
     conv_size = Column(Integer)
-    pool_type = Column(String(20))
+    pool_type = Column(Enum(POOLING_TYPE), nullable=False)
     __table_args__ = (
         PrimaryKeyConstraint('model_id', 'conv_size', name='pk_module'),
+        CheckConstraint('conv_size >= 0', name='conv_size'),
     )
     cnn = relationship("CNN", back_populates="modules")
 
@@ -100,7 +127,10 @@ class RNN(Base):
     criteria = Column(String(50))
     batch_size = Column(Integer)
     input_size = Column(Integer)
-
+    __table_args__ = (
+        CheckConstraint('batch_size >= 0', name='batch_size'),
+        CheckConstraint('input_size >= 0', name='input_size'),
+    )
     model = relationship("Model", back_populates="rnn")
 
 
@@ -108,24 +138,36 @@ class RNN(Base):
 # 数据集表（Dataset）
 # ---------------------------
 class Dataset(Base):
-    __tablename__ = 'dataset'
+    __tablename__ = 'Dataset'
 
     ds_id = Column(Integer, primary_key=True, autoincrement=True)
     ds_name = Column(String(255), nullable=False)
     ds_size = Column(Integer, nullable=False)
-    media = Column(String(50), nullable=False)
-    task = Column(Integer, nullable=False)
+    media = Column(Enum(Media_type), nullable=False)
     created_at = Column(DateTime, default=datetime.now)
-
+    __table_args__ = (
+        CheckConstraint('ds_size >= 0', name='ds_size'),
+    )
     models = relationship("ModelDataset", back_populates="dataset")
     columns = relationship("DsCol", back_populates="dataset", cascade='all, delete-orphan')
     users = relationship("UserDataset", back_populates="dataset")
+    Dataset_TASK = relationship("Dataset_TASK", back_populates="Task_relation", cascade="all, delete-orphan")
 
+
+class Dataset_TASK(Base):
+    __tablename__ = 'Dataset_TASK'
+
+    ds_id = Column(Integer, ForeignKey("Dataset.ds_id", ondelete='CASCADE'))
+    task = Column(Enum(Task_name), nullable=False)
+    __table_args__ = (
+        PrimaryKeyConstraint('ds_id', name='pk_dataset_task'),
+    )
+    Task_relation = relationship("Dataset", back_populates="Dataset_TASK")
 
 class DsCol(Base):
     __tablename__ = 'ds_col'
 
-    ds_id = Column(Integer, ForeignKey("dataset.ds_id", ondelete='CASCADE'))
+    ds_id = Column(Integer, ForeignKey("Dataset.ds_id", ondelete='CASCADE'))
     col_name = Column(String(50))
     col_datatype = Column(String(20))
     __table_args__ = (
@@ -142,7 +184,7 @@ class User(Base):
     __tablename__ = 'user'
 
     user_id = Column(Integer, primary_key=True, autoincrement=True)
-    user_name = Column(String(50), unique = True )
+    user_name = Column(String(50), unique = True)
     password_hash = Column(String(100))  # 应使用加密哈希
     affiliate = Column(String(50))
     is_admin = Column(Boolean, default=True)  # 新增管理员字段
@@ -184,7 +226,7 @@ class UserDataset(Base):
     __tablename__ = 'user_ds'
 
     user_id = Column(Integer, ForeignKey("user.user_id", ondelete='CASCADE'), primary_key=True)
-    ds_id = Column(Integer, ForeignKey("dataset.ds_id", ondelete='CASCADE'), primary_key=True)
+    ds_id = Column(Integer, ForeignKey("Dataset.ds_id", ondelete='CASCADE'), primary_key=True)
 
     user = relationship("User", back_populates="datasets", passive_deletes=True)
     dataset = relationship("Dataset", back_populates="users", passive_deletes=True)
@@ -210,7 +252,7 @@ class ModelDataset(Base):
     __tablename__ = 'model_dataset'
 
     model_id = Column(Integer, ForeignKey("model.model_id", ondelete='CASCADE'), primary_key=True)
-    dataset_id = Column(Integer, ForeignKey("dataset.ds_id", ondelete='CASCADE'), primary_key=True)
+    dataset_id = Column(Integer, ForeignKey("Dataset.ds_id", ondelete='CASCADE'), primary_key=True)
 
     model = relationship("Model", back_populates="datasets", passive_deletes=True)
     dataset = relationship("Dataset", back_populates="models", passive_deletes=True)

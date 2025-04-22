@@ -4,8 +4,8 @@ from sqlalchemy import delete
 from typing import Sequence, Optional, Dict, Union, List
 from database_schema import (
     Model, CNN, RNN, Transformer, ModelTask, ModelAuthor,
-    Dataset, ModelDataset, Module, DsCol,
-    User, UserDataset, UserAffil, Affil,  Base, ArchType
+    Dataset, ModelDataset, Module, DsCol, Dataset_TASK, 
+    User, UserDataset, UserAffil, Affil,  Base, ArchType, Trainname
 )
 from sqlalchemy.orm import joinedload, subqueryload
 from sqlalchemy import create_engine
@@ -32,6 +32,7 @@ async def create_model(session: AsyncSession, model_data: Dict) -> Union[Model, 
         param_num=model_data["param_num"],
         media_type=model_data["media_type"],
         arch_name=model_data["arch_name"],
+        trainname = model_data["trainname"]
     )
     session.add(model)
     await session.flush()
@@ -208,8 +209,7 @@ async def create_dataset(session: AsyncSession, dataset_data: dict) -> Dataset:
     dataset = Dataset(
         ds_name=dataset_data["ds_name"],
         ds_size=dataset_data["ds_size"],
-        media=dataset_data["media"],
-        task=dataset_data["task"]
+        media=dataset_data["media"]
     )
     session.add(dataset)
     await session.flush()
@@ -224,7 +224,12 @@ async def create_dataset(session: AsyncSession, dataset_data: dict) -> Dataset:
             col_datatype=col_data["col_datatype"]
         )
         session.add(ds_col)
-
+    for task_data in dataset_data['task']:
+        ds_col = Dataset_TASK(
+            ds_id=dataset.ds_id,
+            task=task_data
+        )
+        session.add(ds_col)
     await session.commit()
     await session.refresh(dataset)
     return dataset
