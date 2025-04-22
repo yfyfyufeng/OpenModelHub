@@ -162,17 +162,32 @@ def render_home():
 # 模型仓库
 def render_models():
     """渲染模型仓库页面"""
-    st.header("模型仓库")
+    st.title("模型仓库")
     
-    # 直接调用数据库API
+    # 添加搜索输入框
+    search_query = st.text_input("搜索模型", placeholder="输入自然语言查询，例如：'查找所有准确率大于90%的模型'")
+    
+    # 添加搜索按钮
+    if st.button("搜索", key="model_search"):
+        if search_query:
+            results, query_info = db_api.db_agent_query(search_query)
+            # 显示查询详情
+            with st.expander("查询详情"):
+                st.json({
+                    'natural_language_query': query_info['natural_language_query'],
+                    'generated_sql': query_info['generated_sql'],
+                    'error_code': query_info['error_code'],
+                    'has_results': query_info['has_results'],
+                    'error': query_info.get('error', None),
+                    'sql_res': results
+                })
+            if results:
+                df = pd.DataFrame(results)
+                st.dataframe(df)
+                return
+    
+    # 如果没有搜索或搜索无结果，显示所有模型
     models = db_api.db_list_models()
-    
-    # 搜索和过滤
-    col1, col2 = st.columns([3, 1])
-    with col1:
-        search_query = st.text_input("🔍 搜索模型（支持自然语言）", key="model_search")
-    with col2:
-        filter_arch = st.selectbox("架构类型", ["全部", "CNN", "RNN", "Transformer"])
     
     # 展示模型列表
     df = pd.DataFrame([{
@@ -181,9 +196,6 @@ def render_models():
         "类型": model.arch_name.value,
         "参数数量": f"{model.param_num:,}"
     } for model in models])
-    
-    if filter_arch != "全部":
-        df = df[df["类型"] == filter_arch]
     
     st.dataframe(
         df,
@@ -217,26 +229,45 @@ def render_models():
 
 # 修改后的数据集管理
 def render_datasets():
-    """渲染数据集页面"""
-    st.header("📁 数据集管理")
+    """渲染数据集管理页面"""
+    st.title("数据集管理")
+    
+    # 添加搜索输入框
+    search_query = st.text_input("搜索数据集", placeholder="输入自然语言查询，例如：'查找所有图像分类数据集'")
+    
+    # 添加搜索按钮
+    if st.button("搜索", key="dataset_search"):
+        if search_query:
+            results, query_info = db_api.db_agent_query(search_query)
+            # 显示查询详情
+            with st.expander("查询详情"):
+                st.json({
+                    'natural_language_query': query_info['natural_language_query'],
+                    'generated_sql': query_info['generated_sql'],
+                    'error_code': query_info['error_code'],
+                    'has_results': query_info['has_results'],
+                    'error': query_info.get('error', None),
+                    'sql_res': results
+                })
+            if results:
+                df = pd.DataFrame(results)
+                st.dataframe(df)
+                return
     
     # 数据集上传
     uploader = DatasetUploader()
     if uploader.render():
         st.rerun()
     
-    # 直接调用数据库API
+    # 如果没有搜索或搜索无结果，显示所有数据集
     datasets = db_api.db_list_datasets()
     
     if not datasets:
         st.info("暂无数据集")
         return
     
-    search_term = st.text_input("🔍 搜索数据集")
-    filtered_datasets = [d for d in datasets if search_term.lower() in d.ds_name.lower()]
-    
     # 显示数据集信息
-    for dataset in filtered_datasets:
+    for dataset in datasets:
         with st.container(border=True):
             st.subheader(dataset.ds_name)
             # 获取数据集的任务

@@ -10,19 +10,51 @@ current_dir = Path(__file__).parent
 project_root = current_dir.parent
 sys.path.extend([str(project_root), str(project_root/"database")])
 sys.path.extend([str(project_root), str(project_root/"frontend")])
+sys.path.extend([str(project_root), str(project_root/"agent")])
 from database.database_interface import (
     list_models, get_model_by_id, list_datasets, get_dataset_by_id,
     list_users, get_user_by_id, list_affiliations, init_database,
     create_user, update_user, delete_user
 )
 from database.database_interface import User
-from sqlalchemy import select
+from sqlalchemy import select, text
 from sqlalchemy.orm import selectinload
+from agent.agent_main import query_agent
 
 def async_to_sync(async_func):
     def wrapper(*args, **kwargs):
         return asyncio.run(async_func(*args, **kwargs))
     return wrapper
+
+# Agent查询
+@async_to_sync
+async def db_agent_query(query: str):
+    """使用自然语言查询数据库"""
+    async with get_db_session()() as session:
+        try:
+            # 使用 agent 的 query_agent 函数
+            result = await query_agent(query, verbose=False, session=session)
+            
+            # 返回与 agent_main.py 一致的格式
+            return (result['sql_res'] if result['err'] == 0 and result['sql_res'] else [], 
+                   {
+                       'natural_language_query': query,
+                       'generated_sql': result['sql'],
+                       'error_code': result['err'],
+                       'sql_res': result['sql_res'],
+                       'has_results': bool(result['sql_res']),
+                       'error': None if result['err'] == 0 else 'SQL执行失败'
+                   })
+        except Exception as e:
+            print(f"执行查询时出错: {str(e)}")
+            return [], {
+                'natural_language_query': query,
+                'generated_sql': '',
+                'error_code': 1,
+                'has_results': False,
+                'error': str(e),
+                'sql_res': []
+            }
 
 # 模型操作
 @async_to_sync
