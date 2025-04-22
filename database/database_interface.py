@@ -209,7 +209,8 @@ async def create_dataset(session: AsyncSession, dataset_data: dict) -> Dataset:
     dataset = Dataset(
         ds_name=dataset_data["ds_name"],
         ds_size=dataset_data["ds_size"],
-        media=dataset_data["media"]
+        media=dataset_data["media"],
+        description=dataset_data.get("description", "")
     )
     session.add(dataset)
     await session.flush()
@@ -238,7 +239,10 @@ async def create_dataset(session: AsyncSession, dataset_data: dict) -> Dataset:
 async def get_dataset_by_id(session: AsyncSession, ds_id: int) -> Optional[Dataset]:
     result = await session.execute(
         select(Dataset)
-        .options(selectinload(Dataset.columns))
+        .options(
+            selectinload(Dataset.columns),
+            selectinload(Dataset.Dataset_TASK)
+        )
         .filter_by(ds_id=ds_id)
     )
     return result.scalar_one_or_none()
@@ -247,7 +251,8 @@ async def get_dataset_by_id(session: AsyncSession, ds_id: int) -> Optional[Datas
 async def list_datasets(session: AsyncSession) -> Sequence[Dataset]:
     """获取所有数据集"""
     stmt = select(Dataset).options(
-        selectinload(Dataset.columns)
+        selectinload(Dataset.columns),
+        selectinload(Dataset.Dataset_TASK)
     )
     result = await session.execute(stmt)
     return result.scalars().all()

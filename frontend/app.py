@@ -233,7 +233,7 @@ def render_datasets():
     st.title("数据集管理")
     
     # 添加搜索输入框
-    search_query = st.text_input("搜索数据集", placeholder="输入自然语言查询，例如：'查找所有图像分类数据集'")
+    search_query = st.text_input("搜索数据集", placeholder="输入自然语言查询")
     
     # 添加搜索按钮
     if st.button("搜索", key="dataset_search"):
@@ -260,6 +260,18 @@ def render_datasets():
             name = st.text_input("数据集名称")
             desc = st.text_area("描述")
             file = st.file_uploader("选择数据文件", type=["txt"])
+            
+            # 任务选择
+            st.write("选择任务类型：")
+            # 预定义的任务类型
+            predefined_tasks = ["classification", "detection", "generation", "segmentation"]
+            selected_tasks = st.multiselect(
+                "选择任务类型",
+                predefined_tasks,
+                default=["classification"],
+                help="可以选择多个任务类型"
+            )
+            
             if st.form_submit_button("提交"):
                 if file:
                     try:
@@ -271,10 +283,11 @@ def render_datasets():
                             "ds_name": name,
                             "ds_size": len(file.getvalue()),
                             "media": "text",  # 默认类型
-                            "task": ["classification"],  # 默认任务
+                            "task": selected_tasks,  # 使用选择的任务
                             "columns": [
                                 {"col_name": "content", "col_datatype": "text"}
-                            ]
+                            ],
+                            "description": desc  # 添加描述字段
                         }
                         db_api.db_create_dataset(name, dataset_data)
                         st.success("数据集上传成功！")
@@ -303,6 +316,44 @@ def render_datasets():
             if st.button("查看详情", key=f"dataset_{dataset.ds_id}"):
                 st.session_state.selected_dataset = dataset
                 st.session_state.current_page = "dataset_detail"
+    
+    # 显示数据集详情
+    if st.session_state.get("current_page") == "dataset_detail":
+        dataset = st.session_state.get("selected_dataset")
+        if dataset:
+            st.markdown("---")
+            st.subheader(f"数据集详情 - {dataset.ds_name}")
+            
+            # 显示描述
+            st.write("**描述：**")
+            st.write(dataset.description if hasattr(dataset, 'description') else "暂无描述")
+            
+            # 显示任务信息
+            st.write("**任务类型：**")
+            tasks = [task.task.value for task in dataset.Dataset_TASK]
+            st.write(", ".join(tasks) if tasks else "无任务")
+            
+            # 显示数据集大小
+            st.write("**数据集大小：**")
+            st.write(f"{dataset.ds_size/1024:.1f}KB")
+            
+            # 下载按钮
+            if st.button("下载数据集", key=f"download_{dataset.ds_id}"):
+                file_data = db_api.db_get_file(dataset.ds_name + ".txt")
+                if file_data:
+                    st.download_button(
+                        label="点击下载",
+                        data=file_data,
+                        file_name=f"{dataset.ds_name}.txt",
+                        mime="text/plain"
+                    )
+                else:
+                    st.error("文件不存在")
+            
+            # 返回按钮
+            if st.button("返回列表", key="back_to_list"):
+                st.session_state.current_page = "datasets"
+                st.rerun()
 
 # 用户管理（管理员功能）
 def render_users():
