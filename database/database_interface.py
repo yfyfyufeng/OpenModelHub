@@ -567,7 +567,7 @@ async def get_dataset_info(session: AsyncSession, ds_id: int) -> Optional[dict]:
             },
             "columns": [
                 {"col_name": col.col_name, "col_datatype": col.col_datatype}
-                for col in dataset_columns.scalars().all()  # 提取 col_name 和 col_datatype
+                for col in dataset_columns.all()  # 提取 col_name 和 col_datatype
             ] or [],  # 所有 DsCol 的数据
             "tasks": dataset_tasks.scalars().all() or [],  # 所有 Dataset_TASK 的数据
             "models": model_datasets.scalars().all() or [],  # 所有关联的 model_name
@@ -693,9 +693,9 @@ async def get_user_info(session: AsyncSession, user_id: int) -> Optional[dict]:
                 "is_admin": user.is_admin
             },
             # Ensure that empty lists are returned for missing associations
-            "affiliations": [affil.affil_name for affil in user_affiliations.scalars().all()] or [],
-            "models": [model.model_name for model in user_models.scalars().all()] or [],
-            "datasets": [dataset.ds_name for dataset in user_datasets.scalars().all()] or []
+            "affiliations": [affil.affil_name for affil in user_affiliations.all()] or [],
+            "models": [model.model_name for model in user_models.all()] or [],
+            "datasets": [dataset.ds_name for dataset in user_datasets.all()] or []
         }
 
         return user_info
