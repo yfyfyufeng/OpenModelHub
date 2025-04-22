@@ -150,7 +150,7 @@ class Dataset(Base):
     )
     models = relationship("ModelDataset", back_populates="dataset")
     columns = relationship("DsCol", back_populates="dataset", cascade='all, delete-orphan')
-    users = relationship("UserDataset", back_populates="dataset")
+    users = relationship("DatasetAuthor", back_populates="dataset")
     Dataset_TASK = relationship("Dataset_TASK", back_populates="Task_relation", cascade="all, delete-orphan")
 
 
@@ -190,7 +190,7 @@ class User(Base):
     is_admin = Column(Boolean, default=True)  # 新增管理员字段
     
     models = relationship("ModelAuthor", back_populates="user", cascade="all, delete-orphan", passive_deletes=True)
-    datasets = relationship("UserDataset", back_populates="user", cascade="all, delete-orphan", passive_deletes=True)
+    datasets = relationship("DatasetAuthor", back_populates="user", cascade="all, delete-orphan", passive_deletes=True)
     affiliations = relationship("UserAffil", back_populates="user", cascade="all, delete-orphan", passive_deletes=True)
 
 
@@ -222,7 +222,7 @@ class UserAffil(Base):
 # ---------------------------
 # 用户-数据集 多对多中间表
 # ---------------------------
-class UserDataset(Base):
+class DatasetAuthor(Base):
     __tablename__ = 'user_ds'
 
     user_id = Column(Integer, ForeignKey("user.user_id", ondelete='CASCADE'), primary_key=True)
