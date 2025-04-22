@@ -5,7 +5,7 @@ from typing import Sequence, Optional, Dict, Union, List
 from database_schema import (
     Model, CNN, RNN, Transformer, ModelTask, ModelAuthor,
     Dataset, ModelDataset, Module, DsCol, Dataset_TASK, 
-    User, UserDataset, UserAffil, Affil,  Base, ArchType, Trainname
+    User, DatasetAuthor, UserAffil, Affil,  Base, ArchType, Trainname
 )
 from sqlalchemy.orm import joinedload, subqueryload
 from sqlalchemy import create_engine
@@ -255,7 +255,7 @@ async def list_datasets(session: AsyncSession) -> Sequence[Dataset]:
 
 async def delete_dataset(session: AsyncSession, ds_id: int) -> bool:
     await session.execute(delete(DsCol).where(DsCol.ds_id == ds_id))
-    await session.execute(delete(UserDataset).where(UserDataset.ds_id == ds_id))
+    await session.execute(delete(DatasetAuthor).where(DatasetAuthor.ds_id == ds_id))
     await session.execute(delete(ModelDataset).where(ModelDataset.dataset_id == ds_id))
 
     dataset = await get_dataset_by_id(session, ds_id)
@@ -321,7 +321,7 @@ async def list_users(session: AsyncSession) -> Sequence[User]:
 async def delete_user(session: AsyncSession, user_id: int) -> bool:
     # 清理关联表
     await session.execute(delete(UserAffil).where(UserAffil.user_id == user_id))
-    await session.execute(delete(UserDataset).where(UserDataset.user_id == user_id))
+    await session.execute(delete(DatasetAuthor).where(DatasetAuthor.user_id == user_id))
     await session.execute(delete(ModelAuthor).where(ModelAuthor.user_id == user_id))
 
     # 删除主表记录
@@ -418,11 +418,13 @@ async def link_model_author(session: AsyncSession, model_id: int, user_id: int):
 # 🔧 User-Dataset Linking
 # --------------------------------------
 async def link_user_dataset(session: AsyncSession, user_id: int, ds_id: int):
-    link = UserDataset(user_id=user_id, ds_id=ds_id)
+    link = DatasetAuthor(user_id=user_id, ds_id=ds_id)
     session.add(link)
     await session.commit()
 
-
+# --------------------------------------
+# 🔧 database
+# --------------------------------------
 async def init_database():
     """初始化数据库"""
     load_dotenv()
@@ -520,6 +522,130 @@ async def run_all():
     # 2. 初始化数据库结构
     await init_database()
 
+async def get_dataset_info(session: AsyncSession, ds_id: int) -> Optional[dict]:
+    # 获取 Dataset
+    dataset = await get_dataset_by_id(session, ds_id)
+
+    if dataset:
+        # 获取并加载与 Dataset 相关的 DsCol 和 Dataset_TASK (fetching all attributes)
+        dataset_columns = await session.execute(
+            select(DsCol.ds_id, DsCol.col_name, DsCol.col_datatype)  # 获取 column 的 name 和 datatype
+            .filter(DsCol.ds_id == ds_id)
+        )
+        dataset_tasks = await session.execute(
+            select(Dataset_TASK.ds_id, Dataset_TASK.task)  # 获取 task 的 id 和 name
+            .filter(Dataset_TASK.ds_id == ds_id)
+        )
+
+        # 获取与 Dataset 关联的 Model（通过 ModelDataset 表连接）
+        model_datasets = await session.execute(
+            select(Model.model_name)  # 只获取 model 的名称
+            .join(ModelDataset)
+            .filter(ModelDataset.dataset_id == ds_id)
+        )
+
+        # 获取与 Dataset 关联的 authors（通过 DatasetAuthor 表连接）
+        dataset_authors = await session.execute(
+            select(User.user_name)  # 只获取 author 的名称
+            .join(DatasetAuthor)
+            .filter(DatasetAuthor.ds_id == ds_id)
+        )
+
+        # 组合所有信息到一个 dataset_info 字典中
+        dataset_info = {
+            "dataset": {
+                "ds_id": dataset.ds_id,
+                "ds_name": dataset.ds_name,
+                "ds_size": dataset.ds_size,
+                "media": dataset.media,
+                "created_at": dataset.created_at
+            },
+            "columns": [
+                {"col_name": col.col_name, "col_datatype": col.col_datatype}
+                for col in dataset_columns.scalars().all()  # 提取 col_name 和 col_datatype
+            ] or [],  # 所有 DsCol 的数据
+            "tasks": dataset_tasks.scalars().all() or [],  # 所有 Dataset_TASK 的数据
+            "models": model_datasets.scalars().all() or [],  # 所有关联的 model_name
+            "authors": dataset_authors.scalars().all() or []  # 所有关联的 authors (user_name)
+        }
+
+        return dataset_info
+    return None
+
+async def get_model_info(session: AsyncSession, model_id: int) -> Optional[Dict]:
+    # 获取模型
+    model = await get_model_by_id(session, model_id)
+
+    if model:
+        # 获取与模型相关的任务（ModelTask）
+        model_tasks = await session.execute(select(ModelTask).filter_by(model_id=model_id))
+        tasks = [task.task_name for task in model_tasks.scalars().all()] or []
+
+        # 获取与模型关联的作者（ModelAuthor）
+        model_authors = await session.execute(select(User).join(ModelAuthor).filter(ModelAuthor.model_id == model_id))
+        authors = [author.user_name for author in model_authors.scalars().all()] or []
+
+        # 获取与模型关联的数据集（ModelDataset）
+        model_datasets = await session.execute(
+            select(Dataset).join(ModelDataset).filter(ModelDataset.model_id == model_id))
+        datasets = [dataset.ds_name for dataset in model_datasets.scalars().all()] or []
+
+        # 获取具体模型架构的详细信息（CNN, RNN, Transformer）
+        cnn_details = None
+        cnn_modules = []
+        rnn_details = None
+        transformer_details = None
+        if model.arch_name == ArchType.CNN:
+            cnn_details = await session.execute(select(CNN).filter_by(model_id=model_id))
+            cnn_details = cnn_details.scalar_one_or_none()
+
+            # 获取与 CNN 关联的 Module 信息
+            if cnn_details:
+                cnn_modules = await session.execute(
+                    select(Module).filter_by(model_id=cnn_details.model_id))
+                cnn_modules = cnn_modules.scalars().all()
+
+        elif model.arch_name == ArchType.RNN:
+            rnn_details = await session.execute(select(RNN).filter_by(model_id=model_id))
+            rnn_details = rnn_details.scalar_one_or_none()
+        elif model.arch_name == ArchType.TRANSFORMER:
+            transformer_details = await session.execute(select(Transformer).filter_by(model_id=model_id))
+            transformer_details = transformer_details.scalar_one_or_none()
+
+        # 构建返回的数据结构
+        model_info = {
+            'model_id': model.model_id,
+            'model_name': model.model_name,
+            'param_num': model.param_num,
+            'media_type': model.media_type.value,
+            'arch_name': model.arch_name.value,
+            'trainname': model.trainname.value,
+            'tasks': tasks,
+            'authors': authors,
+            'datasets': datasets,
+            'cnn': {
+                'module_num': cnn_details.module_num if cnn_details else None,
+                'modules': [{
+                    'conv_size': module.conv_size,
+                    'pool_type': module.pool_type.value
+                } for module in cnn_modules]
+            } if cnn_details else None,
+            'rnn': {
+                'criteria': rnn_details.criteria if rnn_details else None,
+                'batch_size': rnn_details.batch_size if rnn_details else None,
+                'input_size': rnn_details.input_size if rnn_details else None,
+            } if rnn_details else None,
+            'transformer': {
+                'decoder_num': transformer_details.decoder_num if transformer_details else None,
+                'attn_size': transformer_details.attn_size if transformer_details else None,
+                'up_size': transformer_details.up_size if transformer_details else None,
+                'down_size': transformer_details.down_size if transformer_details else None,
+                'embed_size': transformer_details.embed_size if transformer_details else None,
+            } if transformer_details else None
+        }
+
+        return model_info
+    return None
 
 if __name__ == "__main__":
     asyncio.run(run_all())
