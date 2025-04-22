@@ -647,5 +647,52 @@ async def get_model_info(session: AsyncSession, model_id: int) -> Optional[Dict]
         return model_info
     return None
 
+async def get_user_info(session: AsyncSession, user_id: int) -> Optional[dict]:
+    # 获取 User
+    user = await session.execute(
+        select(User)
+        .filter(User.user_id == user_id)
+    )
+    user = user.scalar_one_or_none()
+
+    if user:
+        # 获取与 User 相关的 Affiliations (通过 UserAffil 表连接)
+        user_affiliations = await session.execute(
+            select(Affil.affil_name)  # 获取机构名称
+            .join(UserAffil)
+            .filter(UserAffil.user_id == user_id)
+        )
+
+        # 获取与 User 关联的 Models (通过 ModelAuthor 表连接)
+        user_models = await session.execute(
+            select(Model.model_name)  # 获取 model 名称
+            .join(ModelAuthor)
+            .filter(ModelAuthor.user_id == user_id)
+        )
+
+        # 获取与 User 关联的 Datasets (通过 DatasetAuthor 表连接)
+        user_datasets = await session.execute(
+            select(Dataset.ds_name)  # 获取 dataset 名称
+            .join(DatasetAuthor)
+            .filter(DatasetAuthor.user_id == user_id)
+        )
+
+        # 组合所有信息到一个 user_info 字典中
+        user_info = {
+            "user": {
+                "user_id": user.user_id,
+                "user_name": user.user_name,
+                "affiliate": user.affiliate,
+                "is_admin": user.is_admin
+            },
+            # Ensure that empty lists are returned for missing associations
+            "affiliations": [affil.affil_name for affil in user_affiliations.scalars().all()] or [],
+            "models": [model.model_name for model in user_models.scalars().all()] or [],
+            "datasets": [dataset.ds_name for dataset in user_datasets.scalars().all()] or []
+        }
+
+        return user_info
+    return None
+
 if __name__ == "__main__":
     asyncio.run(run_all())
