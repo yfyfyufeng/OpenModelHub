@@ -1,6 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy import delete
+from sqlalchemy.inspection import inspect
 from typing import Sequence, Optional, Dict, Union, List
 from database_schema import (
     Model, CNN, RNN, Transformer, ModelTask, ModelAuthor,
@@ -522,6 +523,10 @@ async def run_all():
     # 2. 初始化数据库结构
     await init_database()
 
+
+# --------------------------------------
+# 🔧 联合查询
+# --------------------------------------
 async def get_dataset_info(session: AsyncSession, ds_id: int) -> Optional[dict]:
     # 获取 Dataset
     dataset = await get_dataset_by_id(session, ds_id)
@@ -571,6 +576,7 @@ async def get_dataset_info(session: AsyncSession, ds_id: int) -> Optional[dict]:
 
         return dataset_info
     return None
+
 
 async def get_model_info(session: AsyncSession, model_id: int) -> Optional[Dict]:
     # 获取模型
@@ -647,6 +653,7 @@ async def get_model_info(session: AsyncSession, model_id: int) -> Optional[Dict]
         return model_info
     return None
 
+
 async def get_user_info(session: AsyncSession, user_id: int) -> Optional[dict]:
     # 获取 User
     user = await session.execute(
@@ -693,6 +700,73 @@ async def get_user_info(session: AsyncSession, user_id: int) -> Optional[dict]:
 
         return user_info
     return None
+
+
+# --------------------------------------
+# 🔧 字段查询
+# --------------------------------------
+async def get_model_ids_by_attribute(session: AsyncSession, attribute: str, value) -> list[int]:
+    # 获取 Model 所有列名（只包含单值字段，不包含关系字段）
+    mapper = inspect(Model)
+    single_value_columns = {col.key: col for col in mapper.columns}
+
+    # 检查字段是否合法
+    if attribute not in single_value_columns:
+        return []  # 无效字段名，返回空列表
+
+    # 构造查询：查找所有匹配该字段值的 model_id
+    stmt = (
+        select(Model.model_id)
+        .filter(single_value_columns[attribute] == value)
+    )
+
+    result = await session.execute(stmt)
+    model_ids = result.scalars().all()  # 获取所有符合条件的 model_id
+
+    return model_ids or []
+
+
+async def get_dataset_ids_by_attribute(session: AsyncSession, attribute: str, value) -> list[int]:
+    # 获取 Dataset 表中所有 column 属性（排除关系属性）
+    mapper = inspect(Dataset)
+    single_value_columns = {col.key: col for col in mapper.columns}
+
+    # 验证字段是否存在
+    if attribute not in single_value_columns:
+        return []  # 无效字段，返回空列表
+
+    # 构建查询语句
+    stmt = (
+        select(Dataset.ds_id)
+        .filter(single_value_columns[attribute] == value)
+    )
+
+    result = await session.execute(stmt)
+    dataset_ids = result.scalars().all() or []
+
+    return dataset_ids
+
+
+async def get_user_ids_by_attribute(session: AsyncSession, attribute: str, value) -> list[int]:
+    # 获取 User 表中所有 column 属性（排除关系字段）
+    mapper = inspect(User)
+    single_value_columns = {col.key: col for col in mapper.columns}
+
+    # 检查字段是否合法
+    if attribute not in single_value_columns:
+        return []  # 非法字段，返回空列表
+
+    # 构建查询语句
+    stmt = (
+        select(User.user_id)
+        .filter(single_value_columns[attribute] == value)
+    )
+
+    result = await session.execute(stmt)
+    user_ids = result.scalars().all() or []
+
+    return user_ids
+
 
 if __name__ == "__main__":
     asyncio.run(run_all())
