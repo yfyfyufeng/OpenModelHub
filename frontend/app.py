@@ -235,36 +235,18 @@ def render_datasets():
     search_term = st.text_input("🔍 搜索数据集")
     filtered_datasets = [d for d in datasets if search_term.lower() in d.ds_name.lower()]
     
+    # 显示数据集信息
     for dataset in filtered_datasets:
         with st.container(border=True):
-            cols = st.columns([1, 4, 1])
-            cols[0].markdown(f"**ID**: {dataset.ds_id}")
-            cols[1].markdown(f"### {dataset.ds_name}")
-            cols[1].caption(f"类型：{dataset.media} | 任务：{dataset.task} | 大小：{dataset.ds_size/1024:.1f}KB")
+            st.subheader(dataset.ds_name)
+            # 获取数据集的任务
+            tasks = [task.task.value for task in dataset.Dataset_TASK]  # 获取枚举值
+            task_str = ", ".join(tasks) if tasks else "无任务"
+            st.caption(f"类型：{dataset.media} | 任务：{task_str} | 大小：{dataset.ds_size/1024:.1f}KB")
             
-            # 下载按钮
-            with cols[2]:
-                file_data = db_api.db_get_file(dataset.ds_name + ".zip")
-                if file_data:
-                    st.download_button(
-                        label="下载",
-                        data=file_data,
-                        file_name=f"{dataset.ds_name}.zip",
-                        key=f"download_{dataset.ds_id}"
-                    )
-                else:
-                    st.error("文件缺失")
-
-            # 元数据显示
-            with st.expander("详细信息"):
-                cols = st.columns(2)
-                cols[0].write(f"**创建时间**: {dataset.created_at}")
-                cols[1].write(f"**数据列**: {len(dataset.columns)}")
-                
-                if dataset.columns:
-                    st.write("### 数据结构")
-                    for col in dataset.columns:
-                        st.code(f"{col.col_name}: {col.col_datatype}")
+            if st.button("查看详情", key=f"dataset_{dataset.ds_id}"):
+                st.session_state.selected_dataset = dataset
+                st.session_state.current_page = "dataset_detail"
 
 # 用户管理（管理员功能）
 def render_users():

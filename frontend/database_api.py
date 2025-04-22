@@ -17,6 +17,7 @@ from database.database_interface import (
 )
 from database.database_interface import User
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 
 def async_to_sync(async_func):
     def wrapper(*args, **kwargs):
@@ -52,18 +53,16 @@ async def db_get_model(model_id: int):
 @async_to_sync
 async def db_list_datasets():
     async with get_db_session()() as session:
-        return await list_datasets(session)
+        stmt = select(Dataset).options(
+            selectinload(Dataset.columns),
+            selectinload(Dataset.Dataset_TASK)
+        )
+        result = await session.execute(stmt)
+        return result.scalars().all()
 
 @async_to_sync
-async def db_create_dataset(name: str, desc: str, file_path: str):
+async def db_create_dataset(name: str, dataset_data: dict):
     async with get_db_session()() as session:
-        dataset_data = {
-            "ds_name": name,
-            "ds_size": os.path.getsize(file_path),
-            "media": "text",
-            "task": "classification",
-            "columns": [{"col_name": "text", "col_datatype": "varchar(255)"}]
-        }
         return await create_dataset(session, dataset_data)
 
 # 用户操作

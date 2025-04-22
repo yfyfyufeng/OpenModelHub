@@ -18,14 +18,17 @@ from database.database_interface import (
     User, Model, Dataset, ModelTask, DsCol,
     init_database
 )
+from database.database_schema import Dataset_TASK, Media_type, Task_name, Trainname, ArchType
 from frontend.db import get_db_session
 
 # 模型架构类型
-ARCH_TYPES = ["CNN", "RNN", "Transformer"]
+ARCH_TYPES = [ArchType.CNN, ArchType.RNN, ArchType.TRANSFORMER]
 # 媒体类型
-MEDIA_TYPES = ["text", "image", "audio", "video"]
+MEDIA_TYPES = [Media_type.TEXT, Media_type.IMAGE, Media_type.AUDIO, Media_type.VIDEO]
 # 任务类型
-TASK_TYPES = ["classification", "detection", "generation", "segmentation"]
+TASK_TYPES = [Task_name.CLASSIFICATION, Task_name.DETECTION, Task_name.GENERATION, Task_name.SEGMENTATION]
+# 训练类型
+TRAIN_TYPES = [Trainname.PRETRAIN, Trainname.FINETUNE, Trainname.RL]
 
 async def generate_users(session):
     """生成测试用户数据"""
@@ -79,20 +82,20 @@ async def generate_users(session):
 async def generate_models(session):
     """生成测试模型数据"""
     models = []
-    for i in range(10):
+    for i in range(30):  # 增加到30个模型
         # 创建模型
         model = Model(
             model_name=f"测试模型_{i+1}",
-            arch_name=random.choice(ARCH_TYPES),
-            param_num=random.randint(1000000, 10000000),
-            media_type=random.choice(MEDIA_TYPES),
-            trainname="pertrain"
+            arch_name=random.choice(ARCH_TYPES).value,  # 使用枚举值
+            param_num=random.randint(1000000, 100000000),  # 增加参数范围
+            media_type=random.choice(MEDIA_TYPES).value,  # 使用枚举值
+            trainname=random.choice(TRAIN_TYPES).value  # 使用枚举值
         )
         session.add(model)
         await session.flush()
         
         # 为模型添加任务，确保任务不重复
-        num_tasks = random.randint(1, 3)
+        num_tasks = random.randint(1, 4)  # 增加最大任务数
         used_tasks = set()  # 用于跟踪已使用的任务
         for j in range(num_tasks):
             # 随机选择任务，直到找到一个未使用的任务
@@ -104,7 +107,7 @@ async def generate_models(session):
             
             task = ModelTask(
                 model_id=model.model_id,
-                task_name=task_name
+                task_name=task_name.value  # 使用枚举值
             )
             session.add(task)
         
@@ -116,25 +119,41 @@ async def generate_models(session):
 async def generate_datasets(session):
     """生成测试数据集数据"""
     datasets = []
-    for i in range(5):
+    for i in range(20):  # 增加到20个数据集
         # 创建数据集
         dataset = Dataset(
             ds_name=f"测试数据集_{i+1}",
-            media=random.choice(MEDIA_TYPES),
-            ds_size=random.randint(1024, 1024*1024)  # 1KB to 1MB
+            media=random.choice(MEDIA_TYPES).value,  # 使用枚举值
+            ds_size=random.randint(1024, 1024*1024*10)  # 增加数据集大小范围到10MB
         )
         session.add(dataset)
         await session.flush()
         
         # 创建数据列
-        num_columns = random.randint(3, 10)
+        num_columns = random.randint(5, 15)  # 增加列数范围
         for j in range(num_columns):
             column = DsCol(
                 ds_id=dataset.ds_id,
                 col_name=f"column_{j+1}",
-                col_datatype=random.choice(["int", "float", "varchar(255)", "text"])
+                col_datatype=random.choice(["int", "float", "varchar(255)", "text", "datetime", "boolean"])  # 增加数据类型
             )
             session.add(column)
+        
+        # 为数据集添加任务
+        num_tasks = random.randint(1, 4)  # 增加最大任务数
+        used_tasks = set()
+        for j in range(num_tasks):
+            while True:
+                task_name = random.choice(TASK_TYPES)
+                if task_name not in used_tasks:
+                    used_tasks.add(task_name)
+                    break
+            
+            task = Dataset_TASK(
+                ds_id=dataset.ds_id,
+                task=task_name.value  # 使用枚举值
+            )
+            session.add(task)
         
         datasets.append(dataset)
     
