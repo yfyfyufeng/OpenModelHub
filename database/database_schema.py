@@ -1,5 +1,5 @@
 from sqlalchemy import (
-    Column, Integer, String, Enum, ForeignKey, Boolean, DateTime, CheckConstraint
+    Column, Integer, String, Enum, ForeignKey, Boolean, DateTime, CheckConstraint, LargeBinary
 )
 from sqlalchemy.orm import relationship, declarative_base
 from sqlalchemy.dialects.mysql import BIGINT
@@ -37,6 +37,7 @@ class Model(Base):
     media_type = Column(Enum(Media_type), nullable=False)
     arch_name = Column(Enum(ArchType), nullable=False)
     trainname = Column(Enum(Trainname), nullable = False)
+    param = Column(LargeBinary, nullable=False)
 
     authors = relationship("ModelAuthor", back_populates="model", cascade="all, delete-orphan")
     datasets = relationship("ModelDataset", back_populates="model", cascade="all, delete-orphan")

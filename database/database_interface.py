@@ -33,7 +33,8 @@ async def create_model(session: AsyncSession, model_data: Dict) -> Union[Model, 
         param_num=model_data["param_num"],
         media_type=model_data["media_type"],
         arch_name=model_data["arch_name"],
-        trainname = model_data["trainname"]
+        trainname = model_data["trainname"],
+        param = model_data['param']
     )
     session.add(model)
     await session.flush()

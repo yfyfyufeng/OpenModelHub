@@ -65,7 +65,8 @@ async def run_tests(session: AsyncSession):
         "modules": [
             {"conv_size": 32, "pool_type": "max"},
             {"conv_size": 64, "pool_type": "avg"}
-        ]
+        ],
+        "param": 10,
     }
     cnn_model = await create_model(session, cnn_model_data)
     await link_model_author(session, cnn_model.model_id, user_id)
@@ -83,7 +84,8 @@ async def run_tests(session: AsyncSession):
         "task": ["Generation"],
         "criteria": "MSE",
         "batch_size": 32,
-        "input_size": 256
+        "input_size": 256,
+        "param": 10,
     }
     rnn_model = await create_model(session, rnn_model_data)
     await link_model_author(session, rnn_model.model_id, user_id)
@@ -102,7 +104,8 @@ async def run_tests(session: AsyncSession):
         "attn_size": 512,
         "up_size": 2048,
         "down_size": 1024,
-        "embed_size": 768
+        "embed_size": 768,
+        "param": 10,
     }
     transformer_model = await create_model(session, transformer_model_data)
     await link_model_author(session, transformer_model.model_id, user_id)

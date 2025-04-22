@@ -50,7 +50,8 @@ async def run_query_tests(session: AsyncSession):
         "task": ["classification"],
         "criteria": "NLLLoss",
         "batch_size": 32,
-        "input_size": 256
+        "input_size": 256,
+        "param": 1
     })
     await link_model_author(session, model.model_id, user.user_id)
     await link_model_dataset(session, model.model_id, dataset.ds_id)
