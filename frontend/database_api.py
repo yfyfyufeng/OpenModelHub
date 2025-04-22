@@ -11,6 +11,7 @@ project_root = current_dir.parent
 sys.path.extend([str(project_root), str(project_root/"database")])
 sys.path.extend([str(project_root), str(project_root/"frontend")])
 sys.path.extend([str(project_root), str(project_root/"security")])
+sys.path.extend([str(project_root), str(project_root/"agent")])
 from database.database_interface import (
     list_models, get_model_by_id, list_datasets, get_dataset_by_id,
     list_users, get_user_by_id, list_affiliations, init_database,
