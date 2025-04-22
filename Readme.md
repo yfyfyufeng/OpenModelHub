@@ -83,6 +83,7 @@ Example: [https://huggingface.co/meta-llama/Llama-2-7b-hf/tree/main](https://hug
 | **media_type**      | Foreign Key that links to a table that defines the type of media the model deals with.                                  | varchar          | text         |
 | **arch_name (FK)**  | Foreign Key linking to the architecture name.                                                                          | varchar          | transformer  |
 | **train_name (FK)** | Foreign Key linking to the training process or dataset used for training.                                              | varchar          | pretrained   |
+ | **param**           |   binary parameter of the model|                                                                                       |largebinary | 0x...         |  
 
 #### **ModelTask**
 | **Attribute**       | **Description**                                                                                                       | **Data Type**    | **Example**  |
