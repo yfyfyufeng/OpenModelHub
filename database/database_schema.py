@@ -36,7 +36,7 @@ class Model(Base):
     param_num = Column(BIGINT(unsigned=True))
     media_type = Column(Enum(Media_type), nullable=False)
     arch_name = Column(Enum(ArchType), nullable=False)
-    trainname = Column(Enum(Trainname), nullable = False)
+    trainname = Column(String(50), nullable=False)
     param = Column(LargeBinary, nullable=False)
 
     authors = relationship("ModelAuthor", back_populates="model", cascade="all, delete-orphan")

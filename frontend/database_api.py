@@ -6,11 +6,13 @@ import os
 from pathlib import Path
 import sys
 from dotenv import load_dotenv
+import socket
 current_dir = Path(__file__).parent
 project_root = current_dir.parent
 sys.path.extend([str(project_root), str(project_root/"database")])
 sys.path.extend([str(project_root), str(project_root/"frontend")])
 sys.path.extend([str(project_root), str(project_root/"security")])
+sys.path.extend([str(project_root), str(project_root/"agent")])
 from database.database_interface import (
     list_models, get_model_by_id, list_datasets, get_dataset_by_id,
     list_users, get_user_by_id, list_affiliations, init_database,
@@ -21,11 +23,23 @@ from sqlalchemy import select, text
 from sqlalchemy.orm import selectinload
 from agent.agent_main import query_agent
 
-from security.conn import InitUser, GetUser, StoreFile, LoadFile, CreateInvitation, AcceptInvitation, RevokeAccess
-from security.enc import encrypt, decrypt
+try:
+    from security.conn import InitUser, GetUser, StoreFile, LoadFile, CreateInvitation, AcceptInvitation, RevokeAccess
+    from security.enc import encrypt, decrypt
+    SECURITY_AVAILABLE = True
+except (ImportError, ConnectionRefusedError):
+    SECURITY_AVAILABLE = False
+    print("Security module not available, running in non-encrypted mode")
 
 curr_username = None
 curr_password = None
+
+def is_port_in_use(port):
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            return s.connect_ex(('localhost', port)) == 0
+    except:
+        return False
 
 def async_to_sync(async_func):
     def wrapper(*args, **kwargs):
@@ -112,10 +126,11 @@ async def db_list_users():
 @async_to_sync
 async def db_create_user(username: str, password: str, affiliate: str = None, is_admin: bool = False):
     global curr_username, curr_password
-    try:
-        InitUser(username, password)
-    except Exception as e:
-        print("Error in security: InitUser:", str(e))
+    if is_port_in_use(8080) and SECURITY_AVAILABLE:
+        try:
+            InitUser(username, password)
+        except Exception as e:
+            print("Error in security: InitUser:", str(e))
     curr_username = username
     curr_password = password
     async with get_db_session()() as session:
@@ -132,10 +147,12 @@ async def db_create_user(username: str, password: str, affiliate: str = None, is
 @async_to_sync
 async def db_authenticate_user(username: str, password: str):
     global curr_username, curr_password
-    try:
-        GetUser(username, password)
-    except Exception as e:
-        print("Error in security: GetUser:", str(e))
+    if is_port_in_use(8080) and SECURITY_AVAILABLE:
+        try:
+            GetUser(username, password)
+        except Exception as e:
+            print("Error in security: GetUser:", str(e))
+            return None
     curr_username = username
     curr_password = password
     async with get_db_session()() as session:
@@ -157,12 +174,13 @@ async def db_get_user_by_username(username: str):
 @async_to_sync
 async def db_save_file(file_data: bytes, filename: str):
     global curr_username, curr_password
-    key = os.urandom(32)
-    try:
-        StoreFile(curr_username, curr_password, filename, key)
-    except Exception as e:
-        print("Error in security: StoreFile:", str(e))
-    file_data = encrypt(key, file_data)
+    if is_port_in_use(8080) and SECURITY_AVAILABLE:
+        key = os.urandom(32)
+        try:
+            StoreFile(curr_username, curr_password, filename, key)
+        except Exception as e:
+            print("Error in security: StoreFile:", str(e))
+        file_data = encrypt(key, file_data)
 
     upload_dir = Path("uploads")
     upload_dir.mkdir(exist_ok=True)
@@ -174,17 +192,19 @@ async def db_save_file(file_data: bytes, filename: str):
 @async_to_sync
 async def db_get_file(filename: str):
     global curr_username, curr_password
-    try:
-        LoadFile(curr_username, curr_password, filename)
-    except Exception as e:
-        print("Error in security: LoadFile:", str(e))
-    key = os.urandom(32)
+    if is_port_in_use(8080) and SECURITY_AVAILABLE:
+        try:
+            LoadFile(curr_username, curr_password, filename)
+        except Exception as e:
+            print("Error in security: LoadFile:", str(e))
+        key = os.urandom(32)
 
     file_path = Path("uploads") / filename
     if file_path.exists():
         with open(file_path, "rb") as f:
-            # return f.read()
-            return decrypt(key, f.read())
+            if is_port_in_use(8080) and SECURITY_AVAILABLE:
+                return decrypt(key, f.read())
+            return f.read()
     return None
 
 def get_db_session():

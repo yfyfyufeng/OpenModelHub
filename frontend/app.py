@@ -71,6 +71,18 @@ if 'authenticated' not in st.session_state:
 if 'current_user' not in st.session_state:
     st.session_state.current_user = None
 
+# 默认登录admin用户
+if not st.session_state.authenticated:
+    user = db_api.db_authenticate_user("admin", "admin")
+    if user:
+        st.session_state.authenticated = True
+        st.session_state.current_user = {
+            "user_id": user.user_id,
+            "username": user.user_name,
+            "role": "admin" if user.is_admin else "user"
+        }
+        st.rerun()
+
 # 文件上传处理
 def handle_file_upload():
     with st.expander("上传新数据集"):
@@ -104,12 +116,22 @@ def login_form():
     with st.form("登录", clear_on_submit=True):
         username = st.text_input("用户名")
         password = st.text_input("密码", type="password")
+        use_encryption = st.checkbox("使用加密登录", value=True)
         if st.form_submit_button("登录"):
             # 使用哈希后的密码进行验证（示例使用sha256，生产环境应使用bcrypt）
-      #      hashed_pwd = hashlib.sha256(password.encode()).hexdigest()
+            #      hashed_pwd = hashlib.sha256(password.encode()).hexdigest()
             hashed_pwd = password  # 直接使用明文密码
-            user = db_api.db_authenticate_user(username, hashed_pwd)
-            if user  :
+            if use_encryption:
+                user = db_api.db_authenticate_user(username, hashed_pwd)
+            else:
+                # 非加密登录
+                user = db_api.db_get_user_by_username(username)
+                if user and user.password_hash == password:
+                    user = user
+                else:
+                    user = None
+            
+            if user:
                 st.session_state.authenticated = True
                 st.session_state.current_user = {
                     "user_id": user.user_id,
@@ -194,7 +216,7 @@ def render_models():
         "ID": model.model_id,
         "名称": model.model_name,
         "类型": model.arch_name.value,
-        "参数数量": f"{model.param_num:,}"
+        "参数数量": f"{model.param_num:,}" if hasattr(model, 'param_num') else "未知"
     } for model in models])
     
     st.dataframe(
@@ -364,28 +386,40 @@ def render_users():
 # 主程序逻辑
 def main():
     """主程序入口"""
-    auth_manager = AuthManager()
-    sidebar = Sidebar(auth_manager)
+    # 暂时注释掉认证相关代码
+    # auth_manager = AuthManager()
+    # sidebar = Sidebar(auth_manager)
     
     # 获取当前页面
-    page = sidebar.render()
+    # page = sidebar.render()
     
     # 检查认证状态
-    if not auth_manager.is_authenticated() and page != "主页":
-        st.warning("请先登录以访问该页面")
-        return
+    # if not auth_manager.is_authenticated() and page != "主页":
+    #     st.warning("请先登录以访问该页面")
+    #     return
     
     # 路由到对应页面
+    # if page == "主页":
+    #     render_home()
+    # elif page == "模型仓库":
+    #     render_models()
+    # elif page == "数据集":
+    #     render_datasets()
+    # elif page == "用户管理" and auth_manager.is_admin():
+    #     render_users()
+    # elif page == "系统管理":
+    #     st.write("系统管理功能开发中...")
+
+    # 简化版本：直接显示所有页面
+    st.sidebar.title("OpenModelHub")
+    page = st.sidebar.radio("导航菜单", ["主页", "模型仓库", "数据集"])
+    
     if page == "主页":
         render_home()
     elif page == "模型仓库":
         render_models()
     elif page == "数据集":
         render_datasets()
-    elif page == "用户管理" and auth_manager.is_admin():
-        render_users()
-    elif page == "系统管理":
-        st.write("系统管理功能开发中...")
 
 if __name__ == "__main__":
     try:

@@ -89,7 +89,8 @@ async def generate_models(session):
             arch_name=random.choice(ARCH_TYPES).value,  # 使用枚举值
             param_num=random.randint(1000000, 100000000),  # 增加参数范围
             media_type=random.choice(MEDIA_TYPES).value,  # 使用枚举值
-            trainname=random.choice(TRAIN_TYPES).value  # 使用枚举值
+            trainname=random.choice(TRAIN_TYPES).value,  # 使用枚举值
+            param=random.randint(1, 100)  # 添加param属性
         )
         session.add(model)
         await session.flush()
