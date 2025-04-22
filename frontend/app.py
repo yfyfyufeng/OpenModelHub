@@ -165,7 +165,7 @@ def render_models():
     st.title("模型仓库")
     
     # 添加搜索输入框
-    search_query = st.text_input("搜索模型", placeholder="输入自然语言查询，例如：'查找所有准确率大于90%的模型'")
+    search_query = st.text_input("搜索模型", placeholder="输入自然语言查询")
     
     # 添加搜索按钮
     if st.button("搜索", key="model_search"):
@@ -255,9 +255,34 @@ def render_datasets():
                 return
     
     # 数据集上传
-    uploader = DatasetUploader()
-    if uploader.render():
-        st.rerun()
+    with st.expander("上传新数据集"):
+        with st.form("dataset_upload"):
+            name = st.text_input("数据集名称")
+            desc = st.text_area("描述")
+            file = st.file_uploader("选择数据文件", type=["txt"])
+            if st.form_submit_button("提交"):
+                if file:
+                    try:
+                        # 保存文件
+                        file_path = db_api.db_save_file(file.getvalue(), file.name)
+                        
+                        # 创建数据集
+                        dataset_data = {
+                            "ds_name": name,
+                            "ds_size": len(file.getvalue()),
+                            "media": "text",  # 默认类型
+                            "task": ["classification"],  # 默认任务
+                            "columns": [
+                                {"col_name": "content", "col_datatype": "text"}
+                            ]
+                        }
+                        db_api.db_create_dataset(name, dataset_data)
+                        st.success("数据集上传成功！")
+                        st.rerun()  # 刷新页面以显示新数据集
+                    except Exception as e:
+                        st.error(f"上传失败：{str(e)}")
+                else:
+                    st.error("请选择文件")
     
     # 如果没有搜索或搜索无结果，显示所有数据集
     datasets = db_api.db_list_datasets()
@@ -266,8 +291,8 @@ def render_datasets():
         st.info("暂无数据集")
         return
     
-    # 显示数据集信息
-    for dataset in datasets:
+    # 显示数据集信息（按创建时间倒序排列）
+    for dataset in sorted(datasets, key=lambda x: x.created_at, reverse=True):
         with st.container(border=True):
             st.subheader(dataset.ds_name)
             # 获取数据集的任务
