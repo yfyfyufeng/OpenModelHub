@@ -17,7 +17,9 @@ from database.database_interface import (
     create_user, update_user, delete_user
 )
 from database.database_interface import User
-from sqlalchemy import select
+from sqlalchemy import select, text
+from sqlalchemy.orm import selectinload
+from agent.agent_main import query_agent
 
 from security.conn import InitUser, GetUser, StoreFile, LoadFile, CreateInvitation, AcceptInvitation, RevokeAccess
 from security.enc import encrypt, decrypt
@@ -29,6 +31,36 @@ def async_to_sync(async_func):
     def wrapper(*args, **kwargs):
         return asyncio.run(async_func(*args, **kwargs))
     return wrapper
+
+# Agent查询
+@async_to_sync
+async def db_agent_query(query: str):
+    """使用自然语言查询数据库"""
+    async with get_db_session()() as session:
+        try:
+            # 使用 agent 的 query_agent 函数
+            result = await query_agent(query, verbose=False, session=session)
+            
+            # 返回与 agent_main.py 一致的格式
+            return (result['sql_res'] if result['err'] == 0 and result['sql_res'] else [], 
+                   {
+                       'natural_language_query': query,
+                       'generated_sql': result['sql'],
+                       'error_code': result['err'],
+                       'sql_res': result['sql_res'],
+                       'has_results': bool(result['sql_res']),
+                       'error': None if result['err'] == 0 else 'SQL执行失败'
+                   })
+        except Exception as e:
+            print(f"执行查询时出错: {str(e)}")
+            return [], {
+                'natural_language_query': query,
+                'generated_sql': '',
+                'error_code': 1,
+                'has_results': False,
+                'error': str(e),
+                'sql_res': []
+            }
 
 # 模型操作
 @async_to_sync
@@ -59,18 +91,16 @@ async def db_get_model(model_id: int):
 @async_to_sync
 async def db_list_datasets():
     async with get_db_session()() as session:
-        return await list_datasets(session)
+        stmt = select(Dataset).options(
+            selectinload(Dataset.columns),
+            selectinload(Dataset.Dataset_TASK)
+        )
+        result = await session.execute(stmt)
+        return result.scalars().all()
 
 @async_to_sync
-async def db_create_dataset(name: str, desc: str, file_path: str):
+async def db_create_dataset(name: str, dataset_data: dict):
     async with get_db_session()() as session:
-        dataset_data = {
-            "ds_name": name,
-            "ds_size": os.path.getsize(file_path),
-            "media": "text",
-            "task": "classification",
-            "columns": [{"col_name": "text", "col_datatype": "varchar(255)"}]
-        }
         return await create_dataset(session, dataset_data)
 
 # 用户操作
