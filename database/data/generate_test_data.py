@@ -85,7 +85,8 @@ async def generate_models(session):
             model_name=f"测试模型_{i+1}",
             arch_name=random.choice(ARCH_TYPES),
             param_num=random.randint(1000000, 10000000),
-            media_type=random.choice(MEDIA_TYPES)
+            media_type=random.choice(MEDIA_TYPES),
+            trainname="pretrain"
         )
         session.add(model)
         await session.flush()
@@ -120,7 +121,6 @@ async def generate_datasets(session):
         dataset = Dataset(
             ds_name=f"测试数据集_{i+1}",
             media=random.choice(MEDIA_TYPES),
-            task=random.randint(1, 4),  # 使用整数表示任务类型
             ds_size=random.randint(1024, 1024*1024)  # 1KB to 1MB
         )
         session.add(dataset)
