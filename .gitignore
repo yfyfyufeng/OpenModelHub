@@ -1,7 +1,9 @@
 .venv/
+venv/
 .idea/
 .vscode/
 **/__pycache__/
 .env
 agent/agent_note.md
 agent/dump,txt
+venv/

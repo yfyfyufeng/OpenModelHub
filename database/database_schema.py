@@ -43,7 +43,7 @@ class Model(Base):
     param_num = Column(BIGINT(unsigned=True))
     media_type = Column(Enum(Media_type), nullable=False)
     arch_name = Column(Enum(ArchType), nullable=False)
-    trainname = Column(Enum(Trainname), nullable = False)
+    trainname = Column(String(50), nullable=False)
     param = Column(LargeBinary, nullable=False)
 
     authors = relationship("ModelAuthor", back_populates="model", cascade="all, delete-orphan")
@@ -153,6 +153,7 @@ class Dataset(Base):
     ds_size = Column(Integer, nullable=False)
     media = Column(Enum(Media_type), nullable=False)
     created_at = Column(DateTime, default=datetime.now)
+    description = Column(String(1000))  # 添加描述字段
     __table_args__ = (
         CheckConstraint('ds_size >= 0', name='ds_size'),
     )
@@ -168,7 +169,7 @@ class Dataset_TASK(Base):
     ds_id = Column(Integer, ForeignKey("Dataset.ds_id", ondelete='CASCADE'))
     task = Column(Enum(Task_name), nullable=False)
     __table_args__ = (
-        PrimaryKeyConstraint('ds_id', name='pk_dataset_task'),
+        PrimaryKeyConstraint('ds_id', 'task', name='pk_dataset_task'),
     )
     Task_relation = relationship("Dataset", back_populates="Dataset_TASK")
 

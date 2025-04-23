@@ -14,7 +14,7 @@ sys.path.extend([str(project_root), str(project_root/"database")])
 sys.path.extend([str(project_root), str(project_root/"frontend")])
 import frontend.database_api as db_api
 from database.database_interface import (
-    list_models, get_model_by_id, list_datasets, get_dataset_by_id,
+     get_model_by_id, list_datasets, get_dataset_by_id,
     list_users, get_user_by_id, list_affiliations, init_database,
     create_user, update_user, delete_user
 )
@@ -29,7 +29,7 @@ from io import BytesIO
 from frontend.config import APP_CONFIG
 from frontend.db import get_db_session
 from frontend.auth import AuthManager
-from frontend.components import Sidebar, DatasetUploader, UserManager
+from frontend.components import Sidebar, DatasetUploader, UserManager, ModelUploader
 
 # 允许嵌套事件循环
 nest_asyncio.apply()
@@ -104,12 +104,22 @@ def login_form():
     with st.form("登录", clear_on_submit=True):
         username = st.text_input("用户名")
         password = st.text_input("密码", type="password")
+        use_encryption = st.checkbox("使用加密登录", value=True)
         if st.form_submit_button("登录"):
             # 使用哈希后的密码进行验证（示例使用sha256，生产环境应使用bcrypt）
-      #      hashed_pwd = hashlib.sha256(password.encode()).hexdigest()
+            #      hashed_pwd = hashlib.sha256(password.encode()).hexdigest()
             hashed_pwd = password  # 直接使用明文密码
-            user = db_api.db_authenticate_user(username, hashed_pwd)
-            if user  :
+            if use_encryption:
+                user = db_api.db_authenticate_user(username, hashed_pwd)
+            else:
+                # 非加密登录
+                user = db_api.db_get_user_by_username(username)
+                if user and user.password_hash == password:
+                    user = user
+                else:
+                    user = None
+            
+            if user:
                 st.session_state.authenticated = True
                 st.session_state.current_user = {
                     "user_id": user.user_id,
@@ -162,28 +172,170 @@ def render_home():
 # 模型仓库
 def render_models():
     """渲染模型仓库页面"""
-    st.header("模型仓库")
+    st.title("模型仓库")
     
-    # 直接调用数据库API
+    # 添加搜索输入框
+    search_query = st.text_input("搜索模型", placeholder="输入自然语言查询")
+    
+    # 添加搜索按钮
+    if st.button("搜索", key="model_search"):
+        if search_query:
+            results, query_info = db_api.db_agent_query(search_query)
+            # 显示查询详情
+            with st.expander("查询详情"):
+                st.json({
+                    'natural_language_query': query_info['natural_language_query'],
+                    'generated_sql': query_info['generated_sql'],
+                    'error_code': query_info['error_code'],
+                    'has_results': query_info['has_results'],
+                    'error': query_info.get('error', None),
+                    'sql_res': results
+                })
+            if results:
+                df = pd.DataFrame(results)
+                st.dataframe(df)
+                return
+    
+    # 模型上传
+    with st.expander("上传新模型"):
+        with st.form("model_upload"):
+            name = st.text_input("模型名称")
+            param_num = st.number_input("参数量", min_value=1000, value=1000000)
+            
+            # 架构类型选择
+            arch_types = ["CNN", "RNN", "TRANSFORMER"]
+            arch_type = st.selectbox(
+                "架构类型",
+                arch_types,
+                help="选择模型架构类型"
+            )
+            
+            # 媒体类型选择
+            media_types = ["TEXT", "IMAGE", "AUDIO", "VIDEO"]
+            media_type = st.selectbox(
+                "媒体类型",
+                media_types,
+                help="选择模型适用的媒体类型"
+            )
+            
+            # 任务选择
+            task_types = ["CLASSIFICATION", "DETECTION", "GENERATION", "SEGMENTATION"]
+            selected_tasks = st.multiselect(
+                "任务类型",
+                task_types,
+                default=["CLASSIFICATION"],
+                help="可以选择多个任务类型"
+            )
+            
+            # 训练类型选择
+            train_types = ["PRETRAIN", "FINETUNE", "RL"]
+            train_type = st.selectbox(
+                "训练类型",
+                train_types,
+                help="选择模型的训练类型"
+            )
+            
+            # 文件上传
+            file = st.file_uploader("选择模型文件", type=["pt", "pth", "ckpt", "bin", "txt"])
+            
+            if st.form_submit_button("提交"):
+                if file and name:
+                    try:
+                        # 保存文件
+                        file_path = db_api.db_save_file(file.getvalue(), file.name)
+                        
+                        # 创建模型
+                        model_data = {
+                            "model_name": name,
+                            "param_num": param_num,
+                            "arch_name": arch_type,
+                            "media_type": media_type,
+                            "tasks": selected_tasks,
+                            "trainname": train_type,
+                            "param": file_path
+                        }
+                        db_api.db_create_model(model_data)
+                        st.success("模型上传成功！")
+                        st.rerun()
+                    except Exception as e:
+                        st.error(f"上传失败：{str(e)}")
+                else:
+                    st.error("请填写模型名称并选择文件")
+    
+    # 显示所有模型
     models = db_api.db_list_models()
     
-    # 搜索和过滤
-    col1, col2 = st.columns([3, 1])
-    with col1:
-        search_query = st.text_input("🔍 搜索模型（支持自然语言）", key="model_search")
-    with col2:
-        filter_arch = st.selectbox("架构类型", ["全部", "CNN", "RNN", "Transformer"])
+    if not models:
+        st.info("暂无模型")
+        return
+    
+    # 显示模型信息（按创建时间倒序排列）
+    for model in sorted(models, key=lambda x: x.created_at if hasattr(x, 'created_at') else datetime.now(), reverse=True):
+        with st.container(border=True):
+            st.subheader(model.model_name)
+            # 获取模型的任务
+            tasks = [task.task_name.value for task in model.tasks] if hasattr(model, 'tasks') else []
+            task_str = ", ".join(tasks) if tasks else "无任务"
+            st.caption(f"架构：{model.arch_name.value} | 媒体类型：{model.media_type.value} | 参数量：{model.param_num:,}")
+            
+            if st.button("查看详情", key=f"model_{model.model_id}"):
+                st.session_state.selected_model = model
+                st.session_state.current_page = "model_detail"
+    
+    # 显示模型详情
+    if st.session_state.get("current_page") == "model_detail":
+        model = st.session_state.get("selected_model")
+        if model:
+            st.markdown("---")
+            st.subheader(f"模型详情 - {model.model_name}")
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                st.write("**架构类型：**")
+                st.write(model.arch_name.value)
+                
+                st.write("**媒体类型：**")
+                st.write(model.media_type.value)
+                
+                st.write("**参数量：**")
+                st.write(f"{model.param_num:,}")
+            
+            with col2:
+                st.write("**训练类型：**")
+                st.write(model.trainname.value)
+                
+                st.write("**支持任务：**")
+                tasks = [task.task_name.value for task in model.tasks] if hasattr(model, 'tasks') else []
+                st.write(", ".join(tasks) if tasks else "无任务")
+            
+            # 下载按钮
+            if st.button("下载模型", key=f"download_{model.model_id}"):
+                file_data = db_api.db_get_file(f"{model.model_name}.pt")
+                if file_data:
+                    st.download_button(
+                        label="点击下载",
+                        data=file_data,
+                        file_name=f"{model.model_name}.pt",
+                        mime="application/octet-stream"
+                    )
+                else:
+                    st.error("文件不存在")
+            
+            # 返回按钮
+            if st.button("返回列表", key="back_to_list"):
+                st.session_state.current_page = "models"
+                st.rerun()
+    
+    # 如果没有搜索或搜索无结果，显示所有模型
+    models = db_api.db_list_models()
     
     # 展示模型列表
     df = pd.DataFrame([{
         "ID": model.model_id,
         "名称": model.model_name,
         "类型": model.arch_name.value,
-        "参数数量": f"{model.param_num:,}"
+        "参数数量": f"{model.param_num:,}" if hasattr(model, 'param_num') else "未知"
     } for model in models])
-    
-    if filter_arch != "全部":
-        df = df[df["类型"] == filter_arch]
     
     st.dataframe(
         df,
@@ -217,54 +369,131 @@ def render_models():
 
 # 修改后的数据集管理
 def render_datasets():
-    """渲染数据集页面"""
-    st.header("📁 数据集管理")
+    """渲染数据集管理页面"""
+    st.title("数据集管理")
+    
+    # 添加搜索输入框
+    search_query = st.text_input("搜索数据集", placeholder="输入自然语言查询")
+    
+    # 添加搜索按钮
+    if st.button("搜索", key="dataset_search"):
+        if search_query:
+            results, query_info = db_api.db_agent_query(search_query)
+            # 显示查询详情
+            with st.expander("查询详情"):
+                st.json({
+                    'natural_language_query': query_info['natural_language_query'],
+                    'generated_sql': query_info['generated_sql'],
+                    'error_code': query_info['error_code'],
+                    'has_results': query_info['has_results'],
+                    'error': query_info.get('error', None),
+                    'sql_res': results
+                })
+            if results:
+                df = pd.DataFrame(results)
+                st.dataframe(df)
+                return
     
     # 数据集上传
-    uploader = DatasetUploader()
-    if uploader.render():
-        st.rerun()
+    with st.expander("上传新数据集"):
+        with st.form("dataset_upload"):
+            name = st.text_input("数据集名称")
+            desc = st.text_area("描述")
+            file = st.file_uploader("选择数据文件", type=["txt"])
+            
+            # 任务选择
+            st.write("选择任务类型：")
+            # 预定义的任务类型
+            predefined_tasks = ["classification", "detection", "generation", "segmentation"]
+            selected_tasks = st.multiselect(
+                "选择任务类型",
+                predefined_tasks,
+                default=["classification"],
+                help="可以选择多个任务类型"
+            )
+            
+            if st.form_submit_button("提交"):
+                if file:
+                    try:
+                        # 保存文件
+                        file_path = db_api.db_save_file(file.getvalue(), file.name)
+                        
+                        # 创建数据集
+                        dataset_data = {
+                            "ds_name": name,
+                            "ds_size": len(file.getvalue()),
+                            "media": "text",  # 默认类型
+                            "task": selected_tasks,  # 使用选择的任务
+                            "columns": [
+                                {"col_name": "content", "col_datatype": "text"}
+                            ],
+                            "description": desc  # 添加描述字段
+                        }
+                        db_api.db_create_dataset(name, dataset_data)
+                        st.success("数据集上传成功！")
+                        st.rerun()  # 刷新页面以显示新数据集
+                    except Exception as e:
+                        st.error(f"上传失败：{str(e)}")
+                else:
+                    st.error("请选择文件")
     
-    # 直接调用数据库API
+    # 如果没有搜索或搜索无结果，显示所有数据集
     datasets = db_api.db_list_datasets()
     
     if not datasets:
         st.info("暂无数据集")
         return
     
-    search_term = st.text_input("🔍 搜索数据集")
-    filtered_datasets = [d for d in datasets if search_term.lower() in d.ds_name.lower()]
-    
-    for dataset in filtered_datasets:
+    # 显示数据集信息（按创建时间倒序排列）
+    for dataset in sorted(datasets, key=lambda x: x.created_at, reverse=True):
         with st.container(border=True):
-            cols = st.columns([1, 4, 1])
-            cols[0].markdown(f"**ID**: {dataset.ds_id}")
-            cols[1].markdown(f"### {dataset.ds_name}")
-            cols[1].caption(f"类型：{dataset.media} | 任务：{dataset.task} | 大小：{dataset.ds_size/1024:.1f}KB")
+            st.subheader(dataset.ds_name)
+            # 获取数据集的任务
+            tasks = [task.task.value for task in dataset.Dataset_TASK]  # 获取枚举值
+            task_str = ", ".join(tasks) if tasks else "无任务"
+            st.caption(f"类型：{dataset.media} | 任务：{task_str} | 大小：{dataset.ds_size/1024:.1f}KB")
+            
+            if st.button("查看详情", key=f"dataset_{dataset.ds_id}"):
+                st.session_state.selected_dataset = dataset
+                st.session_state.current_page = "dataset_detail"
+    
+    # 显示数据集详情
+    if st.session_state.get("current_page") == "dataset_detail":
+        dataset = st.session_state.get("selected_dataset")
+        if dataset:
+            st.markdown("---")
+            st.subheader(f"数据集详情 - {dataset.ds_name}")
+            
+            # 显示描述
+            st.write("**描述：**")
+            st.write(dataset.description if hasattr(dataset, 'description') else "暂无描述")
+            
+            # 显示任务信息
+            st.write("**任务类型：**")
+            tasks = [task.task.value for task in dataset.Dataset_TASK]
+            st.write(", ".join(tasks) if tasks else "无任务")
+            
+            # 显示数据集大小
+            st.write("**数据集大小：**")
+            st.write(f"{dataset.ds_size/1024:.1f}KB")
             
             # 下载按钮
-            with cols[2]:
-                file_data = db_api.db_get_file(dataset.ds_name + ".zip")
+            if st.button("下载数据集", key=f"download_{dataset.ds_id}"):
+                file_data = db_api.db_get_file(dataset.ds_name + ".txt")
                 if file_data:
                     st.download_button(
-                        label="下载",
+                        label="点击下载",
                         data=file_data,
-                        file_name=f"{dataset.ds_name}.zip",
-                        key=f"download_{dataset.ds_id}"
+                        file_name=f"{dataset.ds_name}.txt",
+                        mime="text/plain"
                     )
                 else:
-                    st.error("文件缺失")
-
-            # 元数据显示
-            with st.expander("详细信息"):
-                cols = st.columns(2)
-                cols[0].write(f"**创建时间**: {dataset.created_at}")
-                cols[1].write(f"**数据列**: {len(dataset.columns)}")
-                
-                if dataset.columns:
-                    st.write("### 数据结构")
-                    for col in dataset.columns:
-                        st.code(f"{col.col_name}: {col.col_datatype}")
+                    st.error("文件不存在")
+            
+            # 返回按钮
+            if st.button("返回列表", key="back_to_list"):
+                st.session_state.current_page = "datasets"
+                st.rerun()
 
 # 用户管理（管理员功能）
 def render_users():
@@ -272,9 +501,23 @@ def render_users():
     user_manager = UserManager()
     user_manager.render()
 
-# 主程序逻辑
+# 默认登录函数
+def default_login():
+    """使用默认账号登录，用于开发测试"""
+    if not st.session_state.get('authenticated'):
+        st.session_state.authenticated = True
+        st.session_state.current_user = {
+            "user_id": 1,
+            "username": "admin",
+            "role": "admin"
+        }
+
 def main():
     """主程序入口"""
+    # 开发模式：使用默认登录
+    # default_login()  # 取消注释以启用默认登录
+    
+    # 正常模式：使用认证管理器
     auth_manager = AuthManager()
     sidebar = Sidebar(auth_manager)
     
