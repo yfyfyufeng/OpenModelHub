@@ -3,5 +3,11 @@
         "query": "Show all datasets with their sizes and creation dates.",
         "test_set": "test_user.json",
         "description": "field not found"
+    },
+
+    {   
+        "query": "I want a model with 2 types of media_type that it can process.",
+        "test_set": "composite_query.json",
+        "description": "failed to fix exception"
     }
 ]
