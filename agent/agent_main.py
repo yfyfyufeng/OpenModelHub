@@ -221,7 +221,7 @@ async def execute_sql(sql: str, session=None):
 # 🚀 Main Execution Logic
 # ----------------------
 
-async def query_agent(nl_input: str, verbose = False, instance_type = 0):
+async def query_agent(nl_input: str, verbose = False, session = None, instance_type = 0):
     
 
     ret_dic = {
@@ -263,7 +263,7 @@ async def query_agent(nl_input: str, verbose = False, instance_type = 0):
         if verbose: print("\n🔁 Fixed SQL:", fixed_sql)
         
         # execute sql, attempt 2
-        result, error = await execute_sql(fixed_sql, session)
+        result, error = await execute_sql(fixed_sql, sessoin)
         ret_dic["sql_res"] = result
 
         if error:
