@@ -22,7 +22,7 @@ DATABASE_URL = f"mysql+aiomysql://{DB_USERNAME}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT
 
 def patch_enum_fields(model: dict) -> dict:
     model["trainname"] = Trainname(model["trainname"])
-    model["arch_name"] = ArchType(model["arch_name"].upper())
+    model["arch_name"] = ArchType(model["arch_name"])
     model["media_type"] = Media_type(model["media_type"].lower())
     return model
 
@@ -65,7 +65,8 @@ async def load_insert_record(session):
 async def run_tests(session: AsyncSession):
     
     await load_insert_record(session)
-    choice = input("Record creation is completed. Do you want to empty the dataset? y/n: ")
+    # choice = input("Record creation is completed. Do you want to empty the dataset? y/n: ")
+    choice = 'n'
     if choice != 'y':
         print("\n✅ 所有测试已成功通过,数据库未清空。")
         return

@@ -30,10 +30,10 @@ class Trainname(enum.Enum):
     RL = "reinforcement learning"
 
 class TaskType(enum.Enum):
-    CLASSIFICATION = "Classification"
-    DETECTION = "Detection"
-    GENERATION = "Generation"
-    REGRESSION = "Regression"
+    CLASSIFICATION = "classification"
+    DETECTION = "detection"
+    GENERATION = "generation"
+    REGRESSION = "regression"
 
 class Model(Base):
     __tablename__ = 'model'
