@@ -1,0 +1,72 @@
+{
+    "affiliation": [
+        
+        {
+            "affil_name": "OpenAI"
+        },
+        
+        {
+            "affil_name": "OpenAI Research"
+        }
+    ],
+    "user": [
+        {
+            "user_name": "Alice",
+            "affiliate": "TestLab"
+        }
+    ],
+    "dataset": [
+        {
+            "ds_name": "COCO",
+            "ds_size": 50000,
+            "media": "image",
+            "task": ["detection"],
+            "columns": [
+                {"col_name": "image", "col_datatype": "string"},
+                {"col_name": "label", "col_datatype": "int"}
+            ]
+        }
+    ],
+    "model": [
+        {
+            "model_name": "YOLOv7",
+            "param_num": 64000000,
+            "media_type": "image",
+            "arch_name": "CNN",
+            "trainname": "fine-tune", 
+            "task": ["detection"],
+            "module_num": 10,
+            "modules": [
+                {"conv_size": 32, "pool_type": "max"},
+                {"conv_size": 64, "pool_type": "avg"}
+            ],
+            "param": 10
+        },
+        {
+            "model_name": "LSTM",
+            "param_num": 22000000,
+            "media_type": "text",
+            "arch_name": "RNN",
+            "trainname": "fine-tune", 
+            "task": ["generation"],
+            "criteria": "MSE",
+            "batch_size": 32,
+            "input_size": 256,
+            "param": 10
+        },
+        {
+            "model_name": "BERT",
+            "param_num": 110000000,
+            "media_type": "text",
+            "arch_name": "Transformer",
+            "trainname": "fine-tune", 
+            "task": ["classification"],
+            "decoder_num": 6,
+            "attn_size": 512,
+            "up_size": 2048,
+            "down_size": 1024,
+            "embed_size": 768,
+            "param": 10
+        }
+    ]
+}
