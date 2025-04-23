@@ -254,10 +254,8 @@ def render_datasets():
             "作者": authors_str
         })
 
-    # 创建并显示数据框
     df = pd.DataFrame(dataset_data)
 
-    # 应用样式
     st.markdown("""
     <style>
     .stDataFrame table {
@@ -322,55 +320,53 @@ def render_datasets():
         dataset_info = loop.run_until_complete(get_dataset_details())
 
         if dataset_info:
-            with st.expander(f"数据集详情 - {dataset_info['dataset']['ds_name']}", expanded=True):
-                # 基本信息
-                col1, col2 = st.columns(2)
-                with col1:
-                    st.metric("数据集ID", dataset_info['dataset']['ds_id'])
-                    st.metric("数据量", f"{dataset_info['dataset']['ds_size']:,}")
-                with col2:
-                    media_type = str(dataset_info['dataset']['media'].value) if hasattr(dataset_info['dataset']['media'], 'value') else str(dataset_info['dataset']['media'])
-                    st.metric("媒体类型", media_type)
-                    st.metric("创建时间", dataset_info['dataset']['created_at'].strftime("%Y-%m-%d %H:%M") if dataset_info['dataset']['created_at'] else "")
+            with st.expander(f"数据集详情 – {dataset_info['dataset']['ds_name']} --basic", expanded=False):
+                # Basic info as dataframe
+                st.subheader("基本信息")
+                basic_info = {
+                    "数据集ID": dataset_info['dataset']['ds_id'],
+                    "数据量": f"{dataset_info['dataset']['ds_size']:,}",
+                    "媒体类型": str(dataset_info['dataset']['media'].value)
+                    if hasattr(dataset_info['dataset']['media'], 'value')
+                    else str(dataset_info['dataset']['media']),
+                    "创建时间": dataset_info['dataset']['created_at'].strftime("%Y-%m-%d %H:%M")
+                    if dataset_info['dataset']['created_at'] else ""
+                }
+                df_basic = pd.DataFrame(list(basic_info.items()), columns=["属性", "值"])
+                st.dataframe(df_basic, hide_index=True, use_container_width=True)
 
-                # 列信息
+            with st.expander(f"数据集详情 – {dataset_info['dataset']['ds_name']} --detailed", expanded=False):
+
                 st.subheader("数据集列")
                 if dataset_info['columns']:
-                    columns_df = pd.DataFrame(dataset_info['columns'])
-                    st.dataframe(columns_df, hide_index=True, use_container_width=True)
+                    df_cols = pd.DataFrame({"列": [c["col_name"] for c in dataset_info['columns']]})
+                    st.dataframe(df_cols, hide_index=True, use_container_width=True)
                 else:
                     st.info("无列信息")
 
-                # 任务信息
                 st.subheader("支持任务")
                 if dataset_info['tasks']:
-                    # 处理任务对象
-                    tasks = []
-                    for task in dataset_info['tasks']:
-                        if hasattr(task, 'value'):
-                            tasks.append(str(task.value))
-                        else:
-                            tasks.append(str(task))
-                    tasks_df = pd.DataFrame({"任务": tasks})
-                    st.dataframe(tasks_df, hide_index=True, use_container_width=True)
+                    df_tasks = pd.DataFrame({
+                        "任务": [
+                            str(t.value) if hasattr(t, 'value') else str(t)
+                            for t in dataset_info['tasks']
+                        ]
+                    })
+                    st.dataframe(df_tasks, hide_index=True, use_container_width=True)
                 else:
                     st.info("无任务信息")
 
-                # 关联模型
                 st.subheader("关联模型")
                 if dataset_info['models']:
-                    models = [str(model) for model in dataset_info['models']]
-                    models_df = pd.DataFrame({"模型": models})
-                    st.dataframe(models_df, hide_index=True, use_container_width=True)
+                    df_models = pd.DataFrame({"模型": [str(m) for m in dataset_info['models']]})
+                    st.dataframe(df_models, hide_index=True, use_container_width=True)
                 else:
                     st.info("无关联模型")
 
-                # 作者信息
                 st.subheader("数据集作者")
                 if dataset_info['authors']:
-                    authors = [str(author) for author in dataset_info['authors']]
-                    authors_df = pd.DataFrame({"作者": authors})
-                    st.dataframe(authors_df, hide_index=True, use_container_width=True)
+                    df_authors = pd.DataFrame({"作者": [str(a) for a in dataset_info['authors']]})
+                    st.dataframe(df_authors, hide_index=True, use_container_width=True)
                 else:
                     st.info("无作者信息")
         else:
@@ -410,7 +406,6 @@ def render_models():
         if details:
             model_details[model.model_id] = details
 
-    # 定义安全取值函数
     def safe_get_value(obj, attr_name):
         if isinstance(obj, dict):
             val = obj.get(attr_name, None)
@@ -418,8 +413,10 @@ def render_models():
             val = getattr(obj, attr_name, None)
         from enum import Enum
         if isinstance(val, Enum):
-            return str(val.value)
-        return str(val) if val is not None else "未知"
+            return val.name
+        if isinstance(val, str) and '.' in val:
+            return val.split('.')[-1]
+        return str(val)
 
     # 列表展示
     model_data = []
@@ -541,69 +538,69 @@ def render_models():
         model_info = loop.run_until_complete(get_model_details())
 
         if model_info:
-            with st.expander(f"模型详情 - {model_info['model_name']}", expanded=True):
-                # 基本信息
-                col1, col2, col3 = st.columns(3)
-                with col1:
-                    st.metric("模型ID", model_info['model_id'])
-                    st.metric("架构类型", safe_get_value(model_info, 'arch_name'))
-                with col2:
-                    st.metric("参数量", f"{model_info['param_num']:,}")
-                    st.metric("媒体类型", safe_get_value(model_info, 'media_type'))
-                with col3:
-                    st.metric("训练方式", safe_get_value(model_info, 'trainname'))
+            with st.expander(f"模型详情 – {model_info['model_name']} --basic", expanded=False):
+                # Basic info as dataframe
+                st.subheader("基本信息")
+                basic_info = {
+                    "模型ID": model_info['model_id'],
+                    "架构类型": safe_get_value(model_info, 'arch_name'),
+                    "参数量": f"{model_info['param_num']:,}",
+                    "媒体类型": safe_get_value(model_info, 'media_type'),
+                    "训练方式": safe_get_value(model_info, 'trainname')
+                }
+                df_basic = pd.DataFrame(list(basic_info.items()), columns=["属性", "值"])
+                st.dataframe(df_basic, hide_index=True, use_container_width=True)
 
-                # 支持任务
+            with st.expander(f"模型详情 – {model_info['model_name']} --detailed", expanded=False):
+
                 st.subheader("支持任务")
                 if model_info.get('tasks'):
-                    tasks = [str(t) for t in model_info['tasks']]
-                    st.dataframe(pd.DataFrame({"任务": tasks}),
-                                hide_index=True, use_container_width=True)
+                    df_tasks = pd.DataFrame({"任务": [str(t) for t in model_info['tasks']]})
+                    st.dataframe(df_tasks, hide_index=True, use_container_width=True)
                 else:
                     st.info("无任务信息")
 
-                # 模型作者
                 st.subheader("模型作者")
                 if model_info.get('authors'):
-                    authors = [str(a) for a in model_info['authors']]
-                    st.dataframe(pd.DataFrame({"作者": authors}),
-                                hide_index=True, use_container_width=True)
+                    df_auth = pd.DataFrame({"作者": [str(a) for a in model_info['authors']]})
+                    st.dataframe(df_auth, hide_index=True, use_container_width=True)
                 else:
                     st.info("无作者信息")
 
-                # 关联数据集
                 st.subheader("关联数据集")
                 if model_info.get('datasets'):
-                    datasets = [str(d) for d in model_info['datasets']]
-                    st.dataframe(pd.DataFrame({"数据集": datasets}),
-                                hide_index=True, use_container_width=True)
+                    df_ds = pd.DataFrame({"数据集": [str(d) for d in model_info['datasets']]})
+                    st.dataframe(df_ds, hide_index=True, use_container_width=True)
                 else:
                     st.info("无关联数据集")
 
-                # 架构详情
                 st.subheader("架构详情")
                 if model_info.get('cnn'):
-                    st.write("CNN 架构")
                     st.metric("模块数量", model_info['cnn']['module_num'])
-                    if model_info['cnn'].get('modules'):
-                        modules_df = pd.DataFrame([
-                            {"卷积大小": m['conv_size'], "池化类型": m['pool_type']}
-                            for m in model_info['cnn']['modules']
-                        ])
-                        st.dataframe(modules_df, hide_index=True, use_container_width=True)
+                    df_cnn = pd.DataFrame([
+                        {"卷积大小": m["conv_size"], "池化类型": m["pool_type"]}
+                        for m in model_info['cnn']['modules']
+                    ])
+                    st.dataframe(df_cnn, hide_index=True, use_container_width=True)
+
                 elif model_info.get('rnn'):
-                    st.write("RNN 架构")
-                    st.metric("批量大小", model_info['rnn']['batch_size'])
-                    st.metric("输入大小", model_info['rnn']['input_size'])
-                    st.metric("准则", model_info['rnn']['criteria'])
+                    df_rnn = pd.DataFrame({
+                        "批量大小": [model_info['rnn']['batch_size']],
+                        "输入大小": [model_info['rnn']['input_size']],
+                        "准则": [model_info['rnn']['criteria']]
+                    })
+                    st.dataframe(df_rnn, hide_index=True, use_container_width=True)
+
                 elif model_info.get('transformer'):
-                    st.write("Transformer 架构")
                     tf = model_info['transformer']
-                    st.metric("解码器数量", tf['decoder_num'])
-                    st.metric("注意力大小", tf['attn_size'])
-                    st.metric("上升尺寸", tf['up_size'])
-                    st.metric("下降尺寸", tf['down_size'])
-                    st.metric("嵌入尺寸", tf['embed_size'])
+                    df_tf = pd.DataFrame({
+                        "解码器数量": [tf['decoder_num']],
+                        "注意力大小": [tf['attn_size']],
+                        "上升尺寸": [tf['up_size']],
+                        "下降尺寸": [tf['down_size']],
+                        "嵌入尺寸": [tf['embed_size']],
+                    })
+                    st.dataframe(df_tf, hide_index=True, use_container_width=True)
         else:
             st.error(f"未找到ID为{selected_id}的模型")
 
