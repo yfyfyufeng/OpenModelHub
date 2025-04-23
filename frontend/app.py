@@ -29,7 +29,7 @@ from io import BytesIO
 from frontend.config import APP_CONFIG
 from frontend.db import get_db_session
 from frontend.auth import AuthManager
-from frontend.components import Sidebar, DatasetUploader, UserManager
+from frontend.components import Sidebar, DatasetUploader, UserManager, ModelUploader
 
 # 允许嵌套事件循环
 nest_asyncio.apply()
@@ -207,6 +207,136 @@ def render_models():
                 df = pd.DataFrame(results)
                 st.dataframe(df)
                 return
+    
+    # 模型上传
+    with st.expander("上传新模型"):
+        with st.form("model_upload"):
+            name = st.text_input("模型名称")
+            param_num = st.number_input("参数量", min_value=1000, value=1000000)
+            
+            # 架构类型选择
+            arch_types = ["CNN", "RNN", "TRANSFORMER"]
+            arch_type = st.selectbox(
+                "架构类型",
+                arch_types,
+                help="选择模型架构类型"
+            )
+            
+            # 媒体类型选择
+            media_types = ["TEXT", "IMAGE", "AUDIO", "VIDEO"]
+            media_type = st.selectbox(
+                "媒体类型",
+                media_types,
+                help="选择模型适用的媒体类型"
+            )
+            
+            # 任务选择
+            task_types = ["CLASSIFICATION", "DETECTION", "GENERATION", "SEGMENTATION"]
+            selected_tasks = st.multiselect(
+                "任务类型",
+                task_types,
+                default=["CLASSIFICATION"],
+                help="可以选择多个任务类型"
+            )
+            
+            # 训练类型选择
+            train_types = ["PRETRAIN", "FINETUNE", "RL"]
+            train_type = st.selectbox(
+                "训练类型",
+                train_types,
+                help="选择模型的训练类型"
+            )
+            
+            # 文件上传
+            file = st.file_uploader("选择模型文件", type=["pt", "pth", "ckpt", "bin", "txt"])
+            
+            if st.form_submit_button("提交"):
+                if file and name:
+                    try:
+                        # 保存文件
+                        file_path = db_api.db_save_file(file.getvalue(), file.name)
+                        
+                        # 创建模型
+                        model_data = {
+                            "model_name": name,
+                            "param_num": param_num,
+                            "arch_name": arch_type,
+                            "media_type": media_type,
+                            "tasks": selected_tasks,
+                            "trainname": train_type,
+                            "param": file_path
+                        }
+                        db_api.db_create_model(model_data)
+                        st.success("模型上传成功！")
+                        st.rerun()
+                    except Exception as e:
+                        st.error(f"上传失败：{str(e)}")
+                else:
+                    st.error("请填写模型名称并选择文件")
+    
+    # 显示所有模型
+    models = db_api.db_list_models()
+    
+    if not models:
+        st.info("暂无模型")
+        return
+    
+    # 显示模型信息（按创建时间倒序排列）
+    for model in sorted(models, key=lambda x: x.created_at if hasattr(x, 'created_at') else datetime.now(), reverse=True):
+        with st.container(border=True):
+            st.subheader(model.model_name)
+            # 获取模型的任务
+            tasks = [task.task_name.value for task in model.tasks] if hasattr(model, 'tasks') else []
+            task_str = ", ".join(tasks) if tasks else "无任务"
+            st.caption(f"架构：{model.arch_name.value} | 媒体类型：{model.media_type.value} | 参数量：{model.param_num:,}")
+            
+            if st.button("查看详情", key=f"model_{model.model_id}"):
+                st.session_state.selected_model = model
+                st.session_state.current_page = "model_detail"
+    
+    # 显示模型详情
+    if st.session_state.get("current_page") == "model_detail":
+        model = st.session_state.get("selected_model")
+        if model:
+            st.markdown("---")
+            st.subheader(f"模型详情 - {model.model_name}")
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                st.write("**架构类型：**")
+                st.write(model.arch_name.value)
+                
+                st.write("**媒体类型：**")
+                st.write(model.media_type.value)
+                
+                st.write("**参数量：**")
+                st.write(f"{model.param_num:,}")
+            
+            with col2:
+                st.write("**训练类型：**")
+                st.write(model.trainname.value)
+                
+                st.write("**支持任务：**")
+                tasks = [task.task_name.value for task in model.tasks] if hasattr(model, 'tasks') else []
+                st.write(", ".join(tasks) if tasks else "无任务")
+            
+            # 下载按钮
+            if st.button("下载模型", key=f"download_{model.model_id}"):
+                file_data = db_api.db_get_file(f"{model.model_name}.pt")
+                if file_data:
+                    st.download_button(
+                        label="点击下载",
+                        data=file_data,
+                        file_name=f"{model.model_name}.pt",
+                        mime="application/octet-stream"
+                    )
+                else:
+                    st.error("文件不存在")
+            
+            # 返回按钮
+            if st.button("返回列表", key="back_to_list"):
+                st.session_state.current_page = "models"
+                st.rerun()
     
     # 如果没有搜索或搜索无结果，显示所有模型
     models = db_api.db_list_models()

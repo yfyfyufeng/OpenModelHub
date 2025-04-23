@@ -13,6 +13,7 @@ sys.path.extend([str(project_root), str(project_root/"frontend")])
 import frontend.database_api as db_api
 from frontend.utils import parse_csv_columns, validate_file_upload
 from frontend.config import UPLOAD_CONFIG
+from database.database_schema import ArchType, Media_type, Task_name, Trainname
 
 # 允许嵌套事件循环
 nest_asyncio.apply()
@@ -160,3 +161,85 @@ class DatasetUploader:
         except Exception as e:
             st.error(f"上传失败：{str(e)}")
             return False 
+        
+class ModelUploader:
+    def __init__(self):
+        self.allowed_types = ["pt", "pth", "ckpt", "bin","txt"]  # Model file types
+        self.max_size = UPLOAD_CONFIG["max_size"]
+
+    def render(self):
+        """渲染模型上传组件"""
+        with st.expander("📤 上传新模型", expanded=False):
+            with st.form("model_upload", clear_on_submit=True):
+                # Basic Information
+                name = st.text_input("模型名称*")
+                param_num = st.number_input("参数量", min_value=1000, value=1000000)
+                
+                # Model Architecture
+                arch_type = st.selectbox(
+                    "架构类型*", 
+                    options=[arch.value for arch in ArchType]
+                )
+                
+                # Media and Task Types
+                media_type = st.selectbox(
+                    "媒体类型*",
+                    options=[media.value for media in Media_type]
+                )
+                
+                tasks = st.multiselect(
+                    "任务类型*",
+                    options=[task.value for task in Task_name]
+                )
+                
+                train_type = st.selectbox(
+                    "训练类型*",
+                    options=[train.value for train in Trainname]
+                )
+                
+                # File Upload
+                model_file = st.file_uploader("选择模型文件*", type=self.allowed_types)
+                
+                if st.form_submit_button("提交"):
+                    return self._handle_submit(
+                        name=name,
+                        param_num=param_num,
+                        arch_type=arch_type,
+                        media_type=media_type,
+                        tasks=tasks,
+                        train_type=train_type,
+                        file=model_file
+                    )
+        return False
+
+    def _handle_submit(self, name, param_num, arch_type, media_type, tasks, train_type, file):
+        """处理表单提交"""
+        if not all([name, arch_type, media_type, tasks, file]):
+            st.error("带*的字段为必填项")
+            return False
+
+        is_valid, error_msg = validate_file_upload(file, self.allowed_types, self.max_size)
+        if not is_valid:
+            st.error(error_msg)
+            return False
+
+        try:
+            file_path = db_api.db_save_file(file.getvalue(), file.name)
+            
+            model_data = {
+                "model_name": name,
+                "param_num": param_num,
+                "arch_name": arch_type,
+                "media_type": media_type,
+                "tasks": tasks,
+                "trainname": train_type,
+                "param": file_path
+            }
+            
+            db_api.db_create_model(model_data)
+            st.success("模型上传成功！")
+            return True
+            
+        except Exception as e:
+            st.error(f"上传失败：{str(e)}")
+            return False

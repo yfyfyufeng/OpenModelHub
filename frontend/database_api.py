@@ -223,3 +223,29 @@ def get_db_session():
     )
     return async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
+@async_to_sync
+async def db_create_model(model_data: dict):
+    """创建新模型"""
+    async with get_db_session()() as session:
+        # Create model
+        model = Model(
+            model_name=model_data["model_name"],
+            param_num=model_data["param_num"],
+            arch_name=model_data["arch_name"],
+            media_type=model_data["media_type"],
+            trainname=model_data["trainname"],
+            param=model_data["param"]
+        )
+        session.add(model)
+        await session.flush()
+
+        # Add tasks
+        for task_name in model_data["tasks"]:
+            task = ModelTask(
+                model_id=model.model_id,
+                task_name=task_name
+            )
+            session.add(task)
+
+        await session.commit()
+        return model
