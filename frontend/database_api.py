@@ -223,3 +223,40 @@ def get_db_session():
     )
     return async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
+<<<<<<< Updated upstream
+=======
+@async_to_sync
+async def db_create_model(model_data: dict):
+    """创建新模型"""
+    async with get_db_session()() as session:
+        try:
+            # 转换枚举类型
+            from database.database_schema import ArchType, Media_type, Trainname, Task_name
+            
+            # 创建模型
+            model = Model(
+                model_name=model_data["model_name"],
+                param_num=model_data["param_num"],
+                media_type=Media_type[model_data["media_type"]],
+                arch_name=ArchType[model_data["arch_name"]],
+                trainname=Trainname[model_data["trainname"]],
+                param=model_data["param"]
+            )
+            session.add(model)
+            await session.flush()
+            
+            # 添加任务
+            for task_name in model_data["tasks"]:
+                task = ModelTask(
+                    model_id=model.model_id,
+                    task_name=Task_name[task_name]
+                )
+                session.add(task)
+            
+            await session.commit()
+            await session.refresh(model)
+            return model
+        except Exception as e:
+            await session.rollback()
+            raise Exception(f"创建模型失败: {str(e)}")
+>>>>>>> Stashed changes
