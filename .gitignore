@@ -6,3 +6,4 @@ venv/
 .env
 agent/agent_note.md
 agent/dump,txt
+venv/
