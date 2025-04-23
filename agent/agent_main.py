@@ -71,82 +71,85 @@ If the user asks to see the structure of a table, use the information_schema.col
 
 The database schema is as follows:
 
-- model(model_id, model_name, param_num, media_type, arch_name)
+- model(model_id, model_name, param_num, media_type, arch_name, trainname)
+  - model_id: Unique identifier
   - model_name: Name of the model
   - param_num: Number of parameters
-  - media_type: Media type used by the model (e.g., 'text', 'image', 'audio', 'video')
-  - arch_name: Architecture of the model (e.g., 'CNN', 'RNN', 'Transformer')
+  - media_type: Type of media the model handles, in { 'text', 'image', 'audio', 'video' }
+  - arch_name: Architecture of the model, in { 'CNN', 'RNN', 'Transformer' }
+  - trainname: Training method, in { 'pretrain', 'fine-tune', 'reinforcement learning' }
 
 - model_tasks(model_id, task_name)
-  - task_name: Task associated with the model (e.g., 'classification', 'detection', 'generation')
+  - model_id: Model ID
+  - task_name: Task the model performs, in { 'classification', 'detection', 'generation', 'regression' }
 
 - cnn(model_id, module_num)
-  - module_num: Number of modules in the CNN model
+  - model_id: Foreign key to model
+  - module_num: Number of convolutional modules (integer ≥ 0)
 
 - module(model_id, conv_size, pool_type)
-  - conv_size: Size of the convolution layer
-  - pool_type: Type of pooling used in the model (e.g., 'max', 'avg')
+  - model_id: Foreign key to cnn
+  - conv_size: Size of convolutional kernel (integer ≥ 0)
+  - pool_type: Type of pooling, in { 'max', 'avg', 'min', 'other' }
 
 - transformer(model_id, decoder_num, attn_size, up_size, down_size, embed_size)
-  - decoder_num: Number of decoders in the transformer model
-  - attn_size: Attention size
-  - up_size: Size of the upward transformation
-  - down_size: Size of the downward transformation
-  - embed_size: Embedding size
+  - model_id: Foreign key to model
+  - decoder_num: Number of decoders (integer ≥ 0)
+  - attn_size: Attention size (integer ≥ 0)
+  - up_size: Upsample size (integer ≥ 0)
+  - down_size: Downsample size (integer ≥ 0)
+  - embed_size: Embedding size (integer ≥ 0)
 
 - rnn(model_id, criteria, batch_size, input_size)
-  - criteria: Loss function criteria used in the RNN model
-  - batch_size: Batch size used in training the model
-  - input_size: Size of the input data for the model
+  - model_id: Foreign key to model
+  - criteria: Loss function used (string)
+  - batch_size: Batch size (integer ≥ 0)
+  - input_size: Input size (integer ≥ 0)
 
-- dataset(ds_id, ds_name, ds_size, media, task, created_at)
-  - ds_name: Name of the dataset
-  - ds_size: Size of the dataset
-  - media: Type of media in the dataset (e.g., 'text', 'image')
-  - task: Tasks associated with the dataset (e.g., 'classification', 'detection')
-  - created_at: Creation timestamp of the dataset
+- dataset(ds_id, ds_name, ds_size, media, created_at)
+  - ds_id: Dataset ID
+  - ds_name: Dataset name
+  - ds_size: Number of data samples (integer ≥ 0)
+  - media: Type of media in the dataset, in { 'text', 'image', 'audio', 'video' }
+  - created_at: Timestamp of creation
+
+- Dataset_TASK(ds_id, task)
+  - ds_id: Foreign key to dataset
+  - task: Task associated with the dataset, in { 'classification', 'detection', 'generation', 'regression' }
 
 - ds_col(ds_id, col_name, col_datatype)
-  - col_name: Column name in the dataset
-  - col_datatype: Data type of the column
+  - ds_id: Foreign key to dataset
+  - col_name: Name of a column in the dataset
+  - col_datatype: Datatype of the column (e.g., 'int', 'string')
 
 - user(user_id, user_name, password_hash, affiliate, is_admin)
-  - user_name: Name of the user
-  - password_hash: Hashed password for the user
-  - affiliate: The organization to which the user is affiliated
-  - is_admin: Boolean flag indicating if the user is an admin
+  - user_id: User ID
+  - user_name: Unique user name
+  - password_hash: Encrypted password string
+  - affiliate: Text name of organization
+  - is_admin: Boolean flag { true, false }
 
 - affil(affil_id, affil_name)
-  - affil_name: Name of the affiliation (organization)
+  - affil_id: Affiliation ID
+  - affil_name: Name of the organization
 
 - user_affil(user_id, affil_id)
-  - Maps users to affiliations
+  - Mapping of user to affiliation
 
 - model_author(model_id, user_id)
-  - Maps models to their authors
+  - Mapping of model to its author
 
 - model_dataset(model_id, dataset_id)
-  - Maps models to datasets
+  - Mapping of model to dataset
 
 - user_ds(user_id, ds_id)
-  - Maps users to datasets
+  - Mapping of user to dataset
 
 # Synonym Handling:
-- If the user query refers to a "language model", but no such table or attribute exists,
-you should map "language model" to "models where media_type = 'text'".
-- If the user refers to concepts like "text data models", translate this to models where `media_type = 'text'`.
-
-# Domain Constraints:
-1. Ensure that all queries respect the database schema and constraints such as:
-    - Task types for models and datasets must be chosen from predefined options (e.g., 'classification', 'detection').
-    - Models' architecture types must be one of 'CNN', 'RNN', or 'Transformer'.
-    - Media types for models and datasets are limited to 'text', 'image', 'audio', 'video'.
-2. You should never reference columns or tables that do not exist in the schema.
-
+If the user query refers to a "language model", map it to "models where media_type = 'text'".
 
 Only return the SQL query. Do not add explanations.
 """
-
 
 # ----------------------
 # 🔁 Generate SQL with GPT
