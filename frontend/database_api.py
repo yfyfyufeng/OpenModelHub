@@ -222,9 +222,6 @@ def get_db_session():
         echo=True
     )
     return async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
-
-<<<<<<< Updated upstream
-=======
 @async_to_sync
 async def db_create_model(model_data: dict):
     """创建新模型"""
@@ -259,4 +256,4 @@ async def db_create_model(model_data: dict):
         except Exception as e:
             await session.rollback()
             raise Exception(f"创建模型失败: {str(e)}")
->>>>>>> Stashed changes
+
