@@ -1,5 +1,4 @@
 import asyncio
-import json
 from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from database_interface import *
@@ -14,51 +13,101 @@ TARGET_DB = os.getenv("TARGET_DB")
 
 DATABASE_URL = f"mysql+aiomysql://{DB_USERNAME}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{TARGET_DB}"
 
-# ========= Load Test Data =========
-async def load_and_insert_records(session):
-
-    
-    print("Data loaded:\n",data)
-    input("Prese Enter to continue.")
-
-
-
-
-# ======== Delete Records =========
-async def delete_records(session, data):
-    # 删除顺序：Dataset -> User -> Affiliation
-
-    for ds in data.get("dataset", []):
-        ds_id = ds.get("ds_id")
-        if ds_id:
-            assert await delete_dataset(session, ds_id) is True
-            print(f"🗑️ Deleted Dataset: {ds['ds_name']}")
-
-    for user in data.get("user", []):
-        user_id = user.get("user_id")
-        if user_id:
-            assert await delete_user(session, user_id) is True
-            print(f"🗑️ Deleted User: {user['user_name']}")
-
-    for affil in data.get("affiliation", []):
-        affil_id = affil.get("affil_id")
-        if affil_id:
-            assert await delete_affiliation(session, affil_id) is True
-            print(f"🗑️ Deleted Affiliation: {affil['affil_name']}")
-
-
 # ========= Run All Tests =========
-
 async def run_tests(session: AsyncSession):
-    
-    # Create data set by loading records from a json file outside.
-    data = await load_and_insert_records(session)
-    
-    transformer_model = {'model_id': 110000000}
-    cnn_model = {'model_id': 110000001}
-    
-    
- 
+    # -----------------------------
+    # 创建 Affiliation
+    # -----------------------------
+    affil = await create_affiliation(session, "OpenAI")
+    assert affil.affil_name == "OpenAI"
+    affil = await update_affiliation(session, affil.affil_id, {"affil_name": "OpenAI Research"})
+    assert affil.affil_name == "OpenAI Research"
+
+    # -----------------------------
+    # 创建 User
+    # -----------------------------
+    user = await create_user(session, {"user_name": "Alice", "affiliate": "TestLab"})
+    user_id = user.user_id
+    await link_user_affiliation(session, user_id, affil.affil_id)
+    user = await update_user(session, user_id, {"user_name": "Alice A."})
+    assert user.user_name == "Alice A."
+
+    # -----------------------------
+    # 创建 Dataset
+    # -----------------------------
+    dataset_data = {
+        "ds_name": "COCO",
+        "ds_size": 50000,
+        "media": "image",
+        "task": ["detection"],
+        "columns": [
+            {"col_name": "image", "col_datatype": "string"},
+            {"col_name": "label", "col_datatype": "int"}
+        ]
+    }
+    dataset = await create_dataset(session, dataset_data)
+    dataset_id = dataset.ds_id
+    await link_user_dataset(session, user_id, dataset_id)
+    dataset = await update_dataset(session, dataset_id, {"ds_size": 55000})
+    assert dataset.ds_size == 55000
+
+    # -----------------------------
+    # 创建 CNN 模型
+    # -----------------------------
+    cnn_model_data = {
+        "model_name": "YOLOv7",
+        "param_num": 64000000,
+        "media_type": "image",
+        "arch_name": ArchType.CNN,
+        "trainname": Trainname.FINETUNE, 
+        "task": ["Detection"],
+        "module_num": 10,
+        "modules": [
+            {"conv_size": 32, "pool_type": "max"},
+            {"conv_size": 64, "pool_type": "avg"}
+        ],
+        "param": 10,
+    }
+    cnn_model = await create_model(session, cnn_model_data)
+    await link_model_author(session, cnn_model.model_id, user_id)
+    await link_model_dataset(session, cnn_model.model_id, dataset_id)
+
+    # -----------------------------
+    # 创建 RNN 模型
+    # -----------------------------
+    rnn_model_data = {
+        "model_name": "LSTM",
+        "param_num": 22000000,
+        "media_type": "text",
+        "arch_name": ArchType.RNN,
+        "trainname": Trainname.FINETUNE, 
+        "task": ["Generation"],
+        "criteria": "MSE",
+        "batch_size": 32,
+        "input_size": 256,
+        "param": 10,
+    }
+    rnn_model = await create_model(session, rnn_model_data)
+    await link_model_author(session, rnn_model.model_id, user_id)
+
+    # -----------------------------
+    # 创建 Transformer 模型
+    # -----------------------------
+    transformer_model_data = {
+        "model_name": "BERT",
+        "param_num": 110000000,
+        "media_type": "text",
+        "arch_name": ArchType.TRANSFORMER,
+        "trainname": Trainname.FINETUNE, 
+        "task": ["Classification"],
+        "decoder_num": 6,
+        "attn_size": 512,
+        "up_size": 2048,
+        "down_size": 1024,
+        "embed_size": 768,
+        "param": 10,
+    }
+    transformer_model = await create_model(session, transformer_model_data)
     await link_model_author(session, transformer_model.model_id, user_id)
     choice = input("Record creation is completed. Do you want to empty the dataset? y/n: ")
     if choice != 'y':
@@ -89,7 +138,6 @@ async def run_tests(session: AsyncSession):
     # -----------------------------
     # 测试删除多个数据集
     # -----------------------------
-    
     dataset_data2 = {
         "ds_name": "ImageNet",
         "ds_size": 100000,
@@ -111,13 +159,9 @@ async def run_tests(session: AsyncSession):
     # -----------------------------
     # 删除用户、数据集、机构
     # -----------------------------
-    
-    # assert await delete_user(session, user_id) is True
-    # assert await delete_dataset(session, dataset_id) is True
-    # assert await delete_affiliation(session, affil.affil_id) is True
-    
-    # Empty the dataset by calling function.
-    await delete_records(session, data)
+    assert await delete_user(session, user_id) is True
+    assert await delete_dataset(session, dataset_id) is True
+    assert await delete_affiliation(session, affil.affil_id) is True
 
     # -----------------------------
     # 验证删除机构时用户数据集不删除

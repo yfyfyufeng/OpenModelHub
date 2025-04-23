@@ -13,10 +13,6 @@
         {
             "user_name": "Alice",
             "affiliate": "TestLab"
-        },
-        {
-            "user_name": "Bob",
-            "affiliate": "Microsoft"
         }
     ],
     "dataset": [
@@ -36,8 +32,8 @@
             "model_name": "YOLOv7",
             "param_num": 64000000,
             "media_type": "image",
-            "arch_name": ArchType.CNN,
-            "trainname": Trainname.FINETUNE, 
+            "arch_name": "CNN",
+            "trainname": "fine-tune", 
             "task": ["Detection"],
             "module_num": 10,
             "modules": [
@@ -50,8 +46,8 @@
             "model_name": "LSTM",
             "param_num": 22000000,
             "media_type": "text",
-            "arch_name": ArchType.RNN,
-            "trainname": Trainname.FINETUNE, 
+            "arch_name": "RNN",
+            "trainname": "fine-tune", 
             "task": ["Generation"],
             "criteria": "MSE",
             "batch_size": 32,
@@ -62,8 +58,8 @@
             "model_name": "BERT",
             "param_num": 110000000,
             "media_type": "text",
-            "arch_name": ArchType.TRANSFORMER,
-            "trainname": Trainname.FINETUNE, 
+            "arch_name": "transformer",
+            "trainname": "fine-tune", 
             "task": ["Classification"],
             "decoder_num": 6,
             "attn_size": 512,
@@ -74,5 +70,3 @@
         }
     ]
 }
-
-

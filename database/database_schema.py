@@ -14,6 +14,7 @@ Base = declarative_base()
 # ---------------------------
 # 模型表
 # ---------------------------
+
 class ArchType(enum.Enum):
     CNN = "CNN"
     RNN = "RNN"
@@ -27,6 +28,12 @@ class Trainname(enum.Enum):
     PRETRAIN = "pretrain"
     FINETUNE = "fine-tune"
     RL = "reinforcement learning"
+
+class TaskType(enum.Enum):
+    CLASSIFICATION = "Classification"
+    DETECTION = "Detection"
+    GENERATION = "Generation"
+    REGRESSION = "Regression"
 
 class Model(Base):
     __tablename__ = 'model'
