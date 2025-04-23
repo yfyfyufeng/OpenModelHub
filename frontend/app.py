@@ -71,18 +71,6 @@ if 'authenticated' not in st.session_state:
 if 'current_user' not in st.session_state:
     st.session_state.current_user = None
 
-# 默认登录admin用户
-if not st.session_state.authenticated:
-    user = db_api.db_authenticate_user("admin", "admin")
-    if user:
-        st.session_state.authenticated = True
-        st.session_state.current_user = {
-            "user_id": user.user_id,
-            "username": user.user_name,
-            "role": "admin" if user.is_admin else "user"
-        }
-        st.rerun()
-
 # 文件上传处理
 def handle_file_upload():
     with st.expander("上传新数据集"):
@@ -383,43 +371,45 @@ def render_users():
     user_manager = UserManager()
     user_manager.render()
 
-# 主程序逻辑
+# 默认登录函数
+def default_login():
+    """使用默认账号登录，用于开发测试"""
+    if not st.session_state.get('authenticated'):
+        st.session_state.authenticated = True
+        st.session_state.current_user = {
+            "user_id": 1,
+            "username": "admin",
+            "role": "admin"
+        }
+
 def main():
     """主程序入口"""
-    # 暂时注释掉认证相关代码
-    # auth_manager = AuthManager()
-    # sidebar = Sidebar(auth_manager)
+    # 开发模式：使用默认登录
+    # default_login()  # 取消注释以启用默认登录
+    
+    # 正常模式：使用认证管理器
+    auth_manager = AuthManager()
+    sidebar = Sidebar(auth_manager)
     
     # 获取当前页面
-    # page = sidebar.render()
+    page = sidebar.render()
     
     # 检查认证状态
-    # if not auth_manager.is_authenticated() and page != "主页":
-    #     st.warning("请先登录以访问该页面")
-    #     return
+    if not auth_manager.is_authenticated() and page != "主页":
+        st.warning("请先登录以访问该页面")
+        return
     
     # 路由到对应页面
-    # if page == "主页":
-    #     render_home()
-    # elif page == "模型仓库":
-    #     render_models()
-    # elif page == "数据集":
-    #     render_datasets()
-    # elif page == "用户管理" and auth_manager.is_admin():
-    #     render_users()
-    # elif page == "系统管理":
-    #     st.write("系统管理功能开发中...")
-
-    # 简化版本：直接显示所有页面
-    st.sidebar.title("OpenModelHub")
-    page = st.sidebar.radio("导航菜单", ["主页", "模型仓库", "数据集"])
-    
     if page == "主页":
         render_home()
     elif page == "模型仓库":
         render_models()
     elif page == "数据集":
         render_datasets()
+    elif page == "用户管理" and auth_manager.is_admin():
+        render_users()
+    elif page == "系统管理":
+        st.write("系统管理功能开发中...")
 
 if __name__ == "__main__":
     try:
