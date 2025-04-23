@@ -3,6 +3,9 @@ import asyncio
 from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from database_interface import *
+# todo: and other domains from db_schema
+from database_schema import ArchType, Trainname, Media_type
+
 
 # ========= Load Env =========
 load_dotenv()
@@ -15,6 +18,13 @@ TARGET_DB = os.getenv("TARGET_DB")
 DATABASE_URL = f"mysql+aiomysql://{DB_USERNAME}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{TARGET_DB}"
 
 # ========= Load Input Data ==============
+
+
+def patch_enum_fields(model: dict) -> dict:
+    model["trainname"] = Trainname(model["trainname"])
+    model["arch_name"] = ArchType(model["arch_name"].upper())
+    model["media_type"] = Media_type(model["media_type"].lower())
+    return model
 
 async def load_insert_record(session):
 
@@ -38,23 +48,17 @@ async def load_insert_record(session):
         # 插入 Dataset 数据
     for dataset in data['dataset']:
         dataset_record = await create_dataset(session, dataset)
-        
-        # todo: insert affiliation
+        # todo: insert affiliation link
         # await link_user_affiliatidataseton(session, dataset)
     
     # todo: read other types of tables
-    
-    # todo: remove debug
-    
-    flag = True
     for model in data['model']:
+        print("model BEFORE:", model)
+        model = patch_enum_fields(model)
+        print("model after:", model)
         model_record = await create_model(session, model)
-        if flag:
-            print("model:\n", model)
-            print("model_record:\n",model_record)
-            flag = False
         # await link_model_author(session, model_record.model_id, user_['user_id'])
-        
+    
     return data
 
 # ========= Run All Tests =========

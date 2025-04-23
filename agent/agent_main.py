@@ -132,8 +132,9 @@ The database schema is as follows:
   - Maps users to datasets
 
 # Synonym Handling:
-If the user query refers to a "language model", but no such table or attribute exists,
+- If the user query refers to a "language model", but no such table or attribute exists,
 you should map "language model" to "models where media_type = 'text'".
+- If the user refers to concepts like "text data models", translate this to models where `media_type = 'text'`.
 
 # Domain Constraints:
 1. Ensure that all queries respect the database schema and constraints such as:
@@ -141,7 +142,7 @@ you should map "language model" to "models where media_type = 'text'".
     - Models' architecture types must be one of 'CNN', 'RNN', or 'Transformer'.
     - Media types for models and datasets are limited to 'text', 'image', 'audio', 'video'.
 2. You should never reference columns or tables that do not exist in the schema.
-3. If the user refers to concepts like "text data models", translate this to models where `media_type = 'text'`.
+
 
 Only return the SQL query. Do not add explanations.
 """
