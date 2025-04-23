@@ -194,62 +194,141 @@ def render_datasets():
             # 搜索逻辑
             pass
 
-    # 如果没有搜索或搜索无结果，显示所有数据集
+    # 获取所有数据集
     datasets = db_api.db_list_datasets()
+
+    # 创建事件循环用于异步获取详细信息
+    if 'dataset_loop' not in st.session_state:
+        st.session_state.dataset_loop = asyncio.new_event_loop()
+    loop = st.session_state.dataset_loop
+
+    # 预先获取所有数据集的详细信息
+    dataset_details = {}
+    for dataset in datasets:
+        async def get_details(ds_id):
+            async with get_db_session()() as session:
+                return await get_dataset_info(session, ds_id)
+
+        details = loop.run_until_complete(get_details(dataset.ds_id))
+        if details:
+            dataset_details[dataset.ds_id] = details
 
     # 展示数据集列表
     dataset_data = []
     for dataset in datasets:
-        # Convert enum values to strings
+        details = dataset_details.get(dataset.ds_id, {})
+
+        columns = []
+        if details and "columns" in details:
+            columns = [col.get("col_name", "") for col in details.get("columns", [])]
+        columns_str = ", ".join(columns) if columns else ""
+
+        tasks = []
+        if details and "tasks" in details:
+            for task in details.get("tasks", []):
+                if hasattr(task, 'value'):
+                    tasks.append(str(task.value))
+                else:
+                    tasks.append(str(task))
+        tasks_str = ", ".join(tasks) if tasks else ""
+
+        models = []
+        if details and "models" in details:
+            models = [str(model) for model in details.get("models", [])]
+        models_str = ", ".join(models) if models else ""
+
+        authors = []
+        if details and "authors" in details:
+            authors = [str(author) for author in details.get("authors", [])]
+        authors_str = ", ".join(authors) if authors else ""
+
         dataset_data.append({
             "ID": dataset.ds_id,
             "名称": dataset.ds_name,
-            "大小": f"{dataset.ds_size:,}",
+            "大小": f"{dataset.ds_size:,}" if hasattr(dataset, 'ds_size') else "",
             "媒体类型": str(dataset.media.value) if hasattr(dataset.media, 'value') else str(dataset.media),
             "创建时间": dataset.created_at.strftime("%Y-%m-%d") if dataset.created_at else "",
+            "数据集列": columns_str[:50] + ("..." if len(columns_str) > 50 else ""),
+            "支持任务": tasks_str,
+            "关联模型": models_str[:50] + ("..." if len(models_str) > 50 else ""),
+            "作者": authors_str
         })
 
+    # 创建并显示数据框
     df = pd.DataFrame(dataset_data)
+
+    # 应用样式
+    st.markdown("""
+    <style>
+    .stDataFrame table {
+        font-size: 16px !important;
+    }
+    .stDataFrame td, .stDataFrame th {
+        font-size: 16px !important;
+        padding: 8px !important;
+        text-align: center !important;  /* 文字居中 */
+        vertical-align: middle !important; /* 垂直居中 */
+    }
+    .stDataFrame th {
+        font-size: 17px !important;
+        font-weight: bold !important;
+        text-align: center !important;  /* 表头文字居中 */
+    }
+    [data-testid="stDataFrameContainer"] {
+        width: 100%;
+        overflow-x: auto !important;
+    }
+    .stTable {
+        width: 100%;
+        max-height: none !important;
+    }
+    /* 确保内容与单元格匹配 */
+    .stDataFrame td div, .stDataFrame th div {
+        width: 100% !important;
+        height: 100% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
     st.dataframe(
         df,
         column_config={
-            "ID": st.column_config.NumberColumn("数据集ID"),
-            "名称": st.column_config.TextColumn("数据集名称"),
-            "大小": st.column_config.TextColumn("数据量"),
-            "媒体类型": st.column_config.TextColumn("媒体类型"),
-            "创建时间": st.column_config.TextColumn("创建时间")
+            "ID": st.column_config.NumberColumn("数据集ID", width="small"),
+            "名称": st.column_config.TextColumn("数据集名称", width="medium"),
+            "大小": st.column_config.TextColumn("数据量", width="small"),
+            "媒体类型": st.column_config.TextColumn("媒体类型", width="small"),
+            "创建时间": st.column_config.TextColumn("创建时间", width="small"),
+            "数据集列": st.column_config.TextColumn("数据集列", width="medium"),
+            "支持任务": st.column_config.TextColumn("支持任务", width="medium"),
+            "关联模型": st.column_config.TextColumn("关联模型", width="medium"),
+            "作者": st.column_config.TextColumn("作者", width="medium")
         },
         hide_index=True,
         use_container_width=True
     )
 
-    # 数据集详情查看
+    # 数据集详情查看部分
     selected_id = st.number_input("输入数据集ID查看详情", min_value=1, step=1)
     if selected_id:
-        # 创建一个新的事件循环
-        if 'dataset_loop' not in st.session_state:
-            st.session_state.dataset_loop = asyncio.new_event_loop()
-
-        # 使用session_state中保存的事件循环
         loop = st.session_state.dataset_loop
 
-        # 定义异步函数
         async def get_dataset_details():
             async with get_db_session()() as session:
                 return await get_dataset_info(session, selected_id)
 
-        # 在同一个事件循环中执行异步操作
         dataset_info = loop.run_until_complete(get_dataset_details())
 
         if dataset_info:
             with st.expander(f"数据集详情 - {dataset_info['dataset']['ds_name']}", expanded=True):
                 # 基本信息
-                col1, col2, col3 = st.columns(3)
+                col1, col2 = st.columns(2)
                 with col1:
                     st.metric("数据集ID", dataset_info['dataset']['ds_id'])
                     st.metric("数据量", f"{dataset_info['dataset']['ds_size']:,}")
                 with col2:
-                    # Convert enum to string
                     media_type = str(dataset_info['dataset']['media'].value) if hasattr(dataset_info['dataset']['media'], 'value') else str(dataset_info['dataset']['media'])
                     st.metric("媒体类型", media_type)
                     st.metric("创建时间", dataset_info['dataset']['created_at'].strftime("%Y-%m-%d %H:%M") if dataset_info['dataset']['created_at'] else "")
@@ -265,8 +344,13 @@ def render_datasets():
                 # 任务信息
                 st.subheader("支持任务")
                 if dataset_info['tasks']:
-                    # Convert task objects to strings if needed
-                    tasks = [str(task.value) if hasattr(task, 'value') else str(task) for task in dataset_info['tasks']]
+                    # 处理任务对象
+                    tasks = []
+                    for task in dataset_info['tasks']:
+                        if hasattr(task, 'value'):
+                            tasks.append(str(task.value))
+                        else:
+                            tasks.append(str(task))
                     tasks_df = pd.DataFrame({"任务": tasks})
                     st.dataframe(tasks_df, hide_index=True, use_container_width=True)
                 else:
@@ -275,7 +359,8 @@ def render_datasets():
                 # 关联模型
                 st.subheader("关联模型")
                 if dataset_info['models']:
-                    models_df = pd.DataFrame({"模型": dataset_info['models']})
+                    models = [str(model) for model in dataset_info['models']]
+                    models_df = pd.DataFrame({"模型": models})
                     st.dataframe(models_df, hide_index=True, use_container_width=True)
                 else:
                     st.info("无关联模型")
@@ -283,7 +368,8 @@ def render_datasets():
                 # 作者信息
                 st.subheader("数据集作者")
                 if dataset_info['authors']:
-                    authors_df = pd.DataFrame({"作者": dataset_info['authors']})
+                    authors = [str(author) for author in dataset_info['authors']]
+                    authors_df = pd.DataFrame({"作者": authors})
                     st.dataframe(authors_df, hide_index=True, use_container_width=True)
                 else:
                     st.info("无作者信息")
@@ -291,79 +377,89 @@ def render_datasets():
             st.error(f"未找到ID为{selected_id}的数据集")
 
 def render_models():
-    """渲染模型仓库页面（附带 DEBUG 信息）"""
+    """渲染模型仓库页面"""
     st.title("模型仓库")
-    st.write("[DEBUG] Entered render_models()")
 
     # 搜索输入和按钮
     search_query = st.text_input("搜索模型", placeholder="输入自然语言查询")
-    st.write(f"[DEBUG] search_query = {search_query!r}")
     if st.button("搜索", key="model_search"):
-        st.write("[DEBUG] Search button clicked")
         if search_query:
             results, query_info = db_api.db_agent_query(search_query)
-            st.write(f"[DEBUG] db_agent_query returned {len(results)} rows, query_info={query_info!r}")
             with st.expander("查询详情"):
-                st.json({
-                    'natural_language_query': query_info['natural_language_query'],
-                    'generated_sql': query_info['generated_sql'],
-                    'error_code': query_info['error_code'],
-                    'has_results': query_info['has_results'],
-                    'error': query_info.get('error', None),
-                    'sql_res': results
-                })
-            if results:
-                df = pd.DataFrame(results)
-                st.dataframe(df)
-                return
+                if results:
+                    df = pd.DataFrame(results)
+                    st.dataframe(df)
+                    return
+
+    # 创建事件循环用于异步获取详细信息
+    if 'model_loop' not in st.session_state:
+        st.session_state.model_loop = asyncio.new_event_loop()
+    loop = st.session_state.model_loop
 
     # 加载所有模型
     models = db_api.db_list_models()
-    st.write(f"[DEBUG] Loaded {len(models)} models from db_list_models()")
+
+    # 预先获取所有模型的详细信息
+    model_details = {}
+    for model in models:
+        async def get_details(model_id):
+            async with get_db_session()() as session:
+                return await get_model_info(session, model_id)
+
+        details = loop.run_until_complete(get_details(model.model_id))
+        if details:
+            model_details[model.model_id] = details
 
     # 定义安全取值函数
     def safe_get_value(obj, attr_name):
-        st.write(f"[DEBUG][safe_get] obj={obj!r} type={type(obj)}, attr_name={attr_name!r}")
         if isinstance(obj, dict):
             val = obj.get(attr_name, None)
         else:
             val = getattr(obj, attr_name, None)
-        st.write(f"[DEBUG][safe_get] raw val={val!r} type={type(val)}")
         from enum import Enum
         if isinstance(val, Enum):
-            st.write(f"[DEBUG][safe_get] using .value on {val!r}")
             return str(val.value)
         return str(val) if val is not None else "未知"
 
     # 列表展示
     model_data = []
-    for idx, model in enumerate(models):
-        st.write(f"[DEBUG][LIST] idx={idx} id={model.model_id}, "
-                 f"arch_name={model.arch_name!r}({type(model.arch_name)}), "
-                 f"media_type={model.media_type!r}({type(model.media_type)}), "
-                 f"trainname={model.trainname!r}({type(model.trainname)})")
+    for model in models:
+        details = model_details.get(model.model_id, {})
 
         # 任务信息
         tasks = []
         if hasattr(model, 'tasks') and model.tasks:
             for t in model.tasks:
-                st.write(f"[DEBUG][LIST][TASK] model_id={model.model_id}, "
-                         f"t.task_name={t.task_name!r}({type(t.task_name)})")
                 from enum import Enum
                 if isinstance(t.task_name, Enum):
                     tasks.append(str(t.task_name.value))
                 else:
                     tasks.append(str(t.task_name))
-        task_str = ", ".join(tasks) if tasks else "未知"
+        elif details and 'tasks' in details:
+            tasks = [str(task) for task in details['tasks']]
+
+        tasks_str = ", ".join(tasks) if tasks else "未知"
+
+        # 获取作者信息 - 从详情中提取
+        authors = []
+        if details and 'authors' in details:
+            authors = [str(author) for author in details['authors']]
+        authors_str = ", ".join(authors) if authors else "未知"
+
+        # 获取关联数据集信息 - 从详情中提取
+        datasets = []
+        if details and 'datasets' in details:
+            datasets = [str(dataset) for dataset in details['datasets']]
+        datasets_str = ", ".join(datasets) if datasets else "未知"
 
         # 安全取值并捕获异常
         try:
-            arch   = safe_get_value(model, 'arch_name')
-            media  = safe_get_value(model, 'media_type')
-            train  = safe_get_value(model, 'trainname')
+            arch = safe_get_value(model, 'arch_name')
+            media = safe_get_value(model, 'media_type')
+            train = safe_get_value(model, 'trainname')
         except Exception as e:
-            st.error(f"[ERROR][LIST] model_id={model.model_id} safe_get_value failed: {e}")
-            raise
+            st.error(f"获取模型属性失败: {e}")
+            continue
 
         model_data.append({
             "ID": model.model_id,
@@ -372,32 +468,70 @@ def render_models():
             "媒体类型": media,
             "参数量": f"{model.param_num:,}" if hasattr(model, 'param_num') else "未知",
             "训练名称": train,
-            "任务": task_str
+            "任务": tasks_str,
+            "作者": authors_str[:50] + ("..." if len(authors_str) > 50 else ""),
+            "关联数据集": datasets_str[:50] + ("..." if len(datasets_str) > 50 else "")
         })
 
+    # 创建并显示数据框
     df = pd.DataFrame(model_data)
+
+    # 应用样式
+    st.markdown("""
+    <style>
+    .stDataFrame table {
+        font-size: 16px !important;
+    }
+    .stDataFrame td, .stDataFrame th {
+        font-size: 16px !important;
+        padding: 8px !important;
+        text-align: center !important;  /* 文字居中 */
+        vertical-align: middle !important; /* 垂直居中 */
+    }
+    .stDataFrame th {
+        font-size: 17px !important;
+        font-weight: bold !important;
+        text-align: center !important;  /* 表头文字居中 */
+    }
+    [data-testid="stDataFrameContainer"] {
+        width: 100%;
+        overflow-x: auto !important;
+    }
+    .stTable {
+        width: 100%;
+        max-height: none !important;
+    }
+    /* 确保内容与单元格匹配 */
+    .stDataFrame td div, .stDataFrame th div {
+        width: 100% !important;
+        height: 100% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
     st.dataframe(
         df,
         column_config={
-            "ID": st.column_config.NumberColumn("模型ID"),
-            "名称": st.column_config.TextColumn("模型名称"),
-            "架构": st.column_config.TextColumn("架构类型"),
-            "媒体类型": st.column_config.TextColumn("适用媒体"),
-            "参数量": st.column_config.TextColumn("参数量"),
-            "训练名称": st.column_config.TextColumn("训练方式"),
-            "任务": st.column_config.TextColumn("支持任务")
+            "ID": st.column_config.NumberColumn("模型ID", width="small"),
+            "名称": st.column_config.TextColumn("模型名称", width="medium"),
+            "架构": st.column_config.TextColumn("架构类型", width="small"),
+            "媒体类型": st.column_config.TextColumn("适用媒体", width="small"),
+            "参数量": st.column_config.TextColumn("参数量", width="small"),
+            "训练名称": st.column_config.TextColumn("训练方式", width="small"),
+            "任务": st.column_config.TextColumn("支持任务", width="medium"),
+            "作者": st.column_config.TextColumn("作者", width="medium"),
+            "关联数据集": st.column_config.TextColumn("关联数据集", width="medium")
         },
         hide_index=True,
         use_container_width=True
     )
 
-    # 详情查看
+    # 详情查看部分
     selected_id = st.number_input("输入模型ID查看详情", min_value=1, step=1)
-    st.write(f"[DEBUG] selected_id = {selected_id}")
     if selected_id:
-        if 'model_loop' not in st.session_state:
-            st.session_state.model_loop = asyncio.new_event_loop()
-            st.write("[DEBUG] Created new asyncio event loop")
         loop = st.session_state.model_loop
 
         async def get_model_details():
@@ -405,107 +539,73 @@ def render_models():
                 return await get_model_info(session, selected_id)
 
         model_info = loop.run_until_complete(get_model_details())
-        st.write(f"[DEBUG][DETAIL] fetched model_info = {model_info!r}")
 
-        if not model_info:
+        if model_info:
+            with st.expander(f"模型详情 - {model_info['model_name']}", expanded=True):
+                # 基本信息
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    st.metric("模型ID", model_info['model_id'])
+                    st.metric("架构类型", safe_get_value(model_info, 'arch_name'))
+                with col2:
+                    st.metric("参数量", f"{model_info['param_num']:,}")
+                    st.metric("媒体类型", safe_get_value(model_info, 'media_type'))
+                with col3:
+                    st.metric("训练方式", safe_get_value(model_info, 'trainname'))
+
+                # 支持任务
+                st.subheader("支持任务")
+                if model_info.get('tasks'):
+                    tasks = [str(t) for t in model_info['tasks']]
+                    st.dataframe(pd.DataFrame({"任务": tasks}),
+                                hide_index=True, use_container_width=True)
+                else:
+                    st.info("无任务信息")
+
+                # 模型作者
+                st.subheader("模型作者")
+                if model_info.get('authors'):
+                    authors = [str(a) for a in model_info['authors']]
+                    st.dataframe(pd.DataFrame({"作者": authors}),
+                                hide_index=True, use_container_width=True)
+                else:
+                    st.info("无作者信息")
+
+                # 关联数据集
+                st.subheader("关联数据集")
+                if model_info.get('datasets'):
+                    datasets = [str(d) for d in model_info['datasets']]
+                    st.dataframe(pd.DataFrame({"数据集": datasets}),
+                                hide_index=True, use_container_width=True)
+                else:
+                    st.info("无关联数据集")
+
+                # 架构详情
+                st.subheader("架构详情")
+                if model_info.get('cnn'):
+                    st.write("CNN 架构")
+                    st.metric("模块数量", model_info['cnn']['module_num'])
+                    if model_info['cnn'].get('modules'):
+                        modules_df = pd.DataFrame([
+                            {"卷积大小": m['conv_size'], "池化类型": m['pool_type']}
+                            for m in model_info['cnn']['modules']
+                        ])
+                        st.dataframe(modules_df, hide_index=True, use_container_width=True)
+                elif model_info.get('rnn'):
+                    st.write("RNN 架构")
+                    st.metric("批量大小", model_info['rnn']['batch_size'])
+                    st.metric("输入大小", model_info['rnn']['input_size'])
+                    st.metric("准则", model_info['rnn']['criteria'])
+                elif model_info.get('transformer'):
+                    st.write("Transformer 架构")
+                    tf = model_info['transformer']
+                    st.metric("解码器数量", tf['decoder_num'])
+                    st.metric("注意力大小", tf['attn_size'])
+                    st.metric("上升尺寸", tf['up_size'])
+                    st.metric("下降尺寸", tf['down_size'])
+                    st.metric("嵌入尺寸", tf['embed_size'])
+        else:
             st.error(f"未找到ID为{selected_id}的模型")
-            return
-
-        # 详情展开
-        with st.expander(f"模型详情 - {model_info['model_name']}", expanded=True):
-            # 再次捕获安全取值
-            try:
-                arch_name  = safe_get_value(model_info, 'arch_name')
-                media_type = safe_get_value(model_info, 'media_type')
-                trainname  = safe_get_value(model_info, 'trainname')
-            except Exception as e:
-                st.error(f"[ERROR][DETAIL] safe_get_value failed: {e}")
-                raise
-
-            # 基本信息
-            col1, col2, col3 = st.columns(3)
-            with col1:
-                st.metric("模型ID", model_info['model_id'])
-                st.metric("架构类型", arch_name)
-            with col2:
-                st.metric("参数量", f"{model_info['param_num']:,}")
-                st.metric("媒体类型", media_type)
-            with col3:
-                st.metric("训练方式", trainname)
-
-            # 支持任务
-            st.subheader("支持任务")
-            if model_info.get('tasks'):
-                st.write(f"[DEBUG][DETAIL] tasks raw = {model_info['tasks']!r}")
-                tasks = []
-                from enum import Enum
-                for t in model_info['tasks']:
-                    if isinstance(t, Enum):
-                        tasks.append(str(t.value))
-                    else:
-                        tasks.append(str(t))
-                st.dataframe(pd.DataFrame({"任务": tasks}),
-                             hide_index=True, use_container_width=True)
-            else:
-                st.info("无任务信息")
-
-            # 模型作者
-            st.subheader("模型作者")
-            if model_info.get('authors'):
-                st.write(f"[DEBUG][DETAIL] authors raw = {model_info['authors']!r}")
-                authors = [str(a) for a in model_info['authors']]
-                st.dataframe(pd.DataFrame({"作者": authors}),
-                             hide_index=True, use_container_width=True)
-            else:
-                st.info("无作者信息")
-
-            # 关联数据集
-            st.subheader("关联数据集")
-            if model_info.get('datasets'):
-                st.write(f"[DEBUG][DETAIL] datasets raw = {model_info['datasets']!r}")
-                datasets = [str(d) for d in model_info['datasets']]
-                st.dataframe(pd.DataFrame({"数据集": datasets}),
-                             hide_index=True, use_container_width=True)
-            else:
-                st.info("无关联数据集")
-
-            # 架构详情
-            st.subheader("架构详情")
-            st.write(f"[DEBUG][DETAIL] cnn section: {model_info.get('cnn')!r}, rnn: {model_info.get('rnn')!r}, transformer: {model_info.get('transformer')!r}")
-            # CNN
-            if model_info.get('cnn'):
-                st.write(f"[DEBUG][DETAIL] Rendering CNN modules: {model_info['cnn'].get('modules')!r}")
-                st.write(f"模块数量: {model_info['cnn']['module_num']}")
-                if model_info['cnn'].get('modules'):
-                    dfm = pd.DataFrame([
-                        {"模块": f"模块 {i+1}",
-                         "卷积尺寸": m['conv_size'],
-                         "池化类型": m['pool_type']}
-                        for i, m in enumerate(model_info['cnn']['modules'])
-                    ])
-                    st.dataframe(dfm, hide_index=True, use_container_width=True)
-            # RNN
-            elif model_info.get('rnn'):
-                c1, c2, c3 = st.columns(3)
-                with c1:
-                    st.metric("评价标准", str(model_info['rnn']['criteria']))
-                with c2:
-                    st.metric("批次大小", model_info['rnn']['batch_size'])
-                with c3:
-                    st.metric("输入尺寸", model_info['rnn']['input_size'])
-            # Transformer
-            elif model_info.get('transformer'):
-                c1, c2, c3 = st.columns(3)
-                with c1:
-                    st.metric("解码器数量", model_info['transformer']['decoder_num'])
-                    st.metric("注意力尺寸", model_info['transformer']['attn_size'])
-                with c2:
-                    st.metric("上采样尺寸", model_info['transformer']['up_size'])
-                    st.metric("下采样尺寸", model_info['transformer']['down_size'])
-                with c3:
-                    st.metric("嵌入尺寸", model_info['transformer']['embed_size'])
-            else:
-                st.info("无架构详情")
 
 # 用户管理（管理员功能）
 def render_users():
