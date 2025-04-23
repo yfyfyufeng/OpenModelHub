@@ -106,12 +106,13 @@ The database schema is as follows:
   - batch_size: Batch size (integer ≥ 0)
   - input_size: Input size (integer ≥ 0)
 
-- dataset(ds_id, ds_name, ds_size, media, created_at)
+- Dataset(ds_id, ds_name, ds_size, media, created_at)
   - ds_id: Dataset ID
   - ds_name: Dataset name
   - ds_size: Number of data samples (integer ≥ 0)
   - media: Type of media in the dataset, in { 'text', 'image', 'audio', 'video' }
   - created_at: Timestamp of creation
+  - in the attributes, "ds" is the abbreviation of "dataset".
 
 - Dataset_TASK(ds_id, task)
   - ds_id: Foreign key to dataset
@@ -146,7 +147,7 @@ The database schema is as follows:
   - Mapping of user to dataset
 
 # Synonym Handling:
-If the user query refers to a "language model", map it to "models where media_type = 'text'".
+- If the user query refers to a "language model", map it to "models where media_type = 'text'".
 
 Only return the SQL query. Do not add explanations.
 """
@@ -207,7 +208,7 @@ async def execute_sql(sql: str):
 # ----------------------
 # 🚀 Main Execution Logic
 # ----------------------
-async def query_agent(nl_input: str, verbose = False):
+async def query_agent(nl_input: str, verbose = False, instance_type = 0):
     
     ret_dic = {
         'err' : 0,
@@ -215,7 +216,21 @@ async def query_agent(nl_input: str, verbose = False):
         'sql_res' : ''
     }
     
+    instance_dict = {
+      1: 'model',
+      2: 'Dataset',
+      3: 'user',
+      4: 'affiliation'
+    }
+    
     if verbose: print("🎯 User input:", nl_input)
+    
+    # preprocess user input: input from different pages
+    if instance_type in instance_dict:
+      
+      nl_input += f"\nUser wants to search for {instance_dict[instance_type]} instances."
+    
+    if verbose: print("🎯 Preprocessed input:", nl_input)
 
     # generate sql, attempt 1
     sql = await natural_language_to_sql(nl_input)
@@ -263,9 +278,13 @@ async def run_agent():
     try:
         while True:
             nl_input = input("📝 Please input your natural language query:\n> ")
-            
+            instance_type_choice = input("Please input the type of instance you'd like to search:\n0. no constraint\n1. model\n2. dataset\n3. user\n4. affiliation\n> ")
+            if instance_type_choice not in {'0', '1', '2', '3', '4'}:
+              instance_type_choice = '0'
+              print("Invalid choice, automatically set to 0.")    
+            instance_type = int(instance_type_choice)
             output_to_console = True
-            result = await query_agent(nl_input, verbose=output_to_console)
+            result = await query_agent(nl_input, verbose=output_to_console, instance_type=instance_type)
             print(result)
                 # verbose = True: test mode;
                 # verbose = False: interface mode
