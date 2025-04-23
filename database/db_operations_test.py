@@ -39,7 +39,7 @@ async def run_tests(session: AsyncSession):
         "ds_name": "COCO",
         "ds_size": 50000,
         "media": "image",
-        "task": 1,
+        "task": ["detection"],
         "columns": [
             {"col_name": "image", "col_datatype": "string"},
             {"col_name": "label", "col_datatype": "int"}
@@ -59,12 +59,14 @@ async def run_tests(session: AsyncSession):
         "param_num": 64000000,
         "media_type": "image",
         "arch_name": ArchType.CNN,
+        "trainname": Trainname.FINETUNE, 
         "task": ["Detection"],
         "module_num": 10,
         "modules": [
             {"conv_size": 32, "pool_type": "max"},
             {"conv_size": 64, "pool_type": "avg"}
-        ]
+        ],
+        "param": 10,
     }
     cnn_model = await create_model(session, cnn_model_data)
     await link_model_author(session, cnn_model.model_id, user_id)
@@ -78,10 +80,12 @@ async def run_tests(session: AsyncSession):
         "param_num": 22000000,
         "media_type": "text",
         "arch_name": ArchType.RNN,
+        "trainname": Trainname.FINETUNE, 
         "task": ["Generation"],
         "criteria": "MSE",
         "batch_size": 32,
-        "input_size": 256
+        "input_size": 256,
+        "param": 10,
     }
     rnn_model = await create_model(session, rnn_model_data)
     await link_model_author(session, rnn_model.model_id, user_id)
@@ -94,12 +98,14 @@ async def run_tests(session: AsyncSession):
         "param_num": 110000000,
         "media_type": "text",
         "arch_name": ArchType.TRANSFORMER,
+        "trainname": Trainname.FINETUNE, 
         "task": ["Classification"],
         "decoder_num": 6,
         "attn_size": 512,
         "up_size": 2048,
         "down_size": 1024,
-        "embed_size": 768
+        "embed_size": 768,
+        "param": 10,
     }
     transformer_model = await create_model(session, transformer_model_data)
     await link_model_author(session, transformer_model.model_id, user_id)
@@ -136,7 +142,7 @@ async def run_tests(session: AsyncSession):
         "ds_name": "ImageNet",
         "ds_size": 100000,
         "media": "image",
-        "task": 2,
+        "task": ["detection"],
         "columns": [
             {"col_name": "image", "col_datatype": "string"},
             {"col_name": "label", "col_datatype": "int"}
