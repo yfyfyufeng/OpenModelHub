@@ -56,9 +56,9 @@ def get_db_session():
     DB_HOST = os.getenv("DB_HOST", "localhost")
     DB_PORT = os.getenv("DB_PORT", 3306)
     TARGET_DB = os.getenv("TARGET_DB")
-    
+
     from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
-    
+
     engine = create_async_engine(
         f"mysql+aiomysql://{DB_USERNAME}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{TARGET_DB}",
         echo=True
@@ -110,7 +110,7 @@ def handle_file_download(dataset):
         )
     else:
         st.error("文件不存在")
-        
+
 # 登录表单
 def login_form():
     with st.form("登录", clear_on_submit=True):
@@ -130,7 +130,7 @@ def login_form():
                     user = user
                 else:
                     user = None
-            
+
             if user:
                 st.session_state.authenticated = True
                 st.session_state.current_user = {
@@ -154,23 +154,23 @@ def sidebar():
                 st.session_state.authenticated = False
                 st.session_state.current_user = None
                 st.rerun()
-            
+
         menu_items = ["主页", "模型仓库", "数据集", "用户管理"]
         if st.session_state.current_user and st.session_state.current_user["role"] == "admin":
             menu_items += ["系统管理"]
-            
+
         return st.radio("导航菜单", menu_items)
 
 # 主页
 def render_home():
     """渲染主页"""
     st.header("平台概览")
-    
+
     # 直接调用数据库API
     models = db_api.db_list_models()
     datasets = db_api.db_list_datasets()
     users = db_api.db_list_users()
-    
+
     col1, col2, col3, col4 = st.columns(4)
     with col1:
         st.metric("总模型数", len(models))
@@ -378,8 +378,8 @@ def render_home():
 #                 st.rerun()
 
 def render_datasets():
-    """渲染数据集管理页面"""
-    st.title("数据集管理")
+    """渲染数据集仓库页面"""
+    st.title("数据集仓库")
 
     # 添加搜索输入框
     search_query = st.text_input("搜索数据集", placeholder="输入自然语言查询")
@@ -387,111 +387,33 @@ def render_datasets():
     # 添加搜索按钮
     if st.button("搜索", key="dataset_search"):
         if search_query:
-            results, query_info = db_api.db_agent_query(search_query)
-            # 显示查询详情
-            with st.expander("查询详情"):
-                st.json({
-                    'natural_language_query': query_info['natural_language_query'],
-                    'generated_sql': query_info['generated_sql'],
-                    'error_code': query_info['error_code'],
-                    'has_results': query_info['has_results'],
-                    'error': query_info.get('error', None),
-                    'sql_res': results
-                })
-            if results:
-                df = pd.DataFrame(results)
-                st.dataframe(df)
-                return
-
-    # 数据集上传
-    with st.expander("上传新数据集"):
-        with st.form("dataset_upload"):
-            name = st.text_input("数据集名称")
-            desc = st.text_area("描述")
-            file = st.file_uploader("选择数据文件", type=["csv", "txt"])
-
-            # 任务选择
-            st.write("选择任务类型：")
-            predefined_tasks = ["classification", "detection", "generation", "segmentation"]
-            selected_tasks = st.multiselect(
-                "选择任务类型",
-                predefined_tasks,
-                default=["classification"],
-                help="可以选择多个任务类型"
-            )
-
-            # 媒体类型选择
-            media_type = st.selectbox(
-                "媒体类型",
-                ["text", "image", "audio", "video"],
-                index=0
-            )
-
-            if st.form_submit_button("提交"):
-                if file:
-                    try:
-                        # 保存文件
-                        file_path = db_api.db_save_file(file.getvalue(), file.name)
-
-                        # 创建数据集
-                        dataset_data = {
-                            "ds_name": name,
-                            "ds_size": len(file.getvalue()),
-                            "media": media_type,
-                            "task": selected_tasks,
-                            "columns": parse_csv_columns(file.getvalue()) if file.name.endswith(".csv") else
-                                      [{"col_name": "content", "col_datatype": "text"}],
-                            "description": desc
-                        }
-                        db_api.db_create_dataset(name, dataset_data)
-                        st.success("数据集上传成功！")
-                        st.rerun()
-                    except Exception as e:
-                        st.error(f"上传失败：{str(e)}")
-                else:
-                    st.error("请选择文件")
+            # 搜索逻辑
+            pass
 
     # 如果没有搜索或搜索无结果，显示所有数据集
     datasets = db_api.db_list_datasets()
 
-    if not datasets:
-        st.info("暂无数据集")
-        return
-
-    # 显示数据集数据表
+    # 展示数据集列表
     dataset_data = []
     for dataset in datasets:
-        # 获取数据集的任务
-        tasks = [task.task.value for task in dataset.Dataset_TASK] if hasattr(dataset, 'Dataset_TASK') else []
-        task_str = ", ".join(tasks) if tasks else "无任务"
-
-        # 获取列信息
-        cols = [col.col_name for col in dataset.columns] if hasattr(dataset, 'columns') else []
-        cols_str = ", ".join(cols) if cols else "无列信息"
-
-        # 构建数据行
+        # Convert enum values to strings
         dataset_data.append({
             "ID": dataset.ds_id,
             "名称": dataset.ds_name,
-            "媒体类型": dataset.media,
-            "任务": task_str,
-            "大小": f"{dataset.ds_size/1024:.1f}KB",
-            "列信息": cols_str,
-            "创建时间": dataset.created_at.strftime("%Y-%m-%d") if hasattr(dataset, 'created_at') else "未知"
+            "大小": f"{dataset.ds_size:,}",
+            "媒体类型": str(dataset.media.value) if hasattr(dataset.media, 'value') else str(dataset.media),
+            "创建时间": dataset.created_at.strftime("%Y-%m-%d") if dataset.created_at else "",
         })
 
-    # 转换为 DataFrame 并显示
     df = pd.DataFrame(dataset_data)
     st.dataframe(
         df,
         column_config={
             "ID": st.column_config.NumberColumn("数据集ID"),
             "名称": st.column_config.TextColumn("数据集名称"),
+            "大小": st.column_config.TextColumn("数据量"),
             "媒体类型": st.column_config.TextColumn("媒体类型"),
-            "任务": st.column_config.TextColumn("任务"),
-            "大小": st.column_config.TextColumn("大小"),
-            "列信息": st.column_config.TextColumn("列信息"),
-            "创建时间": st.column_config.DateColumn("创建时间")
+            "创建时间": st.column_config.TextColumn("创建时间")
         },
         hide_index=True,
         use_container_width=True
@@ -500,57 +422,65 @@ def render_datasets():
     # 数据集详情查看
     selected_id = st.number_input("输入数据集ID查看详情", min_value=1, step=1)
     if selected_id:
-        # 获取详细信息
+        # 创建一个新的事件循环
+        if 'dataset_loop' not in st.session_state:
+            st.session_state.dataset_loop = asyncio.new_event_loop()
+
+        # 使用session_state中保存的事件循环
+        loop = st.session_state.dataset_loop
+
+        # 定义异步函数
         async def get_dataset_details():
             async with get_db_session()() as session:
                 return await get_dataset_info(session, selected_id)
 
-        dataset_info = asyncio.run(get_dataset_details())
+        # 在同一个事件循环中执行异步操作
+        dataset_info = loop.run_until_complete(get_dataset_details())
 
         if dataset_info:
             with st.expander(f"数据集详情 - {dataset_info['dataset']['ds_name']}", expanded=True):
-                # 主要信息
+                # 基本信息
                 col1, col2, col3 = st.columns(3)
                 with col1:
                     st.metric("数据集ID", dataset_info['dataset']['ds_id'])
+                    st.metric("数据量", f"{dataset_info['dataset']['ds_size']:,}")
                 with col2:
-                    st.metric("媒体类型", dataset_info['dataset']['media'])
-                with col3:
-                    st.metric("大小", f"{dataset_info['dataset']['ds_size']/1024:.1f}KB")
-
-                # 任务信息
-                st.subheader("任务信息")
-                if dataset_info['tasks']:
-                    task_data = [{"任务": task.task.value if hasattr(task, 'task') else task}
-                                for task in dataset_info['tasks']]
-                    st.dataframe(task_data, hide_index=True, use_container_width=True)
-                else:
-                    st.info("无任务信息")
+                    # Convert enum to string
+                    media_type = str(dataset_info['dataset']['media'].value) if hasattr(dataset_info['dataset']['media'], 'value') else str(dataset_info['dataset']['media'])
+                    st.metric("媒体类型", media_type)
+                    st.metric("创建时间", dataset_info['dataset']['created_at'].strftime("%Y-%m-%d %H:%M") if dataset_info['dataset']['created_at'] else "")
 
                 # 列信息
-                st.subheader("列信息")
+                st.subheader("数据集列")
                 if dataset_info['columns']:
-                    col_data = [{"列名": col['col_name'], "数据类型": col['col_datatype']}
-                               for col in dataset_info['columns']]
-                    st.dataframe(col_data, hide_index=True, use_container_width=True)
+                    columns_df = pd.DataFrame(dataset_info['columns'])
+                    st.dataframe(columns_df, hide_index=True, use_container_width=True)
                 else:
                     st.info("无列信息")
+
+                # 任务信息
+                st.subheader("支持任务")
+                if dataset_info['tasks']:
+                    # Convert task objects to strings if needed
+                    tasks = [str(task.value) if hasattr(task, 'value') else str(task) for task in dataset_info['tasks']]
+                    tasks_df = pd.DataFrame({"任务": tasks})
+                    st.dataframe(tasks_df, hide_index=True, use_container_width=True)
+                else:
+                    st.info("无任务信息")
 
                 # 关联模型
                 st.subheader("关联模型")
                 if dataset_info['models']:
-                    model_data = [{"模型名称": model.model_name if hasattr(model, 'model_name') else model}
-                                 for model in dataset_info['models']]
-                    st.dataframe(model_data, hide_index=True, use_container_width=True)
+                    models_df = pd.DataFrame({"模型": dataset_info['models']})
+                    st.dataframe(models_df, hide_index=True, use_container_width=True)
                 else:
                     st.info("无关联模型")
 
-                # 数据集作者
+                # 作者信息
                 st.subheader("数据集作者")
                 if dataset_info['authors']:
-                    author_data = [{"用户名": author.user_name if hasattr(author, 'user_name') else author}
-                                  for author in dataset_info['authors']]
-                    st.dataframe(author_data, hide_index=True, use_container_width=True)
+                    authors_df = pd.DataFrame({"作者": dataset_info['authors']})
+                    st.dataframe(authors_df, hide_index=True, use_container_width=True)
                 else:
                     st.info("无作者信息")
         else:
@@ -581,7 +511,6 @@ def render_models():
                 df = pd.DataFrame(results)
                 st.dataframe(df)
                 return
-
     # 如果没有搜索或搜索无结果，显示所有模型
     models = db_api.db_list_models()
 
@@ -589,17 +518,26 @@ def render_models():
     model_data = []
     for model in models:
         # 获取任务信息
-        tasks = [str(task.task_name) for task in model.tasks] if hasattr(model, 'tasks') else []
+        tasks = [str(task.task_name) for task in model.tasks] if hasattr(model, 'tasks') and model.tasks else []
         task_str = ", ".join(tasks) if tasks else "未知"
 
-        # Convert enum values to strings
+        # Safely extract attributes with proper type checking
+        def safe_get_value(obj, attr_name):
+            if hasattr(obj, attr_name):
+                attr = getattr(obj, attr_name)
+                if hasattr(attr, 'value'):  # Check if it's an enum
+                    return str(attr.value)
+                else:
+                    return str(attr)
+            return "未知"
+
         model_data.append({
             "ID": model.model_id,
             "名称": model.model_name,
-            "架构": str(model.arch_name.value) if hasattr(model.arch_name, 'value') else str(model.arch_name) if hasattr(model, 'arch_name') else "未知",
-            "媒体类型": str(model.media_type.value) if hasattr(model.media_type, 'value') else str(model.media_type) if hasattr(model, 'media_type') else "未知",
+            "架构": safe_get_value(model, 'arch_name'),
+            "媒体类型": safe_get_value(model, 'media_type'),
             "参数量": f"{model.param_num:,}" if hasattr(model, 'param_num') else "未知",
-            "训练名称": str(model.trainname.value) if hasattr(model.trainname, 'value') else str(model.trainname) if hasattr(model, 'trainname') else "未知",
+            "训练名称": safe_get_value(model, 'trainname'),
             "任务": task_str
         })
 
@@ -622,12 +560,20 @@ def render_models():
     # 模型详情查看
     selected_id = st.number_input("输入模型ID查看详情", min_value=1, step=1)
     if selected_id:
-        # 获取详细信息
+        # 创建一个新的事件循环
+        if 'model_loop' not in st.session_state:
+            st.session_state.model_loop = asyncio.new_event_loop()
+
+        # 使用session_state中保存的事件循环
+        loop = st.session_state.model_loop
+
+        # 定义异步函数
         async def get_model_details():
             async with get_db_session()() as session:
                 return await get_model_info(session, selected_id)
 
-        model_info = asyncio.run(get_model_details())
+        # 在同一个事件循环中执行异步操作
+        model_info = loop.run_until_complete(get_model_details())
 
         if model_info:
             with st.expander(f"模型详情 - {model_info['model_name']}", expanded=True):
@@ -635,24 +581,29 @@ def render_models():
                 col1, col2, col3 = st.columns(3)
                 with col1:
                     st.metric("模型ID", model_info['model_id'])
-                    # Convert enum to string
-                    arch_name = str(model_info['arch_name'].value) if hasattr(model_info['arch_name'], 'value') else str(model_info['arch_name'])
+                    # Safely get architecture name
+                    arch_name = safe_get_value(model_info, 'arch_name')
                     st.metric("架构类型", arch_name)
                 with col2:
-                    st.metric("参数量", f"{model_info['param_num']:,}")
-                    # Convert enum to string
-                    media_type = str(model_info['media_type'].value) if hasattr(model_info['media_type'], 'value') else str(model_info['media_type'])
+                    st.metric("参数量", f"{model_info['param_num']:,}" if 'param_num' in model_info else "未知")
+                    # Safely get media type
+                    media_type = safe_get_value(model_info, 'media_type')
                     st.metric("媒体类型", media_type)
                 with col3:
-                    # Convert enum to string
-                    trainname = str(model_info['trainname'].value) if hasattr(model_info['trainname'], 'value') else str(model_info['trainname'])
+                    # Safely get training name
+                    trainname = safe_get_value(model_info, 'trainname')
                     st.metric("训练方式", trainname)
 
                 # 任务信息
                 st.subheader("支持任务")
-                if model_info['tasks']:
-                    # Convert task objects to strings
-                    tasks = [str(task.value) if hasattr(task, 'value') else str(task) for task in model_info['tasks']]
+                if 'tasks' in model_info and model_info['tasks']:
+                    # Convert task objects to strings safely
+                    tasks = []
+                    for task in model_info['tasks']:
+                        if hasattr(task, 'value'):
+                            tasks.append(str(task.value))
+                        else:
+                            tasks.append(str(task))
                     tasks_df = pd.DataFrame({"任务": tasks})
                     st.dataframe(tasks_df, hide_index=True, use_container_width=True)
                 else:
@@ -660,9 +611,14 @@ def render_models():
 
                 # 作者信息
                 st.subheader("模型作者")
-                if model_info['authors']:
-                    # Convert author objects to strings
-                    authors = [str(author.user_name) if hasattr(author, 'user_name') else str(author) for author in model_info['authors']]
+                if 'authors' in model_info and model_info['authors']:
+                    # Convert author objects to strings safely
+                    authors = []
+                    for author in model_info['authors']:
+                        if hasattr(author, 'user_name'):
+                            authors.append(str(author.user_name))
+                        else:
+                            authors.append(str(author))
                     authors_df = pd.DataFrame({"作者": authors})
                     st.dataframe(authors_df, hide_index=True, use_container_width=True)
                 else:
@@ -670,9 +626,14 @@ def render_models():
 
                 # 关联数据集
                 st.subheader("关联数据集")
-                if model_info['datasets']:
-                    # Convert dataset objects to strings
-                    datasets = [str(dataset.ds_name) if hasattr(dataset, 'ds_name') else str(dataset) for dataset in model_info['datasets']]
+                if 'datasets' in model_info and model_info['datasets']:
+                    # Convert dataset objects to strings safely
+                    datasets = []
+                    for dataset in model_info['datasets']:
+                        if hasattr(dataset, 'ds_name'):
+                            datasets.append(str(dataset.ds_name))
+                        else:
+                            datasets.append(str(dataset))
                     datasets_df = pd.DataFrame({"数据集": datasets})
                     st.dataframe(datasets_df, hide_index=True, use_container_width=True)
                 else:
@@ -680,12 +641,12 @@ def render_models():
 
                 # 架构细节
                 st.subheader("架构详情")
-                # Use string comparison
+                # Use string comparison on the safe value
                 arch_name_str = arch_name.upper()
-                if "CNN" in arch_name_str and model_info['cnn']:
+                if "CNN" in arch_name_str and 'cnn' in model_info and model_info['cnn']:
                     st.write(f"模块数量: {model_info['cnn']['module_num']}")
 
-                    if model_info['cnn']['modules']:
+                    if 'modules' in model_info['cnn'] and model_info['cnn']['modules']:
                         modules_data = []
                         for i, module in enumerate(model_info['cnn']['modules']):
                             modules_data.append({
@@ -695,7 +656,7 @@ def render_models():
                             })
                         st.dataframe(pd.DataFrame(modules_data), hide_index=True, use_container_width=True)
 
-                elif "RNN" in arch_name_str and model_info['rnn']:
+                elif "RNN" in arch_name_str and 'rnn' in model_info and model_info['rnn']:
                     col1, col2, col3 = st.columns(3)
                     with col1:
                         st.metric("评价标准", str(model_info['rnn']['criteria']))
@@ -704,7 +665,7 @@ def render_models():
                     with col3:
                         st.metric("输入尺寸", model_info['rnn']['input_size'])
 
-                elif "TRANSFORMER" in arch_name_str and model_info['transformer']:
+                elif "TRANSFORMER" in arch_name_str and 'transformer' in model_info and model_info['transformer']:
                     col1, col2, col3 = st.columns(3)
                     with col1:
                         st.metric("解码器数量", model_info['transformer']['decoder_num'])
@@ -731,15 +692,15 @@ def main():
     # 暂时注释掉认证相关代码
     # auth_manager = AuthManager()
     # sidebar = Sidebar(auth_manager)
-    
+
     # 获取当前页面
     # page = sidebar.render()
-    
+
     # 检查认证状态
     # if not auth_manager.is_authenticated() and page != "主页":
     #     st.warning("请先登录以访问该页面")
     #     return
-    
+
     # 路由到对应页面
     # if page == "主页":
     #     render_home()
@@ -756,7 +717,7 @@ def main():
 
     st.sidebar.title("OpenModelHub")
     page = st.sidebar.radio("导航菜单", ["主页", "模型仓库", "数据集"])
-    
+
     if page == "主页":
         render_home()
     elif page == "模型仓库":
@@ -769,6 +730,5 @@ if __name__ == "__main__":
         # 直接启动应用
         main()
     except Exception as e:
-        print("111")
         st.error(f"应用启动失败：{str(e)}")
         print(f"错误详情：{str(e)}")

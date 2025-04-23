@@ -34,6 +34,15 @@ except (ImportError, ConnectionRefusedError):
 curr_username = None
 curr_password = None
 
+def safe_get_value(obj, attr_name):
+    if hasattr(obj, attr_name):
+        attr = getattr(obj, attr_name)
+        if hasattr(attr, 'value'):  # Check if it's an enum
+            return attr.value
+        else:
+            return attr
+    return "未知"
+
 def is_port_in_use(port):
     try:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -99,7 +108,21 @@ async def db_list_models():
 @async_to_sync
 async def db_get_model(model_id: int):
     async with get_db_session()() as session:
-        return await get_model_by_id(session, model_id)
+        model = await get_model_by_id(session, model_id)
+        # Process the model to handle enum values safely
+        if model:
+            # Process enum attributes to ensure they're strings
+            model_info = {
+                'model_id': model.model_id,
+                'model_name': model.model_name,
+                'param_num': model.param_num,
+                'media_type': safe_get_value(model, 'media_type'),
+                'arch_name': safe_get_value(model, 'arch_name'),
+                'trainname': safe_get_value(model, 'trainname')
+                # Add other fields as needed
+            }
+            return model_info
+        return None
 
 # 数据集操作
 @async_to_sync
