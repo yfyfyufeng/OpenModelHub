@@ -631,7 +631,7 @@ async def get_model_info(session: AsyncSession, model_id: int) -> Optional[Dict]
             'param_num': model.param_num,
             'media_type': model.media_type.value,
             'arch_name': model.arch_name.value,
-            'trainname': model.trainname,
+            'trainname': model.trainname.value,
             'tasks': tasks,
             'authors': authors,
             'datasets': datasets,
