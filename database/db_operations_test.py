@@ -1,4 +1,5 @@
 import json
+import os
 import asyncio
 from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy.ext.asyncio import async_sessionmaker
@@ -29,7 +30,27 @@ def patch_enum_fields(model: dict) -> dict:
 async def load_insert_record(session):
 
     # 读取 JSON 文件中的数据
-    rec_path = 'records/db_operations_test_original.json'
+    parent_path = "records"
+    # Find all JSON files in the specified path
+    json_files = [f for f in os.listdir(parent_path) if f.endswith('.json')]
+
+    # List the JSON files for the user to choose from
+    print("Available JSON files:")
+    for idx, file in enumerate(json_files):
+        print(f"{idx + 1}: {file}")
+
+    # Let the user input a number to choose a file
+    while True:
+        try:
+            choice = int(input("Enter the number of the JSON file to load: "))
+            if 1 <= choice <= len(json_files):
+                rec_path = os.path.join(parent_path, json_files[choice - 1])
+                break
+            else:
+                print("Invalid choice. Please select a valid number.")
+        except ValueError:
+            print("Invalid input. Please enter a number.")
+    rec_path = os.path.join(parent_path, json_files[choice - 1])
 
     # todo: remove this and all following pritnings
     with open(rec_path, 'r') as f:
@@ -53,9 +74,7 @@ async def load_insert_record(session):
     
     # todo: read other types of tables
     for model in data['model']:
-        print("model BEFORE:", model)
         model = patch_enum_fields(model)
-        print("model after:", model)
         model_record = await create_model(session, model)
         # await link_model_author(session, model_record.model_id, user_['user_id'])
     
