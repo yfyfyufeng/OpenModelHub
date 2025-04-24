@@ -243,7 +243,10 @@ def render_datasets():
                                info.get(dataset_attr) or []
                        ))
             ]
-            st.write("搜索结果 ID 列表:", matches)
+            if not matches:
+                st.info("未找到符合条件的数据集")
+            else:
+                st.write("搜索结果 (ID) :", ", ".join(map(str, matches)))
         else:
             # single‑column lookup
             async def fetch_ids():
@@ -253,7 +256,10 @@ def render_datasets():
                     )
 
             ids = loop.run_until_complete(fetch_ids())
-            st.write("搜索结果(ID):", ", ".join(map(str, ids)))
+            if not ids:
+                st.info("未找到符合条件的数据集")
+            else:
+                st.write("搜索结果 (ID) :", ", ".join(map(str, ids)))
 
     # 展示数据集列表
     dataset_data = []
@@ -469,7 +475,10 @@ def render_models():
                 if any(model_val == str(item)
                        for item in (info.get(model_attr) or []))
             ]
-            st.write("搜索结果 ID 列表:", matches)
+            if not matches:
+                st.info("未找到符合条件的数据集")
+            else:
+                st.write("搜索结果 (ID) :", ", ".join(map(str, matches)))
         else:
             async def fetch_ids():
                 async with get_db_session()() as session:
@@ -478,7 +487,10 @@ def render_models():
                     )
 
             ids = loop.run_until_complete(fetch_ids())
-            st.write("搜索结果(ID):", ", ".join(map(str, ids)))
+            if not ids:
+                st.info("未找到符合条件的数据集")
+            else:
+                st.write("搜索结果 (ID) :", ", ".join(map(str, ids)))
 
     def safe_get_value(obj, attr_name):
         if isinstance(obj, dict):
