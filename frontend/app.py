@@ -70,6 +70,43 @@ if 'authenticated' not in st.session_state:
     st.session_state.authenticated = False
 if 'current_user' not in st.session_state:
     st.session_state.current_user = None
+    
+# 创建全局搜索框和类型查询下拉框
+def create_search_section(search_key: str, entity_types: list = None):
+    if entity_types is None:
+        entity_types = ["全部", "模型", "数据集", "用户", "机构"]
+    
+    col1, col2 = st.columns([4, 1])
+    with col1:
+        query = st.text_input("搜索", placeholder="输入自然语言查询", key=f"search_input_{search_key}")
+    with col2:
+        search_type = st.selectbox(
+            "搜索类型",
+            entity_types,
+            key=f"search_type_{search_key}"
+        )
+    
+    if st.button("搜索", key=f"search_button_{search_key}"):
+        if query:
+            # 添加类型信息到查询
+            if search_type != "全部":
+                query = f"搜索{search_type}：{query}"
+            results, query_info = db_api.db_agent_query(query)
+            # 显示查询详情
+            with st.expander("查询详情"):
+                st.json({
+                    'natural_language_query': query_info['natural_language_query'],
+                    'generated_sql': query_info['generated_sql'],
+                    'error_code': query_info['error_code'],
+                    'has_results': query_info['has_results'],
+                    'error': query_info.get('error', None),
+                    'sql_res': results
+                })
+            if results:
+                df = pd.DataFrame(results)
+                st.dataframe(df)
+                return True
+    return False
 
 # 文件上传处理
 def handle_file_upload():
@@ -173,6 +210,10 @@ def render_home():
 def render_models():
     """渲染模型仓库页面"""
     st.title("模型仓库")
+    
+     # 使用统一的搜索部分
+    if create_search_section("models"):
+        return
     
     # 添加搜索输入框
     search_query = st.text_input("搜索模型", placeholder="输入自然语言查询")
@@ -372,6 +413,10 @@ def render_datasets():
     """渲染数据集管理页面"""
     st.title("数据集管理")
     
+    # 使用统一的搜索部分
+    if create_search_section("datasets"):
+        return
+    
     # 添加搜索输入框
     search_query = st.text_input("搜索数据集", placeholder="输入自然语言查询")
     
@@ -500,6 +545,10 @@ def render_users():
     """渲染用户管理页面"""
     user_manager = UserManager()
     user_manager.render()
+    
+    # 使用统一的搜索部分
+    if create_search_section("users"):
+        return
 
 # 默认登录函数
 def default_login():
