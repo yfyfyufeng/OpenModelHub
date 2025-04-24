@@ -244,8 +244,101 @@ def render_datasets():
             st.info("未找到符合条件的数据集")
         else:
             st.write("搜索结果 (ID) :", ", ".join(map(str, ids)))
+            dataset_data = []
+            for dataset in datasets:
+                if dataset.ds_id not in ids:
+                    continue
+                details = dataset_details.get(dataset.ds_id, {})
+
+                # columns
+                cols = [
+                    f"{c.get('col_name', '')}/{c.get('col_datatype', '')}"
+                    for c in details.get("columns", [])
+                ] if details.get("columns") else []
+                cols_str = ", ".join(cols)
+
+                # tasks
+                tasks = []
+                for t in details.get("tasks", []):
+                    tasks.append(t.value if hasattr(t, "value") else str(t))
+                tasks_str = ", ".join(tasks)
+
+                # models
+                models_ = [str(m) for m in details.get("models", [])]
+                models_str = ", ".join(models_)
+
+                # authors
+                authors = [str(a) for a in details.get("authors", [])]
+                authors_str = ", ".join(authors)
+
+                dataset_data.append({
+                    "ID": dataset.ds_id,
+                    "名称": dataset.ds_name,
+                    "大小": f"{dataset.ds_size:,}" if hasattr(dataset, "ds_size") else "",
+                    "媒体类型": getattr(dataset.media, "value", str(dataset.media)),
+                    "创建时间": dataset.created_at.strftime("%Y-%m-%d") if dataset.created_at else "",
+                    "数据集列（列名/数据类型）": cols_str[:50] + ("..." if len(cols_str) > 50 else ""),
+                    "支持任务": tasks_str,
+                    "关联模型": models_str[:50] + ("..." if len(models_str) > 50 else ""),
+                    "作者": authors_str
+                })
+
+            # render filtered table (reuse same styling & column_config)
+            df = pd.DataFrame(dataset_data)
+
+            st.markdown("""
+                <style>
+                .stDataFrame table {
+                    font-size: 16px !important;
+                }
+                .stDataFrame td, .stDataFrame th {
+                    font-size: 16px !important;
+                    padding: 8px !important;
+                    text-align: center !important;  /* 文字居中 */
+                    vertical-align: middle !important; /* 垂直居中 */
+                }
+                .stDataFrame th {
+                    font-size: 17px !important;
+                    font-weight: bold !important;
+                    text-align: center !important;  /* 表头文字居中 */
+                }
+                [data-testid="stDataFrameContainer"] {
+                    width: 100%;
+                    overflow-x: auto !important;
+                }
+                .stTable {
+                    width: 100%;
+                    max-height: none !important;
+                }
+                /* 确保内容与单元格匹配 */
+                .stDataFrame td div, .stDataFrame th div {
+                    width: 100% !important;
+                    height: 100% !important;
+                    display: flex !important;
+                    align-items: center !important;
+                    justify-content: center !important;
+                }
+                </style>
+                """, unsafe_allow_html=True)
+            st.dataframe(
+                df,
+                column_config={
+                    "ID": st.column_config.NumberColumn("数据集ID", width="small"),
+                    "名称": st.column_config.TextColumn("数据集名称", width="medium"),
+                    "大小": st.column_config.TextColumn("数据量", width="small"),
+                    "媒体类型": st.column_config.TextColumn("媒体类型", width="small"),
+                    "创建时间": st.column_config.TextColumn("创建时间", width="small"),
+                    "数据集列（列名/数据类型）": st.column_config.TextColumn("数据集列", width="medium"),
+                    "支持任务": st.column_config.TextColumn("支持任务", width="medium"),
+                    "关联模型": st.column_config.TextColumn("关联模型", width="medium"),
+                    "作者": st.column_config.TextColumn("作者", width="medium")
+                },
+                hide_index=True,
+                use_container_width=True
+            )
 
     # 展示数据集列表
+    st.header("数据集列表")
     dataset_data = []
     for dataset in datasets:
         details = dataset_details.get(dataset.ds_id, {})
@@ -443,6 +536,18 @@ def render_models():
         if details:
             model_details[model.model_id] = details
 
+    def safe_get_value(obj, attr_name):
+        if isinstance(obj, dict):
+            val = obj.get(attr_name, None)
+        else:
+            val = getattr(obj, attr_name, None)
+        from enum import Enum
+        if isinstance(val, Enum):
+            return val.name
+        if isinstance(val, str) and '.' in val:
+            return val.split('.')[-1]
+        return str(val)
+
     model_attr = st.selectbox(
         "选择字段",
         [
@@ -478,20 +583,99 @@ def render_models():
             st.info("未找到符合条件的数据集")
         else:
             st.write("搜索结果 (ID) :", ", ".join(map(str, ids)))
+            model_data = []
+            for model in models:
+                if model.model_id not in ids:
+                    continue
+                details = model_details.get(model.model_id, {})
 
-    def safe_get_value(obj, attr_name):
-        if isinstance(obj, dict):
-            val = obj.get(attr_name, None)
-        else:
-            val = getattr(obj, attr_name, None)
-        from enum import Enum
-        if isinstance(val, Enum):
-            return val.name
-        if isinstance(val, str) and '.' in val:
-            return val.split('.')[-1]
-        return str(val)
+                # tasks
+                tasks = []
+                if hasattr(model, 'tasks') and model.tasks:
+                    from enum import Enum
+                    for t in model.tasks:
+                        tasks.append(
+                            t.task_name.value if isinstance(t.task_name, Enum) else str(t.task_name)
+                        )
+                else:
+                    tasks = [str(t) for t in details.get('tasks', [])]
+                tasks_str = ", ".join(tasks) if tasks else "未知"
+
+                # authors & datasets
+                authors = [str(a) for a in details.get('authors', [])]
+                authors_str = ", ".join(authors) if authors else "未知"
+
+                datasets = [str(d) for d in details.get('datasets', [])]
+                datasets_str = ", ".join(datasets) if datasets else "未知"
+
+                # safe fields
+                try:
+                    arch = safe_get_value(model, 'arch_name')
+                    media = safe_get_value(model, 'media_type')
+                    train = safe_get_value(model, 'trainname')
+                except Exception as e:
+                    st.error(f"获取模型属性失败: {e}")
+                    continue
+
+                model_data.append({
+                    "ID": model.model_id,
+                    "名称": model.model_name,
+                    "架构": arch,
+                    "媒体类型": media,
+                    "参数量": f"{model.param_num:,}" if hasattr(model, 'param_num') else "未知",
+                    "训练名称": train,
+                    "任务": tasks_str,
+                    "作者": authors_str[:50] + ("..." if len(authors_str) > 50 else ""),
+                    "关联数据集": datasets_str[:50] + ("..." if len(datasets_str) > 50 else "")
+                })
+
+            # display filtered table
+            df = pd.DataFrame(model_data)
+            st.markdown("""
+                    <style>
+                    .stDataFrame table { font-size:16px!important; }
+                    .stDataFrame td, .stDataFrame th {
+                        font-size:16px!important;
+                        padding:8px!important;
+                        text-align:center!important;
+                        vertical-align:middle!important;
+                    }
+                    .stDataFrame th {
+                        font-size:17px!important;
+                        font-weight:bold!important;
+                    }
+                    [data-testid="stDataFrameContainer"] {
+                        width:100%; overflow-x:auto!important;
+                    }
+                    .stTable { width:100%; max-height:none!important; }
+                    .stDataFrame td div, .stDataFrame th div {
+                        width:100%!important; height:100%!important;
+                        display:flex!important;
+                        align-items:center!important;
+                        justify-content:center!important;
+                    }
+                    </style>
+                    """, unsafe_allow_html=True)
+
+            st.dataframe(
+                df,
+                column_config={
+                    "ID": st.column_config.NumberColumn("模型ID", width="small"),
+                    "名称": st.column_config.TextColumn("模型名称", width="medium"),
+                    "架构": st.column_config.TextColumn("架构类型", width="small"),
+                    "媒体类型": st.column_config.TextColumn("适用媒体", width="small"),
+                    "参数量": st.column_config.TextColumn("参数量", width="small"),
+                    "训练名称": st.column_config.TextColumn("训练方式", width="small"),
+                    "任务": st.column_config.TextColumn("支持任务", width="medium"),
+                    "作者": st.column_config.TextColumn("作者", width="medium"),
+                    "关联数据集": st.column_config.TextColumn("关联数据集", width="medium")
+                },
+                hide_index=True,
+                use_container_width=True
+            )
 
     # 列表展示
+    st.header("模型列表")
     model_data = []
     for model in models:
         details = model_details.get(model.model_id, {})
