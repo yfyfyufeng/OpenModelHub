@@ -185,6 +185,10 @@ def render_datasets():
     """渲染数据集仓库页面"""
     st.title("数据集仓库")
 
+    uploader = DatasetUploader()
+    if uploader.render():
+        st.rerun()
+
     # 添加搜索输入框
     search_query = st.text_input("搜索数据集", placeholder="输入自然语言查询")
 
@@ -226,7 +230,7 @@ def render_datasets():
 
         columns = []
         if details and "columns" in details:
-            columns = [col.get("col_name", "") for col in details.get("columns", [])]
+            columns = [f"{col.get('col_name', '')}/{col.get('col_datatype', '')}" for col in details.get("columns", [])]
         columns_str = ", ".join(columns) if columns else ""
 
         tasks = []
@@ -254,7 +258,7 @@ def render_datasets():
             "大小": f"{dataset.ds_size:,}" if hasattr(dataset, 'ds_size') else "",
             "媒体类型": str(dataset.media.value) if hasattr(dataset.media, 'value') else str(dataset.media),
             "创建时间": dataset.created_at.strftime("%Y-%m-%d") if dataset.created_at else "",
-            "数据集列": columns_str[:50] + ("..." if len(columns_str) > 50 else ""),
+            "数据集列（列名/数据类型）": columns_str[:50] + ("..." if len(columns_str) > 50 else ""),
             "支持任务": tasks_str,
             "关联模型": models_str[:50] + ("..." if len(models_str) > 50 else ""),
             "作者": authors_str
@@ -330,6 +334,7 @@ def render_datasets():
                 # Basic info as dataframe
                 st.subheader("基本信息")
                 basic_info = {
+                    "数据集名称": dataset_info['dataset']['ds_name'],
                     "数据集ID": dataset_info['dataset']['ds_id'],
                     "数据量": f"{dataset_info['dataset']['ds_size']:,}",
                     "媒体类型": str(dataset_info['dataset']['media'].value)
@@ -345,7 +350,12 @@ def render_datasets():
 
                 st.subheader("数据集列")
                 if dataset_info['columns']:
-                    df_cols = pd.DataFrame({"列": [c["col_name"] for c in dataset_info['columns']]})
+                    df_cols = pd.DataFrame({
+                        "列名/数据类型": [
+                            f"{c.get('col_name', '')}/{c.get('col_datatype', '')}"
+                            for c in dataset_info['columns']
+                        ]
+                    })
                     st.dataframe(df_cols, hide_index=True, use_container_width=True)
                 else:
                     st.info("无列信息")
