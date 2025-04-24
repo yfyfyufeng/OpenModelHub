@@ -48,16 +48,16 @@ def async_to_sync(async_func):
         return asyncio.run(async_func(*args, **kwargs))
     return wrapper
 
-# Agent查询
+# Agent query
 @async_to_sync
 async def db_agent_query(query: str, instance_type: int):
-    """使用自然语言查询数据库"""
+    """Query database using natural language"""
     async with get_db_session()() as session:
         try:
-            # 使用 agent 的 query_agent 函数
+            # Use query_agent function from agent module
             result = await query_agent(query, instance_type=instance_type, verbose=False, session=session)
             
-            # 返回与 agent_main.py 一致的格式
+            # Return format consistent with agent_main.py
             return (result['sql_res'] if result['err'] == 0 and result['sql_res'] else [], 
                    {
                        'natural_language_query': query,
@@ -65,10 +65,10 @@ async def db_agent_query(query: str, instance_type: int):
                        'error_code': result['err'],
                        'sql_res': result['sql_res'],
                        'has_results': bool(result['sql_res']),
-                       'error': None if result['err'] == 0 else 'SQL执行失败'
+                       'error': None if result['err'] == 0 else 'SQL execution failed'
                    })
         except Exception as e:
-            print(f"执行查询时出错: {str(e)}")
+            print(f"Error executing query: {str(e)}")
             return [], {
                 'natural_language_query': query,
                 'generated_sql': '',
@@ -78,24 +78,24 @@ async def db_agent_query(query: str, instance_type: int):
                 'sql_res': []
             }
 
-# 模型操作
+# Model operations
 @async_to_sync
 async def db_list_models():
-    """获取所有模型列表"""
+    """Get all models list"""
     async with get_db_session()() as session:
         try:
-            # 首先获取所有模型
+            # First get all models
             stmt = select(Model)
             result = await session.execute(stmt)
             models = result.scalars().all()
             
-            # 为每个模型加载关联数据
+            # Load related data for each model
             for model in models:
                 await session.refresh(model, ['tasks', 'authors', 'datasets', 'cnn', 'rnn', 'transformer'])
             
             return models
         except Exception as e:
-            print(f"获取模型列表时出错: {str(e)}")
+            print(f"Error getting model list: {str(e)}")
             return []
 
 @async_to_sync
@@ -103,7 +103,7 @@ async def db_get_model(model_id: int):
     async with get_db_session()() as session:
         return await get_model_by_id(session, model_id)
 
-# 数据集操作
+# Dataset operations
 @async_to_sync
 async def db_list_datasets():
     async with get_db_session()() as session:
@@ -126,7 +126,7 @@ async def db_create_dataset(name: str, dataset_data: dict):
         )
         return await create_dataset(session, dataset_data)
 
-# 用户操作
+# User operations
 @async_to_sync
 async def db_list_users():
     async with get_db_session()() as session:
@@ -179,7 +179,7 @@ async def db_get_user_by_username(username: str):
         result = await session.execute(stmt)
         return result.scalar_one_or_none()
 
-# 文件操作
+# File operations
 '''
 @async_to_sync
 async def db_save_file(file_data: bytes, filename: str):
@@ -219,18 +219,18 @@ async def db_get_file(filename: str):
 '''
 @async_to_sync
 async def db_save_file(file_data: bytes, filename: str, file_type: str = "datasets"):
-    """保存文件到指定目录"""
-    # 选择保存目录
+    """Save file to specified directory"""
+    # Select save directory
     if file_type == "models":
         save_dir = DATA_CONFIG["models_dir"]
     else:
         save_dir = DATA_CONFIG["datasets_dir"]
     
-    # 创建带时间戳的文件名以避免冲突
+    # Create timestamped filename to avoid conflicts
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     file_path = save_dir / f"{timestamp}_{filename}"
     
-    # 保存文件
+    # Save file
     with open(file_path, "wb") as f:
         f.write(file_data)
     
@@ -238,39 +238,39 @@ async def db_save_file(file_data: bytes, filename: str, file_type: str = "datase
 
 @async_to_sync
 async def db_get_file(filename: str, file_type: str = "datasets"):
-    """从指定目录获取文件"""
+    """Get file from specified directory"""
     try:
-        # 选择目录
+        # Select directory
         if file_type == "models":
             search_dir = DATA_CONFIG["models_dir"]
         else:
             search_dir = DATA_CONFIG["datasets_dir"]
         
-        # 确保目录存在
+        # Ensure directory exists
         if not search_dir.exists():
-            print(f"目录不存在: {search_dir}")
+            print(f"Directory does not exist: {search_dir}")
             return None
             
-        # 寻找最新的匹配文件
+        # Find latest matching file
         matching_files = list(search_dir.glob(f"*_{filename}"))
         if not matching_files:
-            # 尝试直接查找文件名
+            # Try direct filename match
             direct_match = search_dir / filename
             if direct_match.exists():
                 with open(direct_match, "rb") as f:
                     return f.read()
-            print(f"未找到文件: {filename}")
+            print(f"File not found: {filename}")
             return None
             
-        # 获取最新的文件
+        # Get latest file
         latest_file = max(matching_files, key=lambda x: x.stat().st_mtime)
-        print(f"找到文件: {latest_file}")
+        print(f"Found file: {latest_file}")
         
         with open(latest_file, "rb") as f:
             return f.read()
             
     except Exception as e:
-        print(f"获取文件时出错: {str(e)}")
+        print(f"Error getting file: {str(e)}")
         return None
 
 def get_db_session():
@@ -288,15 +288,16 @@ def get_db_session():
         echo=True
     )
     return async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+
 @async_to_sync
 async def db_create_model(model_data: dict):
-    """创建新模型"""
+    """Create new model"""
     async with get_db_session()() as session:
         try:
-            # 转换枚举类型
+            # Convert enum types
             from database.database_schema import ArchType, Media_type, Trainname, Task_name
             
-            # 创建模型
+            # Create model
             model = Model(
                 model_name=model_data["model_name"],
                 param_num=model_data["param_num"],
@@ -308,7 +309,7 @@ async def db_create_model(model_data: dict):
             session.add(model)
             await session.flush()
             
-            # 添加任务
+            # Add tasks
             for task_name in model_data["tasks"]:
                 task = ModelTask(
                     model_id=model.model_id,
@@ -321,5 +322,5 @@ async def db_create_model(model_data: dict):
             return model
         except Exception as e:
             await session.rollback()
-            raise Exception(f"创建模型失败: {str(e)}")
+            raise Exception(f"Failed to create model: {str(e)}")
 

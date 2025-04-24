@@ -12,7 +12,7 @@ sys.path.extend([str(project_root), str(project_root/"frontend")])
 import frontend.database_api as db_api
 from frontend.db import get_db_session
 
-# 允许嵌套事件循环
+# Allow nested event loops
 nest_asyncio.apply()
 
 class AuthManager:
@@ -21,24 +21,24 @@ class AuthManager:
             st.session_state.authenticated = False
         if 'current_user' not in st.session_state:
             st.session_state.current_user = None
-        # 使用当前事件循环
+        # Use current event loop
         loop = asyncio.get_event_loop()
         loop.run_until_complete(self._ensure_admin_exists())
 
     async def _ensure_admin_exists(self):
-        """确保管理员账户存在"""
+        """Ensure admin account exists"""
         try:
-            # 检查管理员账户是否存在
+            # Check if admin account exists
             admin = db_api.db_get_user_by_username("admin")
             if not admin:
-                # 如果不存在，创建管理员账户
-                db_api.db_create_user("admin", "admin", "系统管理员", is_admin=True)
-                st.info("已创建默认管理员账户：admin/admin")
+                # If not exists, create admin account
+                db_api.db_create_user("admin", "admin", "System Administrator", is_admin=True)
+                st.info("Default admin account created: admin/admin")
         except Exception as e:
-            st.error(f"初始化管理员账户失败：{str(e)}")
+            st.error(f"Failed to initialize admin account: {str(e)}")
 
     async def login(self, username: str, password: str) -> bool:
-        """用户登录"""
+        """User login"""
         try:
             user = db_api.db_authenticate_user(username, password)
             if user:
@@ -51,22 +51,22 @@ class AuthManager:
                 return True
             return False
         except Exception as e:
-            st.error(f"登录失败：{str(e)}")
+            st.error(f"Login failed: {str(e)}")
             return False
 
     def logout(self):
-        """用户登出"""
+        """User logout"""
         st.session_state.authenticated = False
         st.session_state.current_user = None
 
     def get_current_user(self) -> Optional[Dict]:
-        """获取当前用户信息"""
+        """Get current user information"""
         return st.session_state.current_user
 
     def is_authenticated(self) -> bool:
-        """检查用户是否已认证"""
+        """Check if user is authenticated"""
         return st.session_state.authenticated
 
     def is_admin(self) -> bool:
-        """检查当前用户是否为管理员"""
-        return st.session_state.current_user and st.session_state.current_user["role"] == "admin" 
+        """Check if current user is admin"""
+        return st.session_state.current_user and st.session_state.current_user["role"] == "admin"
