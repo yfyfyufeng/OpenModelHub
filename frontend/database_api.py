@@ -83,13 +83,21 @@ async def db_list_models():
     async with get_db_session()() as session:
         try:
             # 首先获取所有模型
-            stmt = select(Model)
+            stmt = select(Model).options(
+                selectinload(Model.tasks),
+                selectinload(Model.authors),
+                selectinload(Model.datasets),
+                selectinload(Model.cnn),
+                selectinload(Model.rnn),
+                selectinload(Model.transformer),
+                selectinload(Model.creator)  # 添加creator关系的预加载
+            )
             result = await session.execute(stmt)
             models = result.scalars().all()
             
             # 为每个模型加载关联数据
             for model in models:
-                await session.refresh(model, ['tasks', 'authors', 'datasets', 'cnn', 'rnn', 'transformer'])
+                await session.refresh(model, ['tasks', 'authors', 'datasets', 'cnn', 'rnn', 'transformer', 'creator'])
             
             return models
         except Exception as e:
@@ -98,8 +106,19 @@ async def db_list_models():
 
 @async_to_sync
 async def db_get_model(model_id: int):
+    """获取指定ID的模型"""
     async with get_db_session()() as session:
-        return await get_model_by_id(session, model_id)
+        stmt = select(Model).options(
+            selectinload(Model.tasks),
+            selectinload(Model.authors),
+            selectinload(Model.datasets),
+            selectinload(Model.cnn),
+            selectinload(Model.rnn),
+            selectinload(Model.transformer),
+            selectinload(Model.creator)  # 添加creator关系的预加载
+        ).filter(Model.model_id == model_id)
+        result = await session.execute(stmt)
+        return result.scalar_one_or_none()
 
 # 数据集操作
 @async_to_sync
@@ -107,7 +126,8 @@ async def db_list_datasets():
     async with get_db_session()() as session:
         stmt = select(Dataset).options(
             selectinload(Dataset.columns),
-            selectinload(Dataset.Dataset_TASK)
+            selectinload(Dataset.Dataset_TASK),
+            selectinload(Dataset.creator)  # 添加creator关系的预加载
         )
         result = await session.execute(stmt)
         return result.scalars().all()
@@ -116,6 +136,18 @@ async def db_list_datasets():
 async def db_create_dataset(name: str, dataset_data: dict):
     async with get_db_session()() as session:
         return await create_dataset(session, dataset_data)
+
+@async_to_sync
+async def db_get_dataset(dataset_id: int):
+    """获取指定ID的数据集"""
+    async with get_db_session()() as session:
+        stmt = select(Dataset).options(
+            selectinload(Dataset.columns),
+            selectinload(Dataset.Dataset_TASK),
+            selectinload(Dataset.creator)  # 添加creator关系的预加载
+        ).filter(Dataset.ds_id == dataset_id)
+        result = await session.execute(stmt)
+        return result.scalar_one_or_none()
 
 # 用户操作
 @async_to_sync
@@ -169,6 +201,22 @@ async def db_get_user_by_username(username: str):
         stmt = select(User).where(User.user_name == username)
         result = await session.execute(stmt)
         return result.scalar_one_or_none()
+
+@async_to_sync
+async def db_get_user_by_id(user_id: int):
+    async with get_db_session()() as session:
+        return await get_user_by_id(session, user_id)
+
+@async_to_sync
+async def db_update_user(user_id: int, is_admin: bool = None):
+    async with get_db_session()() as session:
+        user = await get_user_by_id(session, user_id)
+        if user:
+            if is_admin is not None:
+                user.is_admin = is_admin
+            await session.commit()
+            return user
+        return None
 
 # 文件操作
 @async_to_sync

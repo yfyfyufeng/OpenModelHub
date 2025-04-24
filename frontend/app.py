@@ -105,6 +105,7 @@ def login_form():
         username = st.text_input("用户名")
         password = st.text_input("密码", type="password")
         use_encryption = st.checkbox("使用加密登录", value=True)
+        
         if st.form_submit_button("登录"):
             # 使用哈希后的密码进行验证（示例使用sha256，生产环境应使用bcrypt）
             #      hashed_pwd = hashlib.sha256(password.encode()).hexdigest()
@@ -168,6 +169,38 @@ def render_home():
         st.metric("注册用户", len(users))
     with col4:
         st.metric("今日下载量", 2543)
+    
+    # 添加注册功能
+    if not st.session_state.get('authenticated'):
+        st.markdown("---")
+        st.subheader("新用户注册")
+        with st.form("注册", clear_on_submit=True):
+            new_username = st.text_input("用户名")
+            new_password = st.text_input("密码", type="password")
+            confirm_password = st.text_input("确认密码", type="password")
+            
+            if st.form_submit_button("注册"):
+                if new_username and new_password:
+                    if new_password != confirm_password:
+                        st.error("两次输入的密码不一致")
+                        return
+                    try:
+                        # 检查用户名是否已存在
+                        existing_user = db_api.db_get_user_by_username(new_username)
+                        if existing_user:
+                            st.error("用户名已存在")
+                            return
+                            
+                        # 创建新用户，默认非管理员
+                        user = db_api.db_create_user(new_username, new_password, is_admin=False)
+                        if user:
+                            st.success("注册成功！请使用新账号登录")
+                        else:
+                            st.error("注册失败，请重试")
+                    except Exception as e:
+                        st.error(f"注册失败：{str(e)}")
+                else:
+                    st.error("请填写用户名和密码")
 
 # 模型仓库
 def render_models():
@@ -252,7 +285,8 @@ def render_models():
                             "media_type": media_type,
                             "tasks": selected_tasks,
                             "trainname": train_type,
-                            "param": file_path
+                            "param": file_path,
+                            "creator_id": st.session_state.current_user["user_id"] if st.session_state.get("current_user") else 1
                         }
                         db_api.db_create_model(model_data)
                         st.success("模型上传成功！")
@@ -269,72 +303,22 @@ def render_models():
         st.info("暂无模型")
         return
     
-    # 显示模型信息（按创建时间倒序排列）
-    for model in sorted(models, key=lambda x: x.created_at if hasattr(x, 'created_at') else datetime.now(), reverse=True):
-        with st.container(border=True):
-            st.subheader(model.model_name)
-            # 获取模型的任务
-            tasks = [task.task_name.value for task in model.tasks] if hasattr(model, 'tasks') else []
-            task_str = ", ".join(tasks) if tasks else "无任务"
-            st.caption(f"架构：{model.arch_name.value} | 媒体类型：{model.media_type.value} | 参数量：{model.param_num:,}")
-            
-            if st.button("查看详情", key=f"model_{model.model_id}"):
-                st.session_state.selected_model = model
-                st.session_state.current_page = "model_detail"
+    # 添加筛选选项
+    show_my_models = st.checkbox("只显示我创建的模型", value=False)
     
-    # 显示模型详情
-    if st.session_state.get("current_page") == "model_detail":
-        model = st.session_state.get("selected_model")
-        if model:
-            st.markdown("---")
-            st.subheader(f"模型详情 - {model.model_name}")
-            
-            col1, col2 = st.columns(2)
-            with col1:
-                st.write("**架构类型：**")
-                st.write(model.arch_name.value)
-                
-                st.write("**媒体类型：**")
-                st.write(model.media_type.value)
-                
-                st.write("**参数量：**")
-                st.write(f"{model.param_num:,}")
-            
-            with col2:
-                st.write("**训练类型：**")
-                st.write(model.trainname.value)
-                
-                st.write("**支持任务：**")
-                tasks = [task.task_name.value for task in model.tasks] if hasattr(model, 'tasks') else []
-                st.write(", ".join(tasks) if tasks else "无任务")
-            
-            # 下载按钮
-            if st.button("下载模型", key=f"download_{model.model_id}"):
-                file_data = db_api.db_get_file(f"{model.model_name}.pt")
-                if file_data:
-                    st.download_button(
-                        label="点击下载",
-                        data=file_data,
-                        file_name=f"{model.model_name}.pt",
-                        mime="application/octet-stream"
-                    )
-                else:
-                    st.error("文件不存在")
-            
-            # 返回按钮
-            if st.button("返回列表", key="back_to_list"):
-                st.session_state.current_page = "models"
-                st.rerun()
-    
-    # 如果没有搜索或搜索无结果，显示所有模型
-    models = db_api.db_list_models()
+    # 根据筛选条件过滤模型
+    if show_my_models and st.session_state.get("current_user"):
+        current_user_id = st.session_state.current_user["user_id"]
+        models = [model for model in models if model.creator_id == current_user_id]
     
     # 展示模型列表
     df = pd.DataFrame([{
         "ID": model.model_id,
         "名称": model.model_name,
         "类型": model.arch_name.value,
-        "参数数量": f"{model.param_num:,}" if hasattr(model, 'param_num') else "未知"
+        "参数数量": f"{model.param_num:,}" if hasattr(model, 'param_num') else "未知",
+        "创建者": model.creator.user_name if hasattr(model, 'creator') else "未知",
+        "创建时间": model.created_at.strftime("%Y-%m-%d %H:%M:%S") if hasattr(model, 'created_at') else "未知"
     } for model in models])
     
     st.dataframe(
@@ -343,7 +327,9 @@ def render_models():
             "ID": "模型ID",
             "名称": "模型名称",
             "类型": "架构类型",
-            "参数数量": "参数量"
+            "参数数量": "参数量",
+            "创建者": "创建者",
+            "创建时间": "创建时间"
         },
         hide_index=True,
         use_container_width=True
@@ -357,6 +343,8 @@ def render_models():
             with st.expander(f"模型详情 - {model.model_name}"):
                 st.write(f"**架构类型**: {model.arch_name.value}")
                 st.write(f"**适用媒体类型**: {model.media_type}")
+                st.write(f"**创建者**: {model.creator.user_name if hasattr(model, 'creator') else '未知'}")
+                st.write(f"**创建时间**: {model.created_at.strftime('%Y-%m-%d %H:%M:%S') if hasattr(model, 'created_at') else '未知'}")
                 
                 if model.tasks:
                     st.write("**支持任务**:")
@@ -365,7 +353,16 @@ def render_models():
                 
                 # 下载按钮
                 if st.button("下载模型"):
-                    st.success("下载开始...（演示用）")
+                    file_data = db_api.db_get_file(f"{model.model_name}.pt")
+                    if file_data:
+                        st.download_button(
+                            label="点击下载",
+                            data=file_data,
+                            file_name=f"{model.model_name}.pt",
+                            mime="application/octet-stream"
+                        )
+                    else:
+                        st.error("文件不存在")
 
 # 修改后的数据集管理
 def render_datasets():
@@ -427,7 +424,8 @@ def render_datasets():
                             "columns": [
                                 {"col_name": "content", "col_datatype": "text"}
                             ],
-                            "description": desc  # 添加描述字段
+                            "description": desc,  # 添加描述字段
+                            "creator_id": st.session_state.current_user["user_id"] if st.session_state.get("current_user") else 1
                         }
                         db_api.db_create_dataset(name, dataset_data)
                         st.success("数据集上传成功！")
@@ -444,62 +442,116 @@ def render_datasets():
         st.info("暂无数据集")
         return
     
-    # 显示数据集信息（按创建时间倒序排列）
-    for dataset in sorted(datasets, key=lambda x: x.created_at, reverse=True):
-        with st.container(border=True):
-            st.subheader(dataset.ds_name)
-            # 获取数据集的任务
-            tasks = [task.task.value for task in dataset.Dataset_TASK]  # 获取枚举值
-            task_str = ", ".join(tasks) if tasks else "无任务"
-            st.caption(f"类型：{dataset.media} | 任务：{task_str} | 大小：{dataset.ds_size/1024:.1f}KB")
-            
-            if st.button("查看详情", key=f"dataset_{dataset.ds_id}"):
-                st.session_state.selected_dataset = dataset
-                st.session_state.current_page = "dataset_detail"
+    # 添加筛选选项
+    show_my_datasets = st.checkbox("只显示我创建的数据集", value=False)
     
-    # 显示数据集详情
-    if st.session_state.get("current_page") == "dataset_detail":
-        dataset = st.session_state.get("selected_dataset")
+    # 根据筛选条件过滤数据集
+    if show_my_datasets and st.session_state.get("current_user"):
+        current_user_id = st.session_state.current_user["user_id"]
+        datasets = [dataset for dataset in datasets if dataset.creator_id == current_user_id]
+    
+    # 展示数据集列表
+    df = pd.DataFrame([{
+        "ID": dataset.ds_id,
+        "名称": dataset.ds_name,
+        "类型": dataset.media.value if hasattr(dataset.media, 'value') else dataset.media,
+        "大小": f"{dataset.ds_size/1024:.1f}KB",
+        "创建者": dataset.creator.user_name if hasattr(dataset, 'creator') else "未知",
+        "创建时间": dataset.created_at.strftime("%Y-%m-%d %H:%M:%S") if hasattr(dataset, 'created_at') else "未知"
+    } for dataset in datasets])
+    
+    st.dataframe(
+        df,
+        column_config={
+            "ID": "数据集ID",
+            "名称": "数据集名称",
+            "类型": "媒体类型",
+            "大小": "大小",
+            "创建者": "创建者",
+            "创建时间": "创建时间"
+        },
+        hide_index=True,
+        use_container_width=True
+    )
+    
+    # 数据集详情侧边栏
+    selected_id = st.number_input("输入数据集ID查看详情", min_value=1)
+    if selected_id:
+        dataset = db_api.db_get_dataset(selected_id)
         if dataset:
-            st.markdown("---")
-            st.subheader(f"数据集详情 - {dataset.ds_name}")
-            
-            # 显示描述
-            st.write("**描述：**")
-            st.write(dataset.description if hasattr(dataset, 'description') else "暂无描述")
-            
-            # 显示任务信息
-            st.write("**任务类型：**")
-            tasks = [task.task.value for task in dataset.Dataset_TASK]
-            st.write(", ".join(tasks) if tasks else "无任务")
-            
-            # 显示数据集大小
-            st.write("**数据集大小：**")
-            st.write(f"{dataset.ds_size/1024:.1f}KB")
-            
-            # 下载按钮
-            if st.button("下载数据集", key=f"download_{dataset.ds_id}"):
-                file_data = db_api.db_get_file(dataset.ds_name + ".txt")
-                if file_data:
-                    st.download_button(
-                        label="点击下载",
-                        data=file_data,
-                        file_name=f"{dataset.ds_name}.txt",
-                        mime="text/plain"
-                    )
-                else:
-                    st.error("文件不存在")
-            
-            # 返回按钮
-            if st.button("返回列表", key="back_to_list"):
-                st.session_state.current_page = "datasets"
-                st.rerun()
+            with st.expander(f"数据集详情 - {dataset.ds_name}"):
+                st.write(f"**描述**: {dataset.description if hasattr(dataset, 'description') else '暂无描述'}")
+                st.write(f"**类型**: {dataset.media.value if hasattr(dataset.media, 'value') else dataset.media}")
+                st.write(f"**创建者**: {dataset.creator.user_name if hasattr(dataset, 'creator') else '未知'}")
+                st.write(f"**创建时间**: {dataset.created_at.strftime('%Y-%m-%d %H:%M:%S') if hasattr(dataset, 'created_at') else '未知'}")
+                
+                if dataset.Dataset_TASK:
+                    st.write("**任务类型**:")
+                    for task in dataset.Dataset_TASK:
+                        st.code(task.task.value if hasattr(task.task, 'value') else task.task)
+                
+                # 下载按钮
+                if st.button("下载数据集"):
+                    file_data = db_api.db_get_file(dataset.ds_name + ".txt")
+                    if file_data:
+                        st.download_button(
+                            label="点击下载",
+                            data=file_data,
+                            file_name=f"{dataset.ds_name}.txt",
+                            mime="text/plain"
+                        )
+                    else:
+                        st.error("文件不存在")
 
 # 用户管理（管理员功能）
 def render_users():
     """渲染用户管理页面"""
-    user_manager = UserManager()
-    user_manager.render()
+    st.title("用户管理")
+    
+    # 获取所有用户
+    users = db_api.db_list_users()
+    
+    if not users:
+        st.info("暂无用户")
+        return
+    
+    # 展示用户列表
+    df = pd.DataFrame([{
+        "ID": user.user_id,
+        "用户名": user.user_name,
+        "管理员": "是" if user.is_admin else "否",
+        "创建时间": user.created_at.strftime("%Y-%m-%d %H:%M:%S") if hasattr(user, 'created_at') else "未知"
+    } for user in users])
+    
+    st.dataframe(
+        df,
+        column_config={
+            "ID": "用户ID",
+            "用户名": "用户名",
+            "管理员": "管理员权限",
+            "创建时间": "创建时间"
+        },
+        hide_index=True,
+        use_container_width=True
+    )
+    
+    # 用户权限管理
+    st.subheader("修改用户权限")
+    selected_user_id = st.number_input("输入用户ID", min_value=1)
+    if selected_user_id:
+        user = db_api.db_get_user_by_id(selected_user_id)
+        if user:
+            is_admin = st.checkbox("设为管理员", value=user.is_admin)
+            if st.button("更新权限"):
+                try:
+                    # 更新用户权限
+                    db_api.db_update_user(selected_user_id, is_admin=is_admin)
+                    st.success("权限更新成功！")
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"更新失败：{str(e)}")
+        else:
+            st.error("用户不存在")
 
 # 默认登录函数
 def default_login():
