@@ -29,7 +29,7 @@ def patch_enum_fields(model: dict) -> dict:
 async def load_insert_record(session):
 
     # 读取 JSON 文件中的数据
-    rec_path = 'records/db_operations_test_original.json'
+    rec_path = 'database/records/db_operations_test_original.json'
 
     # todo: remove this and all following pritnings
     with open(rec_path, 'r') as f:

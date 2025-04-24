@@ -1,0 +1,187 @@
+import json
+import os
+import asyncio
+from pathlib import Path
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
+# 添加项目根目录到系统路径
+import sys
+current_dir = Path(__file__).parent
+project_root = current_dir.parent
+sys.path.extend([str(project_root), str(project_root/"database")])
+sys.path.extend([str(project_root), str(project_root/"frontend")])
+from database_interface import (
+    User, Model, Dataset, ModelTask, DsCol,
+    init_database, create_affiliation, create_user, create_dataset, create_model
+)
+from database_schema import ArchType, Trainname, Media_type, Task_name
+
+# 枚举值映射
+TRAINNAME_MAP = {
+    "pre-train": Trainname.PRETRAIN,
+    "fine-tune": Trainname.FINETUNE,
+    "rl": Trainname.RL
+}
+
+def patch_enum_fields(model: dict) -> dict:
+    """将字符串类型的枚举值转换为对应的枚举类型"""
+    # 处理 trainname
+    trainname = model["trainname"].lower()
+    if trainname in TRAINNAME_MAP:
+        model["trainname"] = TRAINNAME_MAP[trainname]
+    else:
+        raise ValueError(f"无效的训练类型: {trainname}")
+    
+    # 处理 arch_name
+    arch_name = model["arch_name"].upper()
+    try:
+        model["arch_name"] = ArchType(arch_name)
+    except ValueError:
+        raise ValueError(f"无效的架构类型: {arch_name}")
+    
+    # 处理 media_type
+    media_type = model["media_type"].lower()
+    try:
+        model["media_type"] = Media_type(media_type)
+    except ValueError:
+        raise ValueError(f"无效的媒体类型: {media_type}")
+    
+    return model
+
+def add_default_values(model: dict) -> dict:
+    """为模型添加默认值"""
+    defaults = {
+        "criteria": "MSE",
+        "batch_size": 32,
+        "input_size": 256,
+        "module_num": 10,
+        "modules": [
+            {"conv_size": 32, "pool_type": "max"},
+            {"conv_size": 64, "pool_type": "avg"}
+        ],
+        "decoder_num": 6,
+        "attn_size": 512,
+        "up_size": 2048,
+        "down_size": 1024,
+        "embed_size": 768
+    }
+    
+    # 只添加不存在的字段
+    for key, value in defaults.items():
+        if key not in model:
+            model[key] = value
+    
+    return model
+
+async def check_user_exists(session: AsyncSession, user_name: str) -> bool:
+    """检查用户是否已存在"""
+    stmt = select(User).where(User.user_name == user_name)
+    result = await session.execute(stmt)
+    return result.scalar_one_or_none() is not None
+
+async def get_user_by_name(session: AsyncSession, user_name: str) -> User:
+    """根据用户名获取用户"""
+    stmt = select(User).where(User.user_name == user_name)
+    result = await session.execute(stmt)
+    return result.scalar_one_or_none()
+
+async def load_json_file(session: AsyncSession, file_path: str, current_user: User = None):
+    """加载单个 JSON 文件并插入数据"""
+    print(f"正在加载文件: {file_path}")
+    
+    with open(file_path, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+        
+        # 插入 Affiliation 数据
+        if 'affiliation' in data:
+            for affil in data['affiliation']:
+                await create_affiliation(session, affil['affil_name'])
+        
+        # 插入 User 数据
+        if 'user' in data:
+            for user in data['user']:
+                # 检查用户是否已存在
+                if not await check_user_exists(session, user['user_name']):
+                    await create_user(session, user)
+                else:
+                    print(f"用户 {user['user_name']} 已存在，跳过创建")
+        
+        # 插入 Dataset 数据
+        if 'dataset' in data:
+            for dataset in data['dataset']:
+                # 如果指定了当前用户，使用当前用户作为创建者
+                if current_user:
+                    dataset['creator_id'] = current_user.user_id
+                # 如果数据中指定了创建者，使用指定的创建者
+                elif 'creator' in dataset:
+                    creator = await get_user_by_name(session, dataset['creator'])
+                    if creator:
+                        dataset['creator_id'] = creator.user_id
+                    else:
+                        print(f"警告: 未找到创建者 {dataset['creator']}，使用默认创建者")
+                        dataset['creator_id'] = 1  # 默认使用admin用户
+                else:
+                    dataset['creator_id'] = 1  # 默认使用admin用户
+                
+                await create_dataset(session, dataset)
+        
+        # 插入 Model 数据
+        if 'model' in data:
+            for model in data['model']:
+                # 如果指定了当前用户，使用当前用户作为创建者
+                if current_user:
+                    model['creator_id'] = current_user.user_id
+                # 如果数据中指定了创建者，使用指定的创建者
+                elif 'creator' in model:
+                    creator = await get_user_by_name(session, model['creator'])
+                    if creator:
+                        model['creator_id'] = creator.user_id
+                    else:
+                        print(f"警告: 未找到创建者 {model['creator']}，使用默认创建者")
+                        model['creator_id'] = 1  # 默认使用admin用户
+                else:
+                    model['creator_id'] = 1  # 默认使用admin用户
+                
+                try:
+                    model = patch_enum_fields(model)
+                    model = add_default_values(model)
+                    await create_model(session, model)
+                except ValueError as e:
+                    print(f"处理模型 {model.get('model_name', '未知')} 时出错: {str(e)}")
+                    continue
+    
+    print(f"文件 {file_path} 加载完成")
+
+async def load_all_records(session: AsyncSession, current_user: User = None):
+    """加载 records 目录下的所有 JSON 文件"""
+    records_dir = Path(__file__).parent / "records"
+    
+    if not records_dir.exists():
+        print(f"目录 {records_dir} 不存在")
+        return
+    
+    json_files = list(records_dir.glob("*.json"))
+    if not json_files:
+        print(f"在 {records_dir} 中没有找到 JSON 文件")
+        return
+    
+    for json_file in json_files:
+        await load_json_file(session, str(json_file), current_user)
+    
+    print("所有数据加载完成")
+
+async def main():
+    """主函数"""
+    # 初始化数据库
+    await init_database()
+    
+    # 获取数据库会话
+    from frontend.db import get_db_session
+    Session = get_db_session()
+    
+    async with Session() as session:
+        await load_all_records(session)
+        await session.commit()
+
+if __name__ == "__main__":
+    asyncio.run(main()) 

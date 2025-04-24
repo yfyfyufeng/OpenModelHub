@@ -34,7 +34,8 @@ async def create_model(session: AsyncSession, model_data: Dict) -> Union[Model, 
         media_type=model_data["media_type"],
         arch_name=model_data["arch_name"],
         trainname = model_data["trainname"],
-        param = model_data['param']
+        param = model_data['param'],
+        creator_id = model_data.get("creator_id", 1)  # 默认使用admin用户
     )
     session.add(model)
     await session.flush()
@@ -212,27 +213,26 @@ async def create_dataset(session: AsyncSession, dataset_data: dict) -> Dataset:
         ds_name=dataset_data["ds_name"],
         ds_size=dataset_data["ds_size"],
         media=dataset_data["media"],
-        description=dataset_data.get("description", "")
+        creator_id=dataset_data.get("creator_id", 1)  # 默认使用admin用户
     )
     session.add(dataset)
     await session.flush()
 
-    if not dataset_data['columns']:
-        raise ValueError("A dataset must have at least one column")
+    for task in dataset_data.get("task", []):
+        task_rel = Dataset_TASK(
+            ds_id=dataset.ds_id,
+            task=task
+        )
+        session.add(task_rel)
 
-    for col_data in dataset_data['columns']:
-        ds_col = DsCol(
+    for column in dataset_data.get("columns", []):
+        col = DsCol(
             ds_id=dataset.ds_id,
-            col_name=col_data["col_name"],
-            col_datatype=col_data["col_datatype"]
+            col_name=column["col_name"],
+            col_datatype=column["col_datatype"]
         )
-        session.add(ds_col)
-    for task_data in dataset_data['task']:
-        ds_col = Dataset_TASK(
-            ds_id=dataset.ds_id,
-            task=task_data
-        )
-        session.add(ds_col)
+        session.add(col)
+
     await session.commit()
     await session.refresh(dataset)
     return dataset
