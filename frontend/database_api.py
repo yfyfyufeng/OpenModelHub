@@ -7,6 +7,7 @@ from pathlib import Path
 import sys
 from dotenv import load_dotenv
 import socket
+from datetime import datetime
 current_dir = Path(__file__).parent
 project_root = current_dir.parent
 sys.path.extend([str(project_root), str(project_root/"database")])
@@ -22,6 +23,7 @@ from database.database_interface import User
 from sqlalchemy import select, text
 from sqlalchemy.orm import selectinload
 from agent.agent_main import query_agent
+from frontend.config import DATA_CONFIG
 
 try:
     from security.conn import InitUser, GetUser, StoreFile, LoadFile, CreateInvitation, AcceptInvitation, RevokeAccess
@@ -46,16 +48,16 @@ def async_to_sync(async_func):
         return asyncio.run(async_func(*args, **kwargs))
     return wrapper
 
-# Agent查询
+# Agent query
 @async_to_sync
-async def db_agent_query(query: str):
-    """使用自然语言查询数据库"""
+async def db_agent_query(query: str, instance_type: int):
+    """Query database using natural language"""
     async with get_db_session()() as session:
         try:
-            # 使用 agent 的 query_agent 函数
-            result = await query_agent(query, verbose=False, session=session)
+            # Use query_agent function from agent module
+            result = await query_agent(query, instance_type=instance_type, verbose=False, session=session)
             
-            # 返回与 agent_main.py 一致的格式
+            # Return format consistent with agent_main.py
             return (result['sql_res'] if result['err'] == 0 and result['sql_res'] else [], 
                    {
                        'natural_language_query': query,
@@ -63,10 +65,10 @@ async def db_agent_query(query: str):
                        'error_code': result['err'],
                        'sql_res': result['sql_res'],
                        'has_results': bool(result['sql_res']),
-                       'error': None if result['err'] == 0 else 'SQL执行失败'
+                       'error': None if result['err'] == 0 else 'SQL execution failed'
                    })
         except Exception as e:
-            print(f"执行查询时出错: {str(e)}")
+            print(f"Error executing query: {str(e)}")
             return [], {
                 'natural_language_query': query,
                 'generated_sql': '',
@@ -76,32 +78,24 @@ async def db_agent_query(query: str):
                 'sql_res': []
             }
 
-# 模型操作
+# Model operations
 @async_to_sync
 async def db_list_models():
-    """获取所有模型列表"""
+    """Get all models list"""
     async with get_db_session()() as session:
         try:
-            # 首先获取所有模型
-            stmt = select(Model).options(
-                selectinload(Model.tasks),
-                selectinload(Model.authors),
-                selectinload(Model.datasets),
-                selectinload(Model.cnn),
-                selectinload(Model.rnn),
-                selectinload(Model.transformer),
-                selectinload(Model.creator)  # 添加creator关系的预加载
-            )
+            # First get all models
+            stmt = select(Model)
             result = await session.execute(stmt)
             models = result.scalars().all()
             
-            # 为每个模型加载关联数据
+            # Load related data for each model
             for model in models:
                 await session.refresh(model, ['tasks', 'authors', 'datasets', 'cnn', 'rnn', 'transformer', 'creator'])
             
             return models
         except Exception as e:
-            print(f"获取模型列表时出错: {str(e)}")
+            print(f"Error getting model list: {str(e)}")
             return []
 
 @async_to_sync
@@ -120,7 +114,7 @@ async def db_get_model(model_id: int):
         result = await session.execute(stmt)
         return result.scalar_one_or_none()
 
-# 数据集操作
+# Dataset operations
 @async_to_sync
 async def db_list_datasets():
     async with get_db_session()() as session:
@@ -135,8 +129,16 @@ async def db_list_datasets():
 @async_to_sync
 async def db_create_dataset(name: str, dataset_data: dict):
     async with get_db_session()() as session:
+        dataset = Dataset(
+            ds_name=dataset_data["ds_name"],
+            ds_size=dataset_data["ds_size"],
+            media=dataset_data["media"],
+            description=dataset_data["description"],
+            created_at=dataset_data.get("created_at", datetime.now())  # 使用传入的时间或当前时间
+        )
         return await create_dataset(session, dataset_data)
 
+# User operations
 @async_to_sync
 async def db_get_dataset(dataset_id: int):
     """获取指定ID的数据集"""
@@ -202,6 +204,8 @@ async def db_get_user_by_username(username: str):
         result = await session.execute(stmt)
         return result.scalar_one_or_none()
 
+# File operations
+'''
 @async_to_sync
 async def db_get_user_by_id(user_id: int):
     async with get_db_session()() as session:
@@ -245,6 +249,62 @@ async def db_get_file(filename: str):
         with open(file_path, "rb") as f:
             return f.read()
     return None
+'''
+@async_to_sync
+async def db_save_file(file_data: bytes, filename: str, file_type: str = "datasets"):
+    """Save file to specified directory"""
+    # Select save directory
+    if file_type == "models":
+        save_dir = DATA_CONFIG["models_dir"]
+    else:
+        save_dir = DATA_CONFIG["datasets_dir"]
+    
+    # Create timestamped filename to avoid conflicts
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    file_path = save_dir / f"{timestamp}_{filename}"
+    
+    # Save file
+    with open(file_path, "wb") as f:
+        f.write(file_data)
+    
+    return str(file_path)
+
+@async_to_sync
+async def db_get_file(filename: str, file_type: str = "datasets"):
+    """Get file from specified directory"""
+    try:
+        # Select directory
+        if file_type == "models":
+            search_dir = DATA_CONFIG["models_dir"]
+        else:
+            search_dir = DATA_CONFIG["datasets_dir"]
+        
+        # Ensure directory exists
+        if not search_dir.exists():
+            print(f"Directory does not exist: {search_dir}")
+            return None
+            
+        # Find latest matching file
+        matching_files = list(search_dir.glob(f"*_{filename}"))
+        if not matching_files:
+            # Try direct filename match
+            direct_match = search_dir / filename
+            if direct_match.exists():
+                with open(direct_match, "rb") as f:
+                    return f.read()
+            print(f"File not found: {filename}")
+            return None
+            
+        # Get latest file
+        latest_file = max(matching_files, key=lambda x: x.stat().st_mtime)
+        print(f"Found file: {latest_file}")
+        
+        with open(latest_file, "rb") as f:
+            return f.read()
+            
+    except Exception as e:
+        print(f"Error getting file: {str(e)}")
+        return None
 
 def get_db_session():
     load_dotenv()
@@ -261,15 +321,16 @@ def get_db_session():
         echo=True
     )
     return async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+
 @async_to_sync
 async def db_create_model(model_data: dict):
-    """创建新模型"""
+    """Create new model"""
     async with get_db_session()() as session:
         try:
-            # 转换枚举类型
+            # Convert enum types
             from database.database_schema import ArchType, Media_type, Trainname, Task_name
             
-            # 创建模型
+            # Create model
             model = Model(
                 model_name=model_data["model_name"],
                 param_num=model_data["param_num"],
@@ -281,7 +342,7 @@ async def db_create_model(model_data: dict):
             session.add(model)
             await session.flush()
             
-            # 添加任务
+            # Add tasks
             for task_name in model_data["tasks"]:
                 task = ModelTask(
                     model_id=model.model_id,
@@ -294,7 +355,7 @@ async def db_create_model(model_data: dict):
             return model
         except Exception as e:
             await session.rollback()
-            raise Exception(f"创建模型失败: {str(e)}")
+            raise Exception(f"Failed to create model: {str(e)}")
 
 @async_to_sync
 async def db_export_all_data():
