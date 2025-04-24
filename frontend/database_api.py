@@ -48,12 +48,12 @@ def async_to_sync(async_func):
 
 # Agent查询
 @async_to_sync
-async def db_agent_query(query: str):
+async def db_agent_query(query: str, instance_type: int):
     """使用自然语言查询数据库"""
     async with get_db_session()() as session:
         try:
             # 使用 agent 的 query_agent 函数
-            result = await query_agent(query, verbose=False, session=session)
+            result = await query_agent(query, instance_type=instance_type, verbose=False, session=session)
             
             # 返回与 agent_main.py 一致的格式
             return (result['sql_res'] if result['err'] == 0 and result['sql_res'] else [], 

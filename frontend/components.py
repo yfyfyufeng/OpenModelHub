@@ -18,6 +18,69 @@ from database.database_schema import ArchType, Media_type, Task_name, Trainname
 # 允许嵌套事件循环
 nest_asyncio.apply()
 
+# 创建全局搜索框和类型查询下拉框
+def create_search_section(search_key: str):
+    entity_types = ["全部", "模型", "数据集", "用户", "机构"]
+    
+    entity_dict = {
+        "全部": 0,
+        "模型": 1,
+        "数据集": 2,
+        "用户": 3,
+        "机构": 4
+    }
+    
+    st.markdown("""
+        <style>
+        .stButton > button {
+            margin-top: 25px;  /* Adjust this value to match your input height */
+        }
+        div.row-widget.stSelectbox {
+            margin-top: 25px;  /* Match the button margin */
+        }
+        </style>
+    """, unsafe_allow_html=True)
+    
+    with st.container():
+        col1, col2, col3 = st.columns([3.7, 1, 0.3])
+        with col1:
+            query = st.text_input("搜索", placeholder="输入自然语言查询", key=f"search_input_{search_key}")
+        with col2:
+            search_type = st.selectbox(
+                "搜索类型",
+                entity_types,
+                key=f"search_type_{search_key}"
+            )
+        with col3:
+            search_clicked = st.button(
+                "搜索", 
+                key=f"search_button_{search_key}",
+                use_container_width=True
+            )
+    
+    if search_clicked and query:
+        # 添加类型信息到查询
+        if search_type != "全部":
+            query = f"搜索{search_type}：{query}"
+        instance_type = entity_dict[search_type]
+        print(instance_type)
+        results, query_info = db_api.db_agent_query(query, instance_type)
+        # 显示查询详情
+        with st.expander("查询详情"):
+            st.json({
+                'natural_language_query': query_info['natural_language_query'],
+                'generated_sql': query_info['generated_sql'],
+                'error_code': query_info['error_code'],
+                'has_results': query_info['has_results'],
+                'error': query_info.get('error', None),
+                'sql_res': results
+            })
+        if results:
+            df = pd.DataFrame(results)
+            st.dataframe(df)
+            return True
+    return False
+
 class Sidebar:
     def __init__(self, auth_manager):
         self.auth_manager = auth_manager
@@ -67,6 +130,10 @@ class UserManager:
     def render(self):
         """渲染用户管理界面"""
         st.header("👥 用户管理")
+        
+        # 使用统一的搜索部分
+        if create_search_section("users"):
+            return
         
         # 创建用户表单
         with st.expander("➕ 添加新用户", expanded=False):

@@ -221,7 +221,7 @@ async def execute_sql(sql: str, session=None):
 # 🚀 Main Execution Logic
 # ----------------------
 
-async def query_agent(nl_input: str, verbose = False, session = None, instance_type = 0):
+async def query_agent(nl_input: str, instance_type = 0, verbose = False, session = None):
     
 
     ret_dic = {
@@ -240,9 +240,11 @@ async def query_agent(nl_input: str, verbose = False, session = None, instance_t
     if verbose: print("🎯 User input:", nl_input)
     
     # preprocess user input: input from different pages
-    if instance_type in instance_dict:
-      
+    if instance_type != 0 and instance_dict in instance_dict:
       nl_input += f"\nUser wants to search for {instance_dict[instance_type]} instances."
+    elif instance_type == 0:
+      nl_input += "\nUser wants to search across all tables including models, datasets, users and affiliations. Return results from all relevant tables."
+    
     
     if verbose: print("🎯 Preprocessed input:", nl_input)
 

@@ -29,7 +29,7 @@ from io import BytesIO
 from frontend.config import APP_CONFIG
 from frontend.db import get_db_session
 from frontend.auth import AuthManager
-from frontend.components import Sidebar, DatasetUploader, UserManager, ModelUploader
+from frontend.components import Sidebar, DatasetUploader, UserManager, ModelUploader, create_search_section
 
 # 允许嵌套事件循环
 nest_asyncio.apply()
@@ -70,43 +70,6 @@ if 'authenticated' not in st.session_state:
     st.session_state.authenticated = False
 if 'current_user' not in st.session_state:
     st.session_state.current_user = None
-    
-# 创建全局搜索框和类型查询下拉框
-def create_search_section(search_key: str, entity_types: list = None):
-    if entity_types is None:
-        entity_types = ["全部", "模型", "数据集", "用户", "机构"]
-    
-    col1, col2 = st.columns([4, 1])
-    with col1:
-        query = st.text_input("搜索", placeholder="输入自然语言查询", key=f"search_input_{search_key}")
-    with col2:
-        search_type = st.selectbox(
-            "搜索类型",
-            entity_types,
-            key=f"search_type_{search_key}"
-        )
-    
-    if st.button("搜索", key=f"search_button_{search_key}"):
-        if query:
-            # 添加类型信息到查询
-            if search_type != "全部":
-                query = f"搜索{search_type}：{query}"
-            results, query_info = db_api.db_agent_query(query)
-            # 显示查询详情
-            with st.expander("查询详情"):
-                st.json({
-                    'natural_language_query': query_info['natural_language_query'],
-                    'generated_sql': query_info['generated_sql'],
-                    'error_code': query_info['error_code'],
-                    'has_results': query_info['has_results'],
-                    'error': query_info.get('error', None),
-                    'sql_res': results
-                })
-            if results:
-                df = pd.DataFrame(results)
-                st.dataframe(df)
-                return True
-    return False
 
 # 文件上传处理
 def handle_file_upload():
@@ -216,26 +179,41 @@ def render_models():
         return
     
     # 添加搜索输入框
-    search_query = st.text_input("搜索模型", placeholder="输入自然语言查询")
+    st.markdown("""
+        <style>
+        .stButton > button {
+            margin-top: 25px;  /* Adjust this value to match your input height */
+        }
+        div.row-widget.stSelectbox {
+            margin-top: 25px;  /* Match the button margin */
+        }
+        </style>
+    """, unsafe_allow_html=True)
     
-    # 添加搜索按钮
-    if st.button("搜索", key="model_search"):
-        if search_query:
-            results, query_info = db_api.db_agent_query(search_query)
-            # 显示查询详情
-            with st.expander("查询详情"):
-                st.json({
-                    'natural_language_query': query_info['natural_language_query'],
-                    'generated_sql': query_info['generated_sql'],
-                    'error_code': query_info['error_code'],
-                    'has_results': query_info['has_results'],
-                    'error': query_info.get('error', None),
-                    'sql_res': results
-                })
-            if results:
-                df = pd.DataFrame(results)
-                st.dataframe(df)
-                return
+    with st.container():
+        col1, col2 = st.columns([4.7, 0.3])
+        
+        with col1:
+            search_query = st.text_input("搜索模型", placeholder="输入自然语言查询")
+        with col2:
+            search_clicked = st.button("搜索", key="model_search", use_container_width=True)
+    
+    if search_query and search_clicked:
+        results, query_info = db_api.db_agent_query(search_query)
+        # 显示查询详情
+        with st.expander("查询详情"):
+            st.json({
+                'natural_language_query': query_info['natural_language_query'],
+                'generated_sql': query_info['generated_sql'],
+                'error_code': query_info['error_code'],
+                'has_results': query_info['has_results'],
+                'error': query_info.get('error', None),
+                'sql_res': results
+            })
+        if results:
+            df = pd.DataFrame(results)
+            st.dataframe(df)
+            return
     
     # 模型上传
     with st.expander("上传新模型"):
@@ -418,26 +396,40 @@ def render_datasets():
         return
     
     # 添加搜索输入框
-    search_query = st.text_input("搜索数据集", placeholder="输入自然语言查询")
+    st.markdown("""
+        <style>
+        .stButton > button {
+            margin-top: 25px;  /* Adjust this value to match your input height */
+        }
+        div.row-widget.stSelectbox {
+            margin-top: 25px;  /* Match the button margin */
+        }
+        </style>
+    """, unsafe_allow_html=True)
     
-    # 添加搜索按钮
-    if st.button("搜索", key="dataset_search"):
-        if search_query:
-            results, query_info = db_api.db_agent_query(search_query)
-            # 显示查询详情
-            with st.expander("查询详情"):
-                st.json({
-                    'natural_language_query': query_info['natural_language_query'],
-                    'generated_sql': query_info['generated_sql'],
-                    'error_code': query_info['error_code'],
-                    'has_results': query_info['has_results'],
-                    'error': query_info.get('error', None),
-                    'sql_res': results
-                })
-            if results:
-                df = pd.DataFrame(results)
-                st.dataframe(df)
-                return
+    with st.container():
+        col1, col2 = st.columns([4.7, 0.3])
+        
+        with col1:
+            search_query = st.text_input("搜索数据集", placeholder="输入自然语言查询")
+        with col2:
+            search_clicked = st.button("搜索", key="dataset_search", use_container_width=True)
+    if search_query and search_clicked:
+        results, query_info = db_api.db_agent_query(search_query)
+        # 显示查询详情
+        with st.expander("查询详情"):
+            st.json({
+                'natural_language_query': query_info['natural_language_query'],
+                'generated_sql': query_info['generated_sql'],
+                'error_code': query_info['error_code'],
+                'has_results': query_info['has_results'],
+                'error': query_info.get('error', None),
+                'sql_res': results
+            })
+        if results:
+            df = pd.DataFrame(results)
+            st.dataframe(df)
+            return
     
     # 数据集上传
     with st.expander("上传新数据集"):
@@ -545,10 +537,6 @@ def render_users():
     """渲染用户管理页面"""
     user_manager = UserManager()
     user_manager.render()
-    
-    # 使用统一的搜索部分
-    if create_search_section("users"):
-        return
 
 # 默认登录函数
 def default_login():
