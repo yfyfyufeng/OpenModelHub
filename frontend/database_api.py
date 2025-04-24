@@ -325,8 +325,11 @@ async def db_export_all_data():
                 ],
                 "user": [
                     {
+                        "user_id": user.user_id,
                         "user_name": user.user_name,
-                        "affiliate": user.affiliate
+                        "password_hash": user.password_hash,
+                        "affiliate": user.affiliate,
+                        "is_admin": user.is_admin
                     } for user in users
                 ],
                 "dataset": [

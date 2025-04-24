@@ -182,7 +182,7 @@ def render_home():
                 
                 # 转换为JSON字符串，确保使用UTF-8编码
                 import json
-                json_str = json.dumps(json_data, indent=4, ensure_ascii=False, encoding='utf-8')
+                json_str = json.dumps(json_data, indent=4, ensure_ascii=False)
                 
                 # 提供下载
                 st.download_button(

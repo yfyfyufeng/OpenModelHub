@@ -18,18 +18,21 @@
     ],
     "user": [
         {
+            "user_id": 1,
             "user_name": "admin",
             "password_hash": "admin",
             "affiliate": "系统管理员",
             "is_admin": true
         },
         {
+            "user_id": 2,
             "user_name": "user1",
             "password_hash": "password1",
             "affiliate": "清华大学",
             "is_admin": false
         },
         {
+            "user_id": 3,
             "user_name": "user2",
             "password_hash": "password2",
             "affiliate": "北京大学",
@@ -1131,146 +1134,32 @@
                     "col_datatype": "text"
                 }
             ]
+        },
+        {
+            "ds_name": "lyf",
+            "ds_size": 1169,
+            "media": "text",
+            "task": [
+                "classification"
+            ],
+            "columns": [
+                {
+                    "col_name": "content",
+                    "col_datatype": "text"
+                }
+            ]
         }
     ],
     "model": [
-        {
-            "model_name": "测试模型_1",
-            "param_num": 86161219,
-            "media_type": "video",
-            "arch_name": "CNN",
-            "trainname": "pretrain",
-            "task": [
-                "classification",
-                "detection",
-                "generation",
-                "segmentation"
-            ],
-            "param": 10
-        },
-        {
-            "model_name": "测试模型_2",
-            "param_num": 4251050,
-            "media_type": "audio",
-            "arch_name": "Transformer",
-            "trainname": "pretrain",
-            "task": [
-                "classification",
-                "detection",
-                "generation",
-                "segmentation"
-            ],
-            "param": 10
-        },
-        {
-            "model_name": "测试模型_3",
-            "param_num": 5797853,
-            "media_type": "video",
-            "arch_name": "RNN",
-            "trainname": "pretrain",
-            "task": [
-                "classification",
-                "generation",
-                "segmentation"
-            ],
-            "param": 10
-        },
         {
             "model_name": "测试模型_4",
             "param_num": 42807670,
             "media_type": "image",
             "arch_name": "RNN",
-            "trainname": "fine-tune",
+            "trainname": "Trainname.FINETUNE",
             "task": [
                 "classification",
                 "detection",
-                "segmentation"
-            ],
-            "param": 10
-        },
-        {
-            "model_name": "测试模型_5",
-            "param_num": 4000492,
-            "media_type": "audio",
-            "arch_name": "Transformer",
-            "trainname": "pretrain",
-            "task": [
-                "detection",
-                "generation",
-                "segmentation"
-            ],
-            "param": 10
-        },
-        {
-            "model_name": "测试模型_6",
-            "param_num": 82737667,
-            "media_type": "text",
-            "arch_name": "CNN",
-            "trainname": "reinforcement learning",
-            "task": [
-                "segmentation"
-            ],
-            "param": 10
-        },
-        {
-            "model_name": "测试模型_7",
-            "param_num": 80218975,
-            "media_type": "video",
-            "arch_name": "RNN",
-            "trainname": "pretrain",
-            "task": [
-                "segmentation"
-            ],
-            "param": 10
-        },
-        {
-            "model_name": "测试模型_8",
-            "param_num": 47530064,
-            "media_type": "image",
-            "arch_name": "CNN",
-            "trainname": "pretrain",
-            "task": [
-                "classification",
-                "detection",
-                "generation",
-                "segmentation"
-            ],
-            "param": 10
-        },
-        {
-            "model_name": "测试模型_9",
-            "param_num": 37223332,
-            "media_type": "video",
-            "arch_name": "CNN",
-            "trainname": "reinforcement learning",
-            "task": [
-                "segmentation"
-            ],
-            "param": 10
-        },
-        {
-            "model_name": "测试模型_10",
-            "param_num": 89333778,
-            "media_type": "text",
-            "arch_name": "CNN",
-            "trainname": "reinforcement learning",
-            "task": [
-                "classification",
-                "detection",
-                "generation"
-            ],
-            "param": 10
-        },
-        {
-            "model_name": "测试模型_11",
-            "param_num": 39466760,
-            "media_type": "audio",
-            "arch_name": "CNN",
-            "trainname": "pretrain",
-            "task": [
-                "classification",
-                "detection",
-                "generation",
                 "segmentation"
             ],
             "param": 10
@@ -1280,24 +1169,10 @@
             "param_num": 39327367,
             "media_type": "audio",
             "arch_name": "RNN",
-            "trainname": "fine-tune",
+            "trainname": "Trainname.FINETUNE",
             "task": [
                 "classification",
                 "detection",
-                "segmentation"
-            ],
-            "param": 10
-        },
-        {
-            "model_name": "测试模型_13",
-            "param_num": 43016356,
-            "media_type": "text",
-            "arch_name": "CNN",
-            "trainname": "reinforcement learning",
-            "task": [
-                "classification",
-                "detection",
-                "generation",
                 "segmentation"
             ],
             "param": 10
@@ -1307,73 +1182,9 @@
             "param_num": 72994844,
             "media_type": "image",
             "arch_name": "RNN",
-            "trainname": "fine-tune",
+            "trainname": "Trainname.FINETUNE",
             "task": [
                 "classification"
-            ],
-            "param": 10
-        },
-        {
-            "model_name": "测试模型_15",
-            "param_num": 83103252,
-            "media_type": "video",
-            "arch_name": "CNN",
-            "trainname": "reinforcement learning",
-            "task": [
-                "classification",
-                "generation",
-                "segmentation"
-            ],
-            "param": 10
-        },
-        {
-            "model_name": "测试模型_16",
-            "param_num": 48006403,
-            "media_type": "video",
-            "arch_name": "Transformer",
-            "trainname": "pretrain",
-            "task": [
-                "classification"
-            ],
-            "param": 10
-        },
-        {
-            "model_name": "测试模型_17",
-            "param_num": 19646275,
-            "media_type": "image",
-            "arch_name": "RNN",
-            "trainname": "reinforcement learning",
-            "task": [
-                "classification",
-                "detection",
-                "generation",
-                "segmentation"
-            ],
-            "param": 10
-        },
-        {
-            "model_name": "测试模型_18",
-            "param_num": 53638589,
-            "media_type": "text",
-            "arch_name": "RNN",
-            "trainname": "reinforcement learning",
-            "task": [
-                "classification",
-                "generation"
-            ],
-            "param": 10
-        },
-        {
-            "model_name": "测试模型_19",
-            "param_num": 44065554,
-            "media_type": "audio",
-            "arch_name": "Transformer",
-            "trainname": "fine-tune",
-            "task": [
-                "classification",
-                "detection",
-                "generation",
-                "segmentation"
             ],
             "param": 10
         },
@@ -1382,23 +1193,9 @@
             "param_num": 32922549,
             "media_type": "image",
             "arch_name": "CNN",
-            "trainname": "fine-tune",
+            "trainname": "Trainname.FINETUNE",
             "task": [
                 "classification",
-                "segmentation"
-            ],
-            "param": 10
-        },
-        {
-            "model_name": "测试模型_21",
-            "param_num": 38630725,
-            "media_type": "video",
-            "arch_name": "CNN",
-            "trainname": "pretrain",
-            "task": [
-                "classification",
-                "detection",
-                "generation",
                 "segmentation"
             ],
             "param": 10
@@ -1408,89 +1205,10 @@
             "param_num": 43338695,
             "media_type": "image",
             "arch_name": "RNN",
-            "trainname": "fine-tune",
+            "trainname": "Trainname.FINETUNE",
             "task": [
                 "detection",
                 "segmentation"
-            ],
-            "param": 10
-        },
-        {
-            "model_name": "测试模型_23",
-            "param_num": 71079314,
-            "media_type": "audio",
-            "arch_name": "RNN",
-            "trainname": "reinforcement learning",
-            "task": [
-                "classification"
-            ],
-            "param": 10
-        },
-        {
-            "model_name": "测试模型_24",
-            "param_num": 80499563,
-            "media_type": "text",
-            "arch_name": "CNN",
-            "trainname": "reinforcement learning",
-            "task": [
-                "classification"
-            ],
-            "param": 10
-        },
-        {
-            "model_name": "测试模型_25",
-            "param_num": 95689492,
-            "media_type": "video",
-            "arch_name": "CNN",
-            "trainname": "reinforcement learning",
-            "task": [
-                "segmentation"
-            ],
-            "param": 10
-        },
-        {
-            "model_name": "测试模型_26",
-            "param_num": 45599172,
-            "media_type": "text",
-            "arch_name": "Transformer",
-            "trainname": "fine-tune",
-            "task": [
-                "detection"
-            ],
-            "param": 10
-        },
-        {
-            "model_name": "测试模型_27",
-            "param_num": 90588568,
-            "media_type": "audio",
-            "arch_name": "Transformer",
-            "trainname": "reinforcement learning",
-            "task": [
-                "segmentation"
-            ],
-            "param": 10
-        },
-        {
-            "model_name": "测试模型_28",
-            "param_num": 21320250,
-            "media_type": "text",
-            "arch_name": "RNN",
-            "trainname": "reinforcement learning",
-            "task": [
-                "classification"
-            ],
-            "param": 10
-        },
-        {
-            "model_name": "测试模型_29",
-            "param_num": 60443514,
-            "media_type": "audio",
-            "arch_name": "RNN",
-            "trainname": "reinforcement learning",
-            "task": [
-                "classification",
-                "detection",
-                "generation"
             ],
             "param": 10
         },
@@ -1499,7 +1217,7 @@
             "param_num": 99409605,
             "media_type": "audio",
             "arch_name": "RNN",
-            "trainname": "fine-tune",
+            "trainname": "Trainname.FINETUNE",
             "task": [
                 "classification"
             ],
