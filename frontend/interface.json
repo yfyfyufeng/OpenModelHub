@@ -1,7 +1,0 @@
-[
-    {
-        "Function": "async create_admin",
-        "Parameters": [],
-        "Returns": "None"
-    }
-]

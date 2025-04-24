@@ -27,39 +27,137 @@ def patch_enum_fields(model: dict) -> dict:
     return model
 
 async def load_insert_record(session):
-
-    # 读取 JSON 文件中的数据
-    rec_path = 'database/records/db_operations_test_original.json'
-
-    # todo: remove this and all following pritnings
-    with open(rec_path, 'r') as f:
-        print(f"Loading data from {rec_path}...")
-        data = json.load(f)
-        print("Data loaded successfully.")
+    """从JSON文件加载数据并插入数据库"""
+    try:
+        # 使用UTF-8编码打开文件
+        with open('database/records/data_20250424_204148.json', 'r', encoding='utf-8') as f:
+            data = json.load(f)
+            
+        # 插入机构数据
+        for affil_data in data.get('affiliation', []):
+            affil = Affil(affil_name=affil_data['affil_name'])
+            session.add(affil)
         
-        # 插入 Affiliation 数据
-    for affil in data['affiliation']:
-        affil_record = await create_affiliation(session, affil['affil_name'])
-
-        # 插入 User 数据
-    for user in data['user']:
-        user_record = await create_user(session,user)
-
-        # 插入 Dataset 数据
-    for dataset in data['dataset']:
-        dataset_record = await create_dataset(session, dataset)
-        # todo: insert affiliation link
-        # await link_user_affiliatidataseton(session, dataset)
-    
-    # todo: read other types of tables
-    for model in data['model']:
-        print("model BEFORE:", model)
-        model = patch_enum_fields(model)
-        print("model after:", model)
-        model_record = await create_model(session, model)
-        # await link_model_author(session, model_record.model_id, user_['user_id'])
-    
-    return data
+        # 插入用户数据
+        users = {}  # 用于存储用户ID映射
+        for user_data in data.get('user', []):
+            user = User(
+                user_name=user_data['user_name'],
+                affiliate=user_data.get('affiliate'),
+                is_admin=False
+            )
+            session.add(user)
+            await session.flush()
+            users[user.user_name] = user.user_id
+        
+        # 如果没有用户数据，创建一个默认管理员用户
+        if not users:
+            admin_user = User(
+                user_name="admin",
+                is_admin=True
+            )
+            session.add(admin_user)
+            await session.flush()
+            users["admin"] = admin_user.user_id
+        
+        # 获取默认创建者ID
+        default_creator_id = next(iter(users.values()))
+        
+        # 插入数据集数据
+        for dataset_data in data.get('dataset', []):
+            dataset = Dataset(
+                ds_name=dataset_data['ds_name'],
+                ds_size=dataset_data['ds_size'],
+                media=dataset_data['media'],
+                description=dataset_data.get('description', ''),
+                creator_id=default_creator_id  # 添加创建者ID
+            )
+            session.add(dataset)
+            await session.flush()
+            
+            # 添加数据集列
+            for col_data in dataset_data.get('columns', []):
+                col = DsCol(
+                    ds_id=dataset.ds_id,
+                    col_name=col_data['col_name'],
+                    col_datatype=col_data['col_datatype']
+                )
+                session.add(col)
+            
+            # 添加数据集任务
+            for task_name in dataset_data.get('task', []):
+                task = Dataset_TASK(
+                    ds_id=dataset.ds_id,
+                    task=task_name
+                )
+                session.add(task)
+        
+        # 插入模型数据
+        for model_data in data.get('model', []):
+            model = Model(
+                model_name=model_data['model_name'],
+                param_num=model_data['param_num'],
+                media_type=model_data['media_type'],
+                arch_name=model_data['arch_name'],
+                trainname=model_data['trainname'],
+                param=model_data.get('param', b''),
+                creator_id=default_creator_id  # 添加创建者ID
+            )
+            session.add(model)
+            await session.flush()
+            
+            # 添加模型任务
+            for task_name in model_data.get('task', []):
+                task = ModelTask(
+                    model_id=model.model_id,
+                    task_name=task_name
+                )
+                session.add(task)
+            
+            # 根据架构类型添加具体模型信息
+            if model_data['arch_name'] == 'CNN':
+                cnn = CNN(
+                    model_id=model.model_id,
+                    module_num=model_data.get('module_num', 0)
+                )
+                session.add(cnn)
+                await session.flush()
+                
+                # 添加CNN模块
+                for module_data in model_data.get('modules', []):
+                    module = Module(
+                        cnn_id=cnn.cnn_id,
+                        conv_size=module_data['conv_size'],
+                        pool_type=module_data['pool_type']
+                    )
+                    session.add(module)
+            
+            elif model_data['arch_name'] == 'RNN':
+                rnn = RNN(
+                    model_id=model.model_id,
+                    criteria=model_data.get('criteria', ''),
+                    batch_size=model_data.get('batch_size', 0),
+                    input_size=model_data.get('input_size', 0)
+                )
+                session.add(rnn)
+            
+            elif model_data['arch_name'] == 'Transformer':
+                transformer = Transformer(
+                    model_id=model.model_id,
+                    decoder_num=model_data.get('decoder_num', 0),
+                    attn_size=model_data.get('attn_size', 0),
+                    up_size=model_data.get('up_size', 0),
+                    down_size=model_data.get('down_size', 0),
+                    embed_size=model_data.get('embed_size', 0)
+                )
+                session.add(transformer)
+        
+        await session.commit()
+        print("✅ 数据导入完成")
+    except Exception as e:
+        await session.rollback()
+        print(f"❌ 数据导入失败: {str(e)}")
+        raise e
 
 # ========= Run All Tests =========
 async def run_tests(session: AsyncSession):

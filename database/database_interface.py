@@ -308,6 +308,11 @@ async def create_user(session: AsyncSession, user_data: dict) -> User:
     existing = await session.execute(select(User).where(User.user_name == user_data["user_name"]))
     if existing.scalar_one_or_none():
         raise ValueError("用户名已存在")
+    
+    # 确保密码字段名称正确
+    if "password" in user_data:
+        user_data["password_hash"] = user_data.pop("password")
+    
     user = User(**user_data)
     session.add(user)
     await session.commit()

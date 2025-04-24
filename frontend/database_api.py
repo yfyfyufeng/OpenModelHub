@@ -305,3 +305,59 @@ async def db_create_model(model_data: dict):
             await session.rollback()
             raise Exception(f"创建模型失败: {str(e)}")
 
+@async_to_sync
+async def db_export_all_data():
+    """导出所有数据到JSON格式"""
+    async with get_db_session()() as session:
+        try:
+            # 获取所有数据
+            users = await list_users(session)
+            models = await list_models(session)
+            datasets = await list_datasets(session)
+            affiliations = await list_affiliations(session)
+            
+            # 构建JSON数据
+            json_data = {
+                "affiliation": [
+                    {
+                        "affil_name": affil.affil_name
+                    } for affil in affiliations
+                ],
+                "user": [
+                    {
+                        "user_name": user.user_name,
+                        "affiliate": user.affiliate
+                    } for user in users
+                ],
+                "dataset": [
+                    {
+                        "ds_name": dataset.ds_name,
+                        "ds_size": dataset.ds_size,
+                        "media": dataset.media.value if hasattr(dataset.media, 'value') else dataset.media,
+                        "task": [task.task.value if hasattr(task.task, 'value') else task.task for task in dataset.Dataset_TASK],
+                        "columns": [
+                            {
+                                "col_name": col.col_name,
+                                "col_datatype": col.col_datatype
+                            } for col in dataset.columns
+                        ]
+                    } for dataset in datasets
+                ],
+                "model": [
+                    {
+                        "model_name": model.model_name,
+                        "param_num": model.param_num,
+                        "media_type": model.media_type.value if hasattr(model.media_type, 'value') else model.media_type,
+                        "arch_name": model.arch_name.value if hasattr(model.arch_name, 'value') else model.arch_name,
+                        "trainname": model.trainname.value if hasattr(model.trainname, 'value') else model.trainname,
+                        "task": [task.task_name.value if hasattr(task.task_name, 'value') else task.task_name for task in model.tasks],
+                        "param": 10  # 示例值
+                    } for model in models
+                ]
+            }
+            
+            return json_data
+        except Exception as e:
+            print(f"导出数据时出错: {str(e)}")
+            return None
+

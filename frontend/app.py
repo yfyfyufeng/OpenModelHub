@@ -170,6 +170,32 @@ def render_home():
     with col4:
         st.metric("今日下载量", 2543)
     
+    # 添加导出数据按钮
+    if st.button("导出所有数据"):
+        try:
+            # 获取所有数据
+            json_data = db_api.db_export_all_data()
+            if json_data:
+                # 生成文件名
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                filename = f"data_{timestamp}.json"
+                
+                # 转换为JSON字符串，确保使用UTF-8编码
+                import json
+                json_str = json.dumps(json_data, indent=4, ensure_ascii=False, encoding='utf-8')
+                
+                # 提供下载
+                st.download_button(
+                    label="点击下载数据",
+                    data=json_str.encode('utf-8'),  # 确保使用UTF-8编码
+                    file_name=filename,
+                    mime="application/json"
+                )
+            else:
+                st.error("导出数据失败")
+        except Exception as e:
+            st.error(f"导出数据时出错：{str(e)}")
+    
     # 添加注册功能
     if not st.session_state.get('authenticated'):
         st.markdown("---")
