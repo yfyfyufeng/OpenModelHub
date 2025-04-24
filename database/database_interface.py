@@ -713,18 +713,40 @@ async def get_user_info(session: AsyncSession, user_id: int) -> Optional[dict]:
 # --------------------------------------
 async def get_model_ids_by_attribute(session: AsyncSession, attribute: str, value) -> list[int]:
     # 获取 Model 所有列名（只包含单值字段，不包含关系字段）
-    mapper = inspect(Model)
-    single_value_columns = {col.key: col for col in mapper.columns}
+    mapper_model = inspect(Model)
+    single_value_columns_model = {col.key: col for col in mapper_model.columns}
 
-    # 检查字段是否合法
-    if attribute not in single_value_columns:
-        return []  # 无效字段名，返回空列表
+    mapper_transformer = inspect(Transformer)
+    single_value_columns_transformer = {col.key: col for col in mapper_transformer.columns}
 
-    # 构造查询：查找所有匹配该字段值的 model_id
-    stmt = (
-        select(Model.model_id)
-        .filter(single_value_columns[attribute] == value)
-    )
+    mapper_cnn = inspect(CNN)
+    single_value_columns_cnn = {col.key: col for col in mapper_cnn.columns}
+
+    mapper_rnn = inspect(RNN)
+    single_value_columns_rnn = {col.key: col for col in mapper_rnn.columns}
+
+    if attribute in single_value_columns_model:
+        stmt = (
+            select(Model.model_id)
+            .filter(single_value_columns_model[attribute] == value)
+        )
+    elif attribute in single_value_columns_transformer:
+        stmt = (
+            select(Model.model_id)
+            .filter(single_value_columns_transformer[attribute] == value)
+        )
+    elif attribute in single_value_columns_cnn:
+        stmt = (
+            select(Model.model_id)
+            .filter(single_value_columns_cnn[attribute] == value)
+        )
+    elif attribute in single_value_columns_rnn:
+        stmt = (
+            select(Model.model_id)
+            .filter(single_value_columns_rnn[attribute] == value)
+        )
+    else:
+        return []
 
     result = await session.execute(stmt)
     model_ids = result.scalars().all()  # 获取所有符合条件的 model_id
