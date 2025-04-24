@@ -239,19 +239,10 @@ async def db_save_file(file_data: bytes, filename: str):
 
 @async_to_sync
 async def db_get_file(filename: str):
-    global curr_username, curr_password
-    if is_port_in_use(8080) and SECURITY_AVAILABLE:
-        try:
-            LoadFile(curr_username, curr_password, filename)
-        except Exception as e:
-            print("Error in security: LoadFile:", str(e))
-        key = os.urandom(32)
-
-    file_path = Path("uploads") / filename
+    """从数据目录获取文件"""
+    file_path = Path(__file__).parent.parent / "database" / "data" / filename
     if file_path.exists():
         with open(file_path, "rb") as f:
-            if is_port_in_use(8080) and SECURITY_AVAILABLE:
-                return decrypt(key, f.read())
             return f.read()
     return None
 

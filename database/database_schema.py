@@ -157,6 +157,7 @@ class Dataset(Base):
     created_at = Column(DateTime, default=datetime.now)
     description = Column(String(1000))  # 添加描述字段
     creator_id = Column(Integer, ForeignKey("user.user_id"), nullable=False)
+    file_path = Column(String(1000), default="")  # 添加文件路径字段，设置默认值
     
     __table_args__ = (
         CheckConstraint('ds_size >= 0', name='ds_size'),
