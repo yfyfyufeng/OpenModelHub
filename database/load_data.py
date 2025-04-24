@@ -20,6 +20,7 @@ from database_schema import ArchType, Trainname, Media_type, Task_name
 TRAINNAME_MAP = {
     "pre-train": Trainname.PRETRAIN,
     "fine-tune": Trainname.FINETUNE,
+    "finetune": Trainname.FINETUNE,  # 添加不带连字符的版本
     "rl": Trainname.RL
 }
 
@@ -27,6 +28,12 @@ def patch_enum_fields(model: dict) -> dict:
     """将字符串类型的枚举值转换为对应的枚举类型"""
     # 处理 trainname
     trainname = model["trainname"].lower()
+    # 移除可能的前缀
+    if "." in trainname:
+        trainname = trainname.split(".")[-1]
+    # 标准化训练类型名称
+    if trainname == "finetune":
+        trainname = "fine-tune"
     if trainname in TRAINNAME_MAP:
         model["trainname"] = TRAINNAME_MAP[trainname]
     else:
@@ -35,15 +42,15 @@ def patch_enum_fields(model: dict) -> dict:
     # 处理 arch_name
     arch_name = model["arch_name"].upper()
     try:
-        model["arch_name"] = ArchType(arch_name)
-    except ValueError:
+        model["arch_name"] = ArchType[arch_name]  # 使用字典访问方式
+    except KeyError:
         raise ValueError(f"无效的架构类型: {arch_name}")
     
     # 处理 media_type
     media_type = model["media_type"].lower()
     try:
-        model["media_type"] = Media_type(media_type)
-    except ValueError:
+        model["media_type"] = Media_type[media_type.upper()]  # 使用字典访问方式
+    except KeyError:
         raise ValueError(f"无效的媒体类型: {media_type}")
     
     return model
