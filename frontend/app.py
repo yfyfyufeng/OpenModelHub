@@ -16,7 +16,8 @@ import frontend.database_api as db_api
 from database.database_interface import (
     list_models, get_model_by_id, list_datasets, get_dataset_by_id,
     list_users, get_user_by_id, list_affiliations, init_database,
-    create_user, update_user, delete_user, get_dataset_info, get_model_info
+    create_user, update_user, delete_user, get_dataset_info, get_model_info,
+    get_model_ids_by_attribute, get_dataset_ids_by_attribute
 )
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
@@ -191,6 +192,20 @@ def render_datasets():
 
     # 添加搜索输入框
     search_query = st.text_input("搜索数据集", placeholder="输入自然语言查询")
+
+    # Attribute-based search
+    st.subheader("按字段搜索")
+    dataset_attr = st.selectbox("选择字段", ["ds_id", "ds_name", "ds_size", "media"])
+    dataset_val = st.text_input("输入查询值")
+    if st.button("搜索", key="dataset_attr_search"):
+        loop = st.session_state.dataset_loop
+
+        async def fetch_ids():
+            async with get_db_session()() as session:
+                return await get_dataset_ids_by_attribute(session, dataset_attr, dataset_val)
+
+        ids = loop.run_until_complete(fetch_ids())
+        st.write("搜索结果 ID 列表:", ids)
 
     # 添加搜索按钮
     if st.button("搜索", key="dataset_search"):
@@ -392,7 +407,6 @@ def render_models():
     """渲染模型仓库页面"""
     st.title("模型仓库")
 
-    # 搜索输入和按钮
     search_query = st.text_input("搜索模型", placeholder="输入自然语言查询")
     if st.button("搜索", key="model_search"):
         if search_query:
@@ -402,6 +416,19 @@ def render_models():
                     df = pd.DataFrame(results)
                     st.dataframe(df)
                     return
+
+    st.subheader("按字段搜索")
+    model_attr = st.selectbox("选择字段", ["model_id", "model_name", "media_type", "arch_name", "trainname"])
+    model_val = st.text_input("输入查询值")
+    if st.button("搜索", key="model_attr_search"):
+        loop = st.session_state.model_loop
+
+        async def fetch_ids():
+            async with get_db_session()() as session:
+                return await get_model_ids_by_attribute(session, model_attr, model_val)
+
+        ids = loop.run_until_complete(fetch_ids())
+        st.write("搜索结果 ID 列表:", ids)
 
     # 创建事件循环用于异步获取详细信息
     if 'model_loop' not in st.session_state:
