@@ -191,8 +191,14 @@ def render_datasets():
     # 添加搜索按钮
     if st.button("搜索", key="dataset_search"):
         if search_query:
-            # 搜索逻辑
-            pass
+            results, query_info = db_api.db_agent_query(search_query)
+            with st.expander("查询详情"):
+                if results:
+                    df = pd.DataFrame(results)
+                    st.dataframe(df, use_container_width=True)
+                else:
+                    st.info("无查询结果")
+            return
 
     # 获取所有数据集
     datasets = db_api.db_list_datasets()
