@@ -226,40 +226,24 @@ def render_datasets():
 
     dataset_attr = st.selectbox(
         "选择字段",
-        ["ds_id", "ds_name", "ds_size", "media", "created_at",
-         "columns", "tasks", "models", "authors"]
+        ["ds_id", "ds_name", "ds_size", "media", "created_at"]
     )
     dataset_val = st.text_input("输入查询值")
     if st.button("搜索", key="dataset_attr_search"):
         loop = st.session_state.dataset_loop
 
-        # relationship fields filtering
-        if dataset_attr in {"columns", "tasks", "models", "authors"}:
-            # pre‑fetched details are in dataset_details
-            matches = [
-                ds_id for ds_id, info in dataset_details.items()
-                if any(dataset_val == str(item)
-                       for item in (
-                               info.get(dataset_attr) or []
-                       ))
-            ]
-            if not matches:
-                st.info("未找到符合条件的数据集")
-            else:
-                st.write("搜索结果 (ID) :", ", ".join(map(str, matches)))
-        else:
-            # single‑column lookup
-            async def fetch_ids():
-                async with get_db_session()() as session:
-                    return await get_dataset_ids_by_attribute(
-                        session, dataset_attr, dataset_val
-                    )
+        # single‑column lookup
+        async def fetch_ids():
+            async with get_db_session()() as session:
+                return await get_dataset_ids_by_attribute(
+                    session, dataset_attr, dataset_val
+                )
 
-            ids = loop.run_until_complete(fetch_ids())
-            if not ids:
-                st.info("未找到符合条件的数据集")
-            else:
-                st.write("搜索结果 (ID) :", ", ".join(map(str, ids)))
+        ids = loop.run_until_complete(fetch_ids())
+        if not ids:
+            st.info("未找到符合条件的数据集")
+        else:
+            st.write("搜索结果 (ID) :", ", ".join(map(str, ids)))
 
     # 展示数据集列表
     dataset_data = []
@@ -462,35 +446,23 @@ def render_models():
     model_attr = st.selectbox(
         "选择字段",
         ["model_id", "model_name", "param_num",
-         "media_type", "arch_name", "trainname",
-         "tasks", "authors", "datasets"]
+         "media_type", "arch_name", "trainname"]
     )
     model_val = st.text_input("输入查询值")
     if st.button("搜索", key="model_attr_search"):
         loop = st.session_state.model_loop
 
-        if model_attr in {"tasks", "authors", "datasets"}:
-            matches = [
-                mid for mid, info in model_details.items()
-                if any(model_val == str(item)
-                       for item in (info.get(model_attr) or []))
-            ]
-            if not matches:
-                st.info("未找到符合条件的数据集")
-            else:
-                st.write("搜索结果 (ID) :", ", ".join(map(str, matches)))
-        else:
-            async def fetch_ids():
-                async with get_db_session()() as session:
-                    return await get_model_ids_by_attribute(
-                        session, model_attr, model_val
-                    )
+        async def fetch_ids():
+            async with get_db_session()() as session:
+                return await get_model_ids_by_attribute(
+                    session, model_attr, model_val
+                )
 
-            ids = loop.run_until_complete(fetch_ids())
-            if not ids:
-                st.info("未找到符合条件的数据集")
-            else:
-                st.write("搜索结果 (ID) :", ", ".join(map(str, ids)))
+        ids = loop.run_until_complete(fetch_ids())
+        if not ids:
+            st.info("未找到符合条件的数据集")
+        else:
+            st.write("搜索结果 (ID) :", ", ".join(map(str, ids)))
 
     def safe_get_value(obj, attr_name):
         if isinstance(obj, dict):
