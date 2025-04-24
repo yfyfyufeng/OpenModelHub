@@ -7,6 +7,7 @@ from pathlib import Path
 import sys
 from dotenv import load_dotenv
 import socket
+from datetime import datetime
 current_dir = Path(__file__).parent
 project_root = current_dir.parent
 sys.path.extend([str(project_root), str(project_root/"database")])
@@ -22,6 +23,7 @@ from database.database_interface import User
 from sqlalchemy import select, text
 from sqlalchemy.orm import selectinload
 from agent.agent_main import query_agent
+from frontend.config import DATA_CONFIG
 
 try:
     from security.conn import InitUser, GetUser, StoreFile, LoadFile, CreateInvitation, AcceptInvitation, RevokeAccess
@@ -115,6 +117,13 @@ async def db_list_datasets():
 @async_to_sync
 async def db_create_dataset(name: str, dataset_data: dict):
     async with get_db_session()() as session:
+        dataset = Dataset(
+            ds_name=dataset_data["ds_name"],
+            ds_size=dataset_data["ds_size"],
+            media=dataset_data["media"],
+            description=dataset_data["description"],
+            created_at=dataset_data.get("created_at", datetime.now())  # 使用传入的时间或当前时间
+        )
         return await create_dataset(session, dataset_data)
 
 # 用户操作
@@ -171,6 +180,7 @@ async def db_get_user_by_username(username: str):
         return result.scalar_one_or_none()
 
 # 文件操作
+'''
 @async_to_sync
 async def db_save_file(file_data: bytes, filename: str):
     global curr_username, curr_password
@@ -206,6 +216,62 @@ async def db_get_file(filename: str):
                 return decrypt(key, f.read())
             return f.read()
     return None
+'''
+@async_to_sync
+async def db_save_file(file_data: bytes, filename: str, file_type: str = "datasets"):
+    """保存文件到指定目录"""
+    # 选择保存目录
+    if file_type == "models":
+        save_dir = DATA_CONFIG["models_dir"]
+    else:
+        save_dir = DATA_CONFIG["datasets_dir"]
+    
+    # 创建带时间戳的文件名以避免冲突
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    file_path = save_dir / f"{timestamp}_{filename}"
+    
+    # 保存文件
+    with open(file_path, "wb") as f:
+        f.write(file_data)
+    
+    return str(file_path)
+
+@async_to_sync
+async def db_get_file(filename: str, file_type: str = "datasets"):
+    """从指定目录获取文件"""
+    try:
+        # 选择目录
+        if file_type == "models":
+            search_dir = DATA_CONFIG["models_dir"]
+        else:
+            search_dir = DATA_CONFIG["datasets_dir"]
+        
+        # 确保目录存在
+        if not search_dir.exists():
+            print(f"目录不存在: {search_dir}")
+            return None
+            
+        # 寻找最新的匹配文件
+        matching_files = list(search_dir.glob(f"*_{filename}"))
+        if not matching_files:
+            # 尝试直接查找文件名
+            direct_match = search_dir / filename
+            if direct_match.exists():
+                with open(direct_match, "rb") as f:
+                    return f.read()
+            print(f"未找到文件: {filename}")
+            return None
+            
+        # 获取最新的文件
+        latest_file = max(matching_files, key=lambda x: x.stat().st_mtime)
+        print(f"找到文件: {latest_file}")
+        
+        with open(latest_file, "rb") as f:
+            return f.read()
+            
+    except Exception as e:
+        print(f"获取文件时出错: {str(e)}")
+        return None
 
 def get_db_session():
     load_dotenv()

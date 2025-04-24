@@ -31,6 +31,7 @@ from frontend.db import get_db_session
 from frontend.auth import AuthManager
 from frontend.components import Sidebar, DatasetUploader, UserManager, ModelUploader, create_search_section
 
+
 # 允许嵌套事件循环
 nest_asyncio.apply()
 
@@ -98,6 +99,38 @@ def handle_file_download(dataset):
         )
     else:
         st.error("文件不存在")
+        
+def download_model(model):
+    """处理模型下载"""
+    file_data = db_api.db_get_file(f"{model.model_name}.pt", file_type="models")
+    if file_data:
+        st.download_button(
+            label="下载模型",
+            data=file_data,
+            file_name=f"{model.model_name}.pt",
+            mime="application/octet-stream",
+            key=f"download_model_{model.model_id}"
+        )
+    else:
+        st.error("模型文件不存在")
+
+def download_dataset(dataset):
+    """处理数据集下载"""
+    # 尝试不同的可能文件扩展名
+    for ext in ['.txt', '.csv', '.zip']:
+        file_data = db_api.db_get_file(f"{dataset.ds_name}{ext}", file_type="datasets")
+        if file_data:
+            st.download_button(
+                label="下载数据集",
+                data=file_data,
+                file_name=f"{dataset.ds_name}{ext}",
+                mime="text/plain" if ext in ['.txt', '.csv'] else "application/zip",
+                key=f"download_dataset_{dataset.ds_id}"
+            )
+            return True
+    
+    st.error(f"数据集文件 {dataset.ds_name}.* 不存在")
+    return False
         
 # 登录表单
 def login_form():
@@ -464,7 +497,8 @@ def render_datasets():
                             "columns": [
                                 {"col_name": "content", "col_datatype": "text"}
                             ],
-                            "description": desc  # 添加描述字段
+                            "description": desc,  # 添加描述字段
+                            "created_at": datetime.now()  # 添加创建时间
                         }
                         db_api.db_create_dataset(name, dataset_data)
                         st.success("数据集上传成功！")

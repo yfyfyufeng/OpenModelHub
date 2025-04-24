@@ -42,7 +42,7 @@ def create_search_section(search_key: str):
     """, unsafe_allow_html=True)
     
     with st.container():
-        col1, col2, col3 = st.columns([3.7, 1, 0.3])
+        col1, col2, col3 = st.columns([4.2, 0.5, 0.3])
         with col1:
             query = st.text_input("搜索", placeholder="输入自然语言查询", key=f"search_input_{search_key}")
         with col2:
@@ -209,7 +209,7 @@ class DatasetUploader:
             return False
 
         try:
-            file_path = db_api.db_save_file(file.getvalue(), file.name)
+            file_path = db_api.db_save_file(file.getvalue(), file.name, file_type="datasets")
             columns = []
             if file.name.endswith(".csv"):
                 columns = parse_csv_columns(file.getvalue())
@@ -291,7 +291,7 @@ class ModelUploader:
             return False
 
         try:
-            file_path = db_api.db_save_file(file.getvalue(), file.name)
+            file_path = db_api.db_save_file(file.getvalue(), file.name, file_type="models")
             
             model_data = {
                 "model_name": name,
