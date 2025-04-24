@@ -38,6 +38,54 @@ nest_asyncio.apply()
 # Initialize page configuration (must be at the beginning)
 st.set_page_config(**APP_CONFIG)
 
+def create_pagination(items, type, page_size=10, page_key="default"):
+    """创建分页"""
+    # 获取当前页码
+    page_state_key = f'current_page_num_{page_key}'
+    if page_state_key not in st.session_state:
+        st.session_state[page_state_key] = 1
+        
+    # 计算总页数
+    total_pages = (len(items) + page_size - 1) // page_size
+    
+    # 获取当前页的项目
+    start_idx = (st.session_state[page_state_key] - 1) * page_size
+    end_idx = min(start_idx + page_size, len(items))
+    current_items = items[start_idx:end_idx]
+    
+    # 显示当前页的项目
+    for item in current_items:
+        with st.container(border=True):
+            col1, col2 = st.columns([5, 0.7])
+            with col1:
+                st.write(f"### {item.model_name if type=='models' else item.ds_name}")
+                if type == "models":
+                    st.caption(f"架构: {item.arch_name.value} | 媒体类型: {item.media_type.value} | 参数量: {item.param_num:,}")
+                else:
+                    tasks = [task.task.value for task in item.Dataset_TASK] if hasattr(item, 'Dataset_TASK') else []
+                    st.caption(f"类型: {item.media} | 任务: {', '.join(tasks)} | 大小: {item.ds_size/1024:.1f}KB")
+            
+            with col2:
+                if st.button("查看详情", key=f"{type[:-1]}_{item.model_id if type=='models' else item.ds_id}", use_container_width=True):
+                    st.session_state[f"selected_{type[:-1]}"] = item
+                    st.session_state.current_page = f"{type[:-1]}_detail"
+                    st.rerun()
+    
+    # 分页控制
+    _, _, col3 = st.columns([10, 10, 3.5])
+    with col3:
+        col1, col2, col3 = st.columns([1.8, 1, 1])
+        with col1:
+            st.button(f'{st.session_state[page_state_key]}/{total_pages}', disabled=True, key=f"page_num_{page_key}")
+        with col2:
+            if st.button("←", key=f"prev_{page_key}"):
+                st.session_state[page_state_key] = max(1, st.session_state[page_state_key] - 1)
+                st.rerun()
+        with col3:
+            if st.button("→", key=f"next_{page_key}"):
+                st.session_state[page_state_key] = min(total_pages, st.session_state[page_state_key] + 1)
+                st.rerun()
+
 def parse_csv_columns(file_data: bytes) -> List[Dict]:
     df = pd.read_csv(BytesIO(file_data), nrows=1)
     return [{"col_name": col, "col_datatype": "text"} for col in df.columns]
