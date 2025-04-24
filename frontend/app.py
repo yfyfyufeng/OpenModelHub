@@ -445,8 +445,23 @@ def render_models():
 
     model_attr = st.selectbox(
         "选择字段",
-        ["model_id", "model_name", "param_num",
-         "media_type", "arch_name", "trainname"]
+        [
+            "model_id",
+            "model_name",
+            "param_num",
+            "media_type",
+            "arch_name",
+            "trainname",
+            "module_num",
+            "criteria",
+            "batch_size",
+            "input_size",
+            "decoder_num",
+            "attn_size",
+            "up_size",
+            "down_size",
+            "embed_size",
+        ]
     )
     model_val = st.text_input("输入查询值")
     if st.button("搜索", key="model_attr_search"):
