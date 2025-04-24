@@ -193,20 +193,6 @@ def render_datasets():
     # 添加搜索输入框
     search_query = st.text_input("搜索数据集", placeholder="输入自然语言查询")
 
-    # Attribute-based search
-    st.subheader("按字段搜索")
-    dataset_attr = st.selectbox("选择字段", ["ds_id", "ds_name", "ds_size", "media"])
-    dataset_val = st.text_input("输入查询值")
-    if st.button("搜索", key="dataset_attr_search"):
-        loop = st.session_state.dataset_loop
-
-        async def fetch_ids():
-            async with get_db_session()() as session:
-                return await get_dataset_ids_by_attribute(session, dataset_attr, dataset_val)
-
-        ids = loop.run_until_complete(fetch_ids())
-        st.write("搜索结果 ID 列表:", ids)
-
     # 添加搜索按钮
     if st.button("搜索", key="dataset_search"):
         if search_query:
@@ -237,6 +223,37 @@ def render_datasets():
         details = loop.run_until_complete(get_details(dataset.ds_id))
         if details:
             dataset_details[dataset.ds_id] = details
+
+    dataset_attr = st.selectbox(
+        "选择字段",
+        ["ds_id", "ds_name", "ds_size", "media", "created_at",
+         "columns", "tasks", "models", "authors"]
+    )
+    dataset_val = st.text_input("输入查询值")
+    if st.button("搜索", key="dataset_attr_search"):
+        loop = st.session_state.dataset_loop
+
+        # relationship fields filtering
+        if dataset_attr in {"columns", "tasks", "models", "authors"}:
+            # pre‑fetched details are in dataset_details
+            matches = [
+                ds_id for ds_id, info in dataset_details.items()
+                if any(dataset_val == str(item)
+                       for item in (
+                               info.get(dataset_attr) or []
+                       ))
+            ]
+            st.write("搜索结果 ID 列表:", matches)
+        else:
+            # single‑column lookup
+            async def fetch_ids():
+                async with get_db_session()() as session:
+                    return await get_dataset_ids_by_attribute(
+                        session, dataset_attr, dataset_val
+                    )
+
+            ids = loop.run_until_complete(fetch_ids())
+            st.write("搜索结果(ID):", ", ".join(map(str, ids)))
 
     # 展示数据集列表
     dataset_data = []
@@ -417,19 +434,6 @@ def render_models():
                     st.dataframe(df)
                     return
 
-    st.subheader("按字段搜索")
-    model_attr = st.selectbox("选择字段", ["model_id", "model_name", "media_type", "arch_name", "trainname"])
-    model_val = st.text_input("输入查询值")
-    if st.button("搜索", key="model_attr_search"):
-        loop = st.session_state.model_loop
-
-        async def fetch_ids():
-            async with get_db_session()() as session:
-                return await get_model_ids_by_attribute(session, model_attr, model_val)
-
-        ids = loop.run_until_complete(fetch_ids())
-        st.write("搜索结果 ID 列表:", ids)
-
     # 创建事件循环用于异步获取详细信息
     if 'model_loop' not in st.session_state:
         st.session_state.model_loop = asyncio.new_event_loop()
@@ -448,6 +452,33 @@ def render_models():
         details = loop.run_until_complete(get_details(model.model_id))
         if details:
             model_details[model.model_id] = details
+
+    model_attr = st.selectbox(
+        "选择字段",
+        ["model_id", "model_name", "param_num",
+         "media_type", "arch_name", "trainname",
+         "tasks", "authors", "datasets"]
+    )
+    model_val = st.text_input("输入查询值")
+    if st.button("搜索", key="model_attr_search"):
+        loop = st.session_state.model_loop
+
+        if model_attr in {"tasks", "authors", "datasets"}:
+            matches = [
+                mid for mid, info in model_details.items()
+                if any(model_val == str(item)
+                       for item in (info.get(model_attr) or []))
+            ]
+            st.write("搜索结果 ID 列表:", matches)
+        else:
+            async def fetch_ids():
+                async with get_db_session()() as session:
+                    return await get_model_ids_by_attribute(
+                        session, model_attr, model_val
+                    )
+
+            ids = loop.run_until_complete(fetch_ids())
+            st.write("搜索结果(ID):", ", ".join(map(str, ids)))
 
     def safe_get_value(obj, attr_name):
         if isinstance(obj, dict):
