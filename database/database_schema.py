@@ -45,12 +45,10 @@ class Model(Base):
     arch_name = Column(Enum(ArchType), nullable=False)
     trainname = Column(String(50), nullable=False)
     param = Column(LargeBinary, nullable=False)
-    creator_id = Column(Integer, ForeignKey("user.user_id"), nullable=False)
 
     authors = relationship("ModelAuthor", back_populates="model", cascade="all, delete-orphan")
     datasets = relationship("ModelDataset", back_populates="model", cascade="all, delete-orphan")
     tasks = relationship("ModelTask", back_populates="model", cascade="all, delete-orphan")
-    creator = relationship("User", foreign_keys=[creator_id], back_populates="created_models")
 
     cnn = relationship("CNN", uselist=False, back_populates="model")
     rnn = relationship("RNN", uselist=False, back_populates="model")
@@ -156,8 +154,6 @@ class Dataset(Base):
     media = Column(Enum(Media_type), nullable=False)
     created_at = Column(DateTime, default=datetime.now)
     description = Column(String(1000))  # 添加描述字段
-    creator_id = Column(Integer, ForeignKey("user.user_id"), nullable=False)
-    file_path = Column(String(1000), default="")  # 添加文件路径字段，设置默认值
     
     __table_args__ = (
         CheckConstraint('ds_size >= 0', name='ds_size'),
@@ -166,7 +162,7 @@ class Dataset(Base):
     columns = relationship("DsCol", back_populates="dataset", cascade='all, delete-orphan')
     users = relationship("DatasetAuthor", back_populates="dataset")
     Dataset_TASK = relationship("Dataset_TASK", back_populates="Task_relation", cascade="all, delete-orphan")
-    creator = relationship("User", foreign_keys=[creator_id], back_populates="created_datasets")
+
 
 
 class Dataset_TASK(Base):
@@ -207,9 +203,6 @@ class User(Base):
     models = relationship("ModelAuthor", back_populates="user", cascade="all, delete-orphan", passive_deletes=True)
     datasets = relationship("DatasetAuthor", back_populates="user", cascade="all, delete-orphan", passive_deletes=True)
     affiliations = relationship("UserAffil", back_populates="user", cascade="all, delete-orphan", passive_deletes=True)
-    created_models = relationship("Model", foreign_keys="Model.creator_id", back_populates="creator")
-    created_datasets = relationship("Dataset", foreign_keys="Dataset.creator_id", back_populates="creator")
-
 
 # ---------------------------
 # 机构表（Affil）
