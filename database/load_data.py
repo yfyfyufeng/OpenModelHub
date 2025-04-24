@@ -4,6 +4,7 @@ import asyncio
 from pathlib import Path
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+import shutil
 # 添加项目根目录到系统路径
 import sys
 current_dir = Path(__file__).parent
@@ -15,6 +16,17 @@ from database_interface import (
     init_database, create_affiliation, create_user, create_dataset, create_model
 )
 from database_schema import ArchType, Trainname, Media_type, Task_name
+
+# 创建数据存储目录
+DATA_DIR = project_root / "database" / "data"
+DATA_DIR.mkdir(exist_ok=True)
+
+def save_file(file_data: bytes, filename: str) -> str:
+    """保存文件到数据目录"""
+    file_path = DATA_DIR / filename
+    with open(file_path, "wb") as f:
+        f.write(file_data)
+    return str(file_path)
 
 # 枚举值映射
 TRAINNAME_MAP = {
@@ -47,9 +59,9 @@ def patch_enum_fields(model: dict) -> dict:
         raise ValueError(f"无效的架构类型: {arch_name}")
     
     # 处理 media_type
-    media_type = model["media_type"].lower()
+    media_type = model["media_type"].upper()  # 直接转换为大写
     try:
-        model["media_type"] = Media_type[media_type.upper()]  # 使用字典访问方式
+        model["media_type"] = Media_type[media_type]  # 使用字典访问方式
     except KeyError:
         raise ValueError(f"无效的媒体类型: {media_type}")
     
@@ -112,7 +124,7 @@ async def load_json_file(session: AsyncSession, file_path: str, current_user: Us
                     # 确保用户数据包含密码
                     user_data = {
                         "user_name": user['user_name'],
-                        "password_hash": user.get('password_hash', '123456'),  # 如果没有密码，使用默认密码
+                        "password_hash": user.get('password', '123456'),  # 如果没有密码，使用默认密码
                         "affiliate": user.get('affiliate'),
                         "is_admin": user.get('is_admin', False)
                     }
@@ -137,6 +149,11 @@ async def load_json_file(session: AsyncSession, file_path: str, current_user: Us
                 else:
                     dataset['creator_id'] = 1  # 默认使用admin用户
                 
+                # 保存数据集文件
+                if 'file_data' in dataset:
+                    file_path = save_file(dataset['file_data'], f"{dataset['ds_name']}.txt")
+                    dataset['file_path'] = file_path
+                
                 await create_dataset(session, dataset)
         
         # 插入 Model 数据
@@ -155,6 +172,11 @@ async def load_json_file(session: AsyncSession, file_path: str, current_user: Us
                         model['creator_id'] = 1  # 默认使用admin用户
                 else:
                     model['creator_id'] = 1  # 默认使用admin用户
+                
+                # 保存模型文件
+                if 'file_data' in model:
+                    file_path = save_file(model['file_data'], f"{model['model_name']}.pt")
+                    model['file_path'] = file_path
                 
                 try:
                     model = patch_enum_fields(model)

@@ -209,14 +209,20 @@ async def delete_model(session: AsyncSession, model_id: int) -> bool:
 # 🔧 Dataset-related Operations
 # --------------------------------------
 async def create_dataset(session: AsyncSession, dataset_data: dict) -> Dataset:
+    print(f"创建数据集，数据: {dataset_data}")  # 调试信息
+    
     dataset = Dataset(
         ds_name=dataset_data["ds_name"],
         ds_size=dataset_data["ds_size"],
         media=dataset_data["media"],
-        creator_id=dataset_data.get("creator_id", 1)  # 默认使用admin用户
+        creator_id=dataset_data.get("creator_id", 1),  # 默认使用admin用户
+        file_path=dataset_data.get("file_path", ""),  # 添加文件路径字段
+        description=dataset_data.get("description", "")  # 添加描述字段
     )
     session.add(dataset)
     await session.flush()
+    
+    print(f"数据集已创建，ID: {dataset.ds_id}, 文件路径: {dataset.file_path}")  # 调试信息
 
     for task in dataset_data.get("task", []):
         task_rel = Dataset_TASK(

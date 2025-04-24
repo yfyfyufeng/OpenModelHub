@@ -77,28 +77,80 @@ def handle_file_upload():
         with st.form("dataset_upload"):
             name = st.text_input("数据集名称")
             desc = st.text_area("描述")
-            file = st.file_uploader("选择数据文件", type=["csv", "txt"])
+            file = st.file_uploader("选择数据文件", type=["txt"])
             if st.form_submit_button("提交"):
                 if file:
-                    file_path = db_api.db_save_file(file.getvalue(), file.name)
-                    db_api.db_create_dataset(name, desc, file_path)
-                    st.success("数据集上传成功！")
+                    try:
+                        # 保存文件到数据目录
+                        data_dir = Path(__file__).parent.parent / "database" / "data"
+                        data_dir.mkdir(exist_ok=True)
+                        file_path = data_dir / f"{name}.txt"
+                        with open(file_path, "wb") as f:
+                            f.write(file.getvalue())
+                        
+                        print(f"文件已保存到: {file_path}")  # 调试信息
+                        
+                        # 创建数据集
+                        dataset_data = {
+                            "ds_name": name,
+                            "ds_size": len(file.getvalue()),
+                            "media": "TEXT",  # 使用大写
+                            "task": ["CLASSIFICATION"],  # 使用大写
+                            "columns": [
+                                {"col_name": "content", "col_datatype": "text"}
+                            ],
+                            "description": desc,  # 添加描述字段
+                            "creator_id": st.session_state.current_user["user_id"] if st.session_state.get("current_user") else 1,
+                            "file_path": str(file_path)  # 保存文件路径
+                        }
+                        print(f"数据集数据: {dataset_data}")  # 调试信息
+                        
+                        db_api.db_create_dataset(name, dataset_data)
+                        st.success("数据集上传成功！")
+                        st.rerun()
+                    except Exception as e:
+                        st.error(f"上传失败：{str(e)}")
+                        print(f"上传错误: {str(e)}")  # 调试信息
                 else:
                     st.error("请选择文件")
 
 # 文件下载处理
 def handle_file_download(dataset):
-    file_data = db_api._file(dataset.ds_name + ".zip")
-    if file_data:
-        st.download_button(
-            label="下载",
-            data=file_data,
-            file_name=f"{dataset.ds_name}.zip",
-            key=f"download_{dataset.ds_id}"
-        )
-    else:
-        st.error("文件不存在")
+    try:
+        # 检查数据集对象
+        if not hasattr(dataset, 'file_path'):
+            st.error("数据集对象缺少file_path属性")
+            return
+            
+        # 检查文件路径
+        if not dataset.file_path:
+            st.error("文件路径未设置")
+            return
+            
+        # 尝试构建文件路径
+        try:
+            file_path = Path(dataset.file_path)
+        except Exception as e:
+            st.error(f"文件路径格式错误: {str(e)}")
+            return
+            
+        print(f"尝试下载文件: {file_path}")  # 调试信息
         
+        if file_path.exists():
+            with open(file_path, "rb") as f:
+                file_data = f.read()
+                st.download_button(
+                    label="下载",
+                    data=file_data,
+                    file_name=f"{dataset.ds_name}.txt",
+                    key=f"download_{dataset.ds_id}"
+                )
+        else:
+            st.error(f"文件不存在: {file_path}")
+    except Exception as e:
+        st.error(f"下载失败: {str(e)}")
+        print(f"下载错误: {str(e)}")  # 调试信息
+
 # 登录表单
 def login_form():
     with st.form("登录", clear_on_submit=True):
@@ -270,7 +322,7 @@ def render_models():
             )
             
             # 媒体类型选择
-            media_types = ["TEXT", "IMAGE", "AUDIO", "VIDEO"]
+            media_types = ["TEXT", "IMAGE", "AUDIO", "VIDEO"]  # 使用大写
             media_type = st.selectbox(
                 "媒体类型",
                 media_types,
@@ -300,18 +352,22 @@ def render_models():
             if st.form_submit_button("提交"):
                 if file and name:
                     try:
-                        # 保存文件
-                        file_path = db_api.db_save_file(file.getvalue(), file.name)
+                        # 保存文件到数据目录
+                        data_dir = Path(__file__).parent.parent / "database" / "data"
+                        data_dir.mkdir(exist_ok=True)
+                        file_path = data_dir / f"{name}.pt"
+                        with open(file_path, "wb") as f:
+                            f.write(file.getvalue())
                         
                         # 创建模型
                         model_data = {
                             "model_name": name,
                             "param_num": param_num,
                             "arch_name": arch_type,
-                            "media_type": media_type,
+                            "media_type": media_type,  # 直接使用大写值
                             "tasks": selected_tasks,
                             "trainname": train_type,
-                            "param": file_path,
+                            "param": str(file_path),
                             "creator_id": st.session_state.current_user["user_id"] if st.session_state.get("current_user") else 1
                         }
                         db_api.db_create_model(model_data)
@@ -445,7 +501,7 @@ def render_datasets():
                         dataset_data = {
                             "ds_name": name,
                             "ds_size": len(file.getvalue()),
-                            "media": "text",  # 默认类型
+                            "media": "TEXT",  # 使用大写
                             "task": selected_tasks,  # 使用选择的任务
                             "columns": [
                                 {"col_name": "content", "col_datatype": "text"}
@@ -518,16 +574,7 @@ def render_datasets():
                 
                 # 下载按钮
                 if st.button("下载数据集"):
-                    file_data = db_api.db_get_file(dataset.ds_name + ".txt")
-                    if file_data:
-                        st.download_button(
-                            label="点击下载",
-                            data=file_data,
-                            file_name=f"{dataset.ds_name}.txt",
-                            mime="text/plain"
-                        )
-                    else:
-                        st.error("文件不存在")
+                    handle_file_download(dataset)
 
 # 用户管理（管理员功能）
 def render_users():
