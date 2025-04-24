@@ -1,0 +1,628 @@
+{
+    "user": [
+        {
+            "user_name": "admin",
+            "password_hash": "admin",
+            "affiliate": "系统管理员",
+            "is_admin": true
+        },
+        {
+            "user_name": "user1",
+            "password_hash": "password1",
+            "affiliate": "清华大学",
+            "is_admin": false
+        },
+        {
+            "user_name": "user2",
+            "password_hash": "password2",
+            "affiliate": "北京大学",
+            "is_admin": false
+        }
+    ],
+    "model": [
+        {
+            "model_name": "测试模型_1",
+            "arch_name": "CNN",
+            "param_num": 86161219,
+            "media_type": "video",
+            "trainname": "pretrain",
+            "param": 26,
+            "task": [
+                "classification",
+                "detection",
+                "generation",
+                "segmentation"
+            ],
+            "creator": "admin"
+        },
+        {
+            "model_name": "测试模型_2",
+            "arch_name": "Transformer",
+            "param_num": 4251050,
+            "media_type": "audio",
+            "trainname": "pretrain",
+            "param": 100,
+            "task": [
+                "classification",
+                "detection",
+                "generation",
+                "segmentation"
+            ],
+            "creator": "admin"
+        },
+        {
+            "model_name": "测试模型_3",
+            "arch_name": "RNN",
+            "param_num": 5797853,
+            "media_type": "video",
+            "trainname": "pretrain",
+            "param": 42,
+            "task": [
+                "classification",
+                "generation",
+                "segmentation"
+            ],
+            "creator": "admin"
+        },
+        {
+            "model_name": "测试模型_4",
+            "arch_name": "RNN",
+            "param_num": 42807670,
+            "media_type": "image",
+            "trainname": "fine-tune",
+            "param": 42,
+            "task": [
+                "classification",
+                "detection",
+                "segmentation"
+            ],
+            "creator": "admin"
+        },
+        {
+            "model_name": "测试模型_5",
+            "arch_name": "Transformer",
+            "param_num": 4000492,
+            "media_type": "audio",
+            "trainname": "pretrain",
+            "param": 39,
+            "task": [
+                "detection",
+                "generation",
+                "segmentation"
+            ],
+            "creator": "admin"
+        },
+        {
+            "model_name": "测试模型_6",
+            "arch_name": "CNN",
+            "param_num": 82737667,
+            "media_type": "text",
+            "trainname": "reinforcement learning",
+            "param": 84,
+            "task": [
+                "segmentation"
+            ],
+            "creator": "admin"
+        },
+        {
+            "model_name": "测试模型_7",
+            "arch_name": "RNN",
+            "param_num": 80218975,
+            "media_type": "video",
+            "trainname": "pretrain",
+            "param": 40,
+            "task": [
+                "segmentation"
+            ],
+            "creator": "admin"
+        },
+        {
+            "model_name": "测试模型_8",
+            "arch_name": "CNN",
+            "param_num": 47530064,
+            "media_type": "image",
+            "trainname": "pretrain",
+            "param": 81,
+            "task": [
+                "classification",
+                "detection",
+                "generation",
+                "segmentation"
+            ],
+            "creator": "admin"
+        },
+        {
+            "model_name": "测试模型_9",
+            "arch_name": "CNN",
+            "param_num": 37223332,
+            "media_type": "video",
+            "trainname": "reinforcement learning",
+            "param": 54,
+            "task": [
+                "segmentation"
+            ],
+            "creator": "admin"
+        },
+        {
+            "model_name": "测试模型_10",
+            "arch_name": "CNN",
+            "param_num": 89333778,
+            "media_type": "text",
+            "trainname": "reinforcement learning",
+            "param": 34,
+            "task": [
+                "classification",
+                "detection",
+                "generation"
+            ],
+            "creator": "admin"
+        },
+        {
+            "model_name": "测试模型_11",
+            "arch_name": "CNN",
+            "param_num": 39466760,
+            "media_type": "audio",
+            "trainname": "pretrain",
+            "param": 93,
+            "task": [
+                "classification",
+                "detection",
+                "generation",
+                "segmentation"
+            ],
+            "creator": "admin"
+        },
+        {
+            "model_name": "测试模型_12",
+            "arch_name": "RNN",
+            "param_num": 39327367,
+            "media_type": "audio",
+            "trainname": "fine-tune",
+            "param": 45,
+            "task": [
+                "classification",
+                "detection",
+                "segmentation"
+            ],
+            "creator": "admin"
+        },
+        {
+            "model_name": "测试模型_13",
+            "arch_name": "CNN",
+            "param_num": 43016356,
+            "media_type": "text",
+            "trainname": "reinforcement learning",
+            "param": 24,
+            "task": [
+                "classification",
+                "detection",
+                "generation",
+                "segmentation"
+            ],
+            "creator": "admin"
+        },
+        {
+            "model_name": "测试模型_14",
+            "arch_name": "RNN",
+            "param_num": 72994844,
+            "media_type": "image",
+            "trainname": "fine-tune",
+            "param": 66,
+            "task": [
+                "classification"
+            ],
+            "creator": "admin"
+        },
+        {
+            "model_name": "测试模型_15",
+            "arch_name": "CNN",
+            "param_num": 83103252,
+            "media_type": "video",
+            "trainname": "reinforcement learning",
+            "param": 74,
+            "task": [
+                "classification",
+                "generation",
+                "segmentation"
+            ],
+            "creator": "admin"
+        },
+        {
+            "model_name": "测试模型_16",
+            "arch_name": "Transformer",
+            "param_num": 48006403,
+            "media_type": "video",
+            "trainname": "pretrain",
+            "param": 32,
+            "task": [
+                "classification"
+            ],
+            "creator": "admin"
+        },
+        {
+            "model_name": "测试模型_17",
+            "arch_name": "RNN",
+            "param_num": 19646275,
+            "media_type": "image",
+            "trainname": "reinforcement learning",
+            "param": 68,
+            "task": [
+                "classification",
+                "detection",
+                "generation",
+                "segmentation"
+            ],
+            "creator": "admin"
+        },
+        {
+            "model_name": "测试模型_18",
+            "arch_name": "RNN",
+            "param_num": 53638589,
+            "media_type": "text",
+            "trainname": "reinforcement learning",
+            "param": 11,
+            "task": [
+                "classification",
+                "generation"
+            ],
+            "creator": "admin"
+        },
+        {
+            "model_name": "测试模型_19",
+            "arch_name": "Transformer",
+            "param_num": 44065554,
+            "media_type": "audio",
+            "trainname": "fine-tune",
+            "param": 48,
+            "task": [
+                "classification",
+                "detection",
+                "generation",
+                "segmentation"
+            ],
+            "creator": "admin"
+        },
+        {
+            "model_name": "测试模型_20",
+            "arch_name": "CNN",
+            "param_num": 32922549,
+            "media_type": "image",
+            "trainname": "fine-tune",
+            "param": 44,
+            "task": [
+                "classification",
+                "segmentation"
+            ],
+            "creator": "admin"
+        },
+        {
+            "model_name": "测试模型_21",
+            "arch_name": "CNN",
+            "param_num": 38630725,
+            "media_type": "video",
+            "trainname": "pretrain",
+            "param": 71,
+            "task": [
+                "classification",
+                "detection",
+                "generation",
+                "segmentation"
+            ],
+            "creator": "admin"
+        },
+        {
+            "model_name": "测试模型_22",
+            "arch_name": "RNN",
+            "param_num": 43338695,
+            "media_type": "image",
+            "trainname": "fine-tune",
+            "param": 23,
+            "task": [
+                "detection",
+                "segmentation"
+            ],
+            "creator": "admin"
+        },
+        {
+            "model_name": "测试模型_23",
+            "arch_name": "RNN",
+            "param_num": 71079314,
+            "media_type": "audio",
+            "trainname": "reinforcement learning",
+            "param": 71,
+            "task": [
+                "classification"
+            ],
+            "creator": "admin"
+        },
+        {
+            "model_name": "测试模型_24",
+            "arch_name": "CNN",
+            "param_num": 80499563,
+            "media_type": "text",
+            "trainname": "reinforcement learning",
+            "param": 66,
+            "task": [
+                "classification"
+            ],
+            "creator": "admin"
+        },
+        {
+            "model_name": "测试模型_25",
+            "arch_name": "CNN",
+            "param_num": 95689492,
+            "media_type": "video",
+            "trainname": "reinforcement learning",
+            "param": 48,
+            "task": [
+                "segmentation"
+            ],
+            "creator": "admin"
+        },
+        {
+            "model_name": "测试模型_26",
+            "arch_name": "Transformer",
+            "param_num": 45599172,
+            "media_type": "text",
+            "trainname": "fine-tune",
+            "param": 80,
+            "task": [
+                "detection"
+            ],
+            "creator": "admin"
+        },
+        {
+            "model_name": "测试模型_27",
+            "arch_name": "Transformer",
+            "param_num": 90588568,
+            "media_type": "audio",
+            "trainname": "reinforcement learning",
+            "param": 68,
+            "task": [
+                "segmentation"
+            ],
+            "creator": "admin"
+        },
+        {
+            "model_name": "测试模型_28",
+            "arch_name": "RNN",
+            "param_num": 21320250,
+            "media_type": "text",
+            "trainname": "reinforcement learning",
+            "param": 43,
+            "task": [
+                "classification"
+            ],
+            "creator": "admin"
+        },
+        {
+            "model_name": "测试模型_29",
+            "arch_name": "RNN",
+            "param_num": 60443514,
+            "media_type": "audio",
+            "trainname": "reinforcement learning",
+            "param": 2,
+            "task": [
+                "classification",
+                "detection",
+                "generation"
+            ],
+            "creator": "admin"
+        },
+        {
+            "model_name": "测试模型_30",
+            "arch_name": "RNN",
+            "param_num": 99409605,
+            "media_type": "audio",
+            "trainname": "fine-tune",
+            "param": 66,
+            "task": [
+                "classification"
+            ],
+            "creator": "admin"
+        }
+    ],
+    "dataset": [
+        {
+            "ds_name": "测试数据集_1",
+            "media": "image",
+            "ds_size": 8699274,
+            "task": [
+                "classification",
+                "segmentation"
+            ],
+            "creator": "admin"
+        },
+        {
+            "ds_name": "测试数据集_2",
+            "media": "image",
+            "ds_size": 10030408,
+            "task": [
+                "detection",
+                "generation",
+                "segmentation"
+            ],
+            "creator": "admin"
+        },
+        {
+            "ds_name": "测试数据集_3",
+            "media": "audio",
+            "ds_size": 10327674,
+            "task": [
+                "detection",
+                "generation",
+                "segmentation"
+            ],
+            "creator": "admin"
+        },
+        {
+            "ds_name": "测试数据集_4",
+            "media": "image",
+            "ds_size": 7410861,
+            "task": [
+                "detection"
+            ],
+            "creator": "admin"
+        },
+        {
+            "ds_name": "测试数据集_5",
+            "media": "video",
+            "ds_size": 8428439,
+            "task": [
+                "detection"
+            ],
+            "creator": "admin"
+        },
+        {
+            "ds_name": "测试数据集_6",
+            "media": "video",
+            "ds_size": 3865551,
+            "task": [
+                "generation",
+                "segmentation"
+            ],
+            "creator": "admin"
+        },
+        {
+            "ds_name": "测试数据集_7",
+            "media": "video",
+            "ds_size": 2039158,
+            "task": [
+                "classification",
+                "generation"
+            ],
+            "creator": "admin"
+        },
+        {
+            "ds_name": "测试数据集_8",
+            "media": "text",
+            "ds_size": 7108902,
+            "task": [
+                "classification",
+                "detection",
+                "generation",
+                "segmentation"
+            ],
+            "creator": "admin"
+        },
+        {
+            "ds_name": "测试数据集_9",
+            "media": "audio",
+            "ds_size": 7438394,
+            "task": [
+                "generation"
+            ],
+            "creator": "admin"
+        },
+        {
+            "ds_name": "测试数据集_10",
+            "media": "image",
+            "ds_size": 428381,
+            "task": [
+                "classification",
+                "generation",
+                "segmentation"
+            ],
+            "creator": "admin"
+        },
+        {
+            "ds_name": "测试数据集_11",
+            "media": "video",
+            "ds_size": 8356951,
+            "task": [
+                "classification",
+                "detection"
+            ],
+            "creator": "admin"
+        },
+        {
+            "ds_name": "测试数据集_12",
+            "media": "audio",
+            "ds_size": 1424144,
+            "task": [
+                "segmentation"
+            ],
+            "creator": "admin"
+        },
+        {
+            "ds_name": "测试数据集_13",
+            "media": "text",
+            "ds_size": 2898358,
+            "task": [
+                "classification",
+                "detection",
+                "generation"
+            ],
+            "creator": "admin"
+        },
+        {
+            "ds_name": "测试数据集_14",
+            "media": "text",
+            "ds_size": 2364233,
+            "task": [
+                "classification",
+                "detection",
+                "generation",
+                "segmentation"
+            ],
+            "creator": "admin"
+        },
+        {
+            "ds_name": "测试数据集_15",
+            "media": "image",
+            "ds_size": 6908417,
+            "task": [
+                "segmentation"
+            ],
+            "creator": "admin"
+        },
+        {
+            "ds_name": "测试数据集_16",
+            "media": "image",
+            "ds_size": 411824,
+            "task": [
+                "generation",
+                "segmentation"
+            ],
+            "creator": "admin"
+        },
+        {
+            "ds_name": "测试数据集_17",
+            "media": "image",
+            "ds_size": 9004175,
+            "task": [
+                "segmentation"
+            ],
+            "creator": "admin"
+        },
+        {
+            "ds_name": "测试数据集_18",
+            "media": "text",
+            "ds_size": 1563288,
+            "task": [
+                "classification"
+            ],
+            "creator": "admin"
+        },
+        {
+            "ds_name": "测试数据集_19",
+            "media": "audio",
+            "ds_size": 9167111,
+            "task": [
+                "classification",
+                "detection",
+                "segmentation"
+            ],
+            "creator": "admin"
+        },
+        {
+            "ds_name": "测试数据集_20",
+            "media": "text",
+            "ds_size": 9281000,
+            "task": [
+                "generation"
+            ],
+            "creator": "admin"
+        }
+    ]
+}

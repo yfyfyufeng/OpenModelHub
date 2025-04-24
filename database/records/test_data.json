@@ -1,0 +1,145 @@
+{
+    "affiliation": [
+        {
+            "affil_name": "清华大学"
+        },
+        {
+            "affil_name": "北京大学"
+        },
+        {
+            "affil_name": "中国科学院"
+        },
+        {
+            "affil_name": "OpenAI"
+        },
+        {
+            "affil_name": "Google Research"
+        }
+    ],
+    "user": [
+        {
+            "user_name": "admin",
+            "password_hash": "admin",
+            "affiliate": "系统管理员",
+            "is_admin": true
+        },
+        {
+            "user_name": "user1",
+            "password_hash": "password1",
+            "affiliate": "清华大学",
+            "is_admin": false
+        },
+        {
+            "user_name": "user2",
+            "password_hash": "password2",
+            "affiliate": "北京大学",
+            "is_admin": false
+        }
+    ],
+    "dataset": [
+        {
+            "ds_name": "MNIST",
+            "ds_size": 70000,
+            "media": "image",
+            "task": [
+                "classification"
+            ],
+            "columns": [
+                {
+                    "col_name": "image",
+                    "col_datatype": "string"
+                },
+                {
+                    "col_name": "label",
+                    "col_datatype": "int"
+                }
+            ]
+        },
+        {
+            "ds_name": "CIFAR-10",
+            "ds_size": 60000,
+            "media": "image",
+            "task": [
+                "classification"
+            ],
+            "columns": [
+                {
+                    "col_name": "image",
+                    "col_datatype": "string"
+                },
+                {
+                    "col_name": "label",
+                    "col_datatype": "int"
+                }
+            ]
+        },
+        {
+            "ds_name": "COCO",
+            "ds_size": 50000,
+            "media": "image",
+            "task": [
+                "detection"
+            ],
+            "columns": [
+                {
+                    "col_name": "image",
+                    "col_datatype": "string"
+                },
+                {
+                    "col_name": "bbox",
+                    "col_datatype": "string"
+                },
+                {
+                    "col_name": "label",
+                    "col_datatype": "int"
+                }
+            ]
+        }
+    ],
+    "model": [
+        {
+            "model_name": "ResNet50",
+            "param_num": 25000000,
+            "media_type": "image",
+            "arch_name": "CNN",
+            "trainname": "fine-tune",
+            "task": [
+                "classification"
+            ],
+            "param": 10
+        },
+        {
+            "model_name": "YOLOv7",
+            "param_num": 64000000,
+            "media_type": "image",
+            "arch_name": "CNN",
+            "trainname": "fine-tune",
+            "task": [
+                "detection"
+            ],
+            "param": 10
+        },
+        {
+            "model_name": "BERT",
+            "param_num": 110000000,
+            "media_type": "text",
+            "arch_name": "Transformer",
+            "trainname": "fine-tune",
+            "task": [
+                "classification"
+            ],
+            "param": 10
+        },
+        {
+            "model_name": "GPT-3",
+            "param_num": 175000000000,
+            "media_type": "text",
+            "arch_name": "Transformer",
+            "trainname": "pre-train",
+            "task": [
+                "generation"
+            ],
+            "param": 10
+        }
+    ]
+}
