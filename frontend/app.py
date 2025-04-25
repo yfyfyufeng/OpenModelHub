@@ -661,8 +661,95 @@ def get_current_page_data(page_type: str):
 # User management (admin function)
 def render_users():
     """Render user management page"""
-    user_manager = UserManager()
-    user_manager.render()
+    st.title("用户管理")
+    
+    # 获取所有用户
+    users = db_api.db_list_users()
+    
+    if not users:
+        st.info("暂无用户")
+        return
+    
+    # 创建用户表单
+    with st.expander("添加新用户", expanded=False):
+        with st.form("new_user", clear_on_submit=True):
+            username = st.text_input("用户名*")
+            password = st.text_input("密码*", type="password")
+            is_admin = st.checkbox("管理员权限")
+            affiliate = st.text_input("所属机构")
+            
+            if st.form_submit_button("创建用户"):
+                if not username or not password:
+                    st.error("带*的字段为必填项")
+                else:
+                    try:
+                        # 检查用户名是否已存在
+                        existing_user = db_api.db_get_user_by_username(username)
+                        if existing_user:
+                            st.error(f"用户名 '{username}' 已存在")
+                        else:
+                            # 创建新用户
+                            db_api.db_create_user(username, password, affiliate, is_admin=is_admin)
+                            st.success("用户创建成功")
+                            st.rerun()
+                    except Exception as e:
+                        st.error(f"创建失败：{str(e)}")
+    
+    # 用户列表
+    st.subheader("用户列表")
+    
+    # 创建用户数据表格
+    user_data = []
+    for user in users:
+        user_data.append({
+            "ID": user.user_id,
+            "用户名": user.user_name,
+            "所属机构": user.affiliate,
+            "管理员": user.is_admin
+        })
+    
+    # 显示用户表格
+    df = pd.DataFrame(user_data)
+    st.dataframe(
+        df,
+        column_config={
+            "ID": st.column_config.NumberColumn("用户ID", width="small"),
+            "用户名": st.column_config.TextColumn("用户名", width="medium"),
+            "所属机构": st.column_config.TextColumn("所属机构", width="medium"),
+            "管理员": st.column_config.CheckboxColumn("管理员权限", width="small")
+        },
+        hide_index=True,
+        use_container_width=True
+    )
+    
+    # 管理员权限管理
+    if st.session_state.get('current_user', {}).get('role') == 'admin':
+        st.subheader("管理员权限管理")
+        selected_user = st.selectbox(
+            "选择用户",
+            options=[(user.user_id, user.user_name) for user in users],
+            format_func=lambda x: x[1]
+        )
+        
+        if selected_user:
+            user_id = selected_user[0]
+            current_user = next((u for u in users if u.user_id == user_id), None)
+            
+            if current_user:
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.write(f"当前用户：{current_user.user_name}")
+                    st.write(f"当前权限：{'管理员' if current_user.is_admin else '普通用户'}")
+                
+                with col2:
+                    if st.button("切换管理员权限", key=f"toggle_admin_{user_id}"):
+                        try:
+                            # 更新用户权限
+                            db_api.db_update_user(user_id, is_admin=not current_user.is_admin)
+                            st.success(f"已{'授予' if not current_user.is_admin else '撤销'} {current_user.user_name} 的管理员权限")
+                            st.rerun()
+                        except Exception as e:
+                            st.error(f"权限更新失败：{str(e)}")
 
 # Default login function
 def default_login():
