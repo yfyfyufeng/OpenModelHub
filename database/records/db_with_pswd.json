@@ -1,0 +1,2370 @@
+{
+    "affiliation": [
+        {"affil_name": "Tsinghua University"},
+        {"affil_name": "Peking University"},
+        {"affil_name": "Fudan University"},
+        {"affil_name": "Shanghai Jiaotong University"},
+        {"affil_name": "The Chinese University of Hong Kong, Shenzhen"},
+        {"affil_name": "Harvard University"},
+        {"affil_name": "University of California, Davis"},
+        {"affil_name": "University of California, Berkeley"},
+        {"affil_name": "Stanford University"},
+        {"affil_name": "Massachusetts Institute of Technology"},
+        {"affil_name": "University of Pennsylvania"},
+        {"affil_name": "University of Chicago"}
+    ],
+    "user": [
+        {"user_name": "Bradley", "password_hash": "admin", "affiliate": "The Chinese University of Hong Kong", "is_admin": true},
+        {"user_name": "Rosalind", "password_hash": "admin", "affiliate": "The Chinese University of Hong Kong", "is_admin": true},
+        {"user_name": "Alice", "password_hash": "admin", "affiliate": "Tsinghua University", "is_admin": false},
+        {"user_name": "Bob", "password_hash": "admin", "affiliate": "Tsinghua University", "is_admin": false},
+        {"user_name": "Charlie", "password_hash": "admin", "affiliate": "Peking University", "is_admin": false},
+        {"user_name": "David", "password_hash": "admin", "affiliate": "Peking University", "is_admin": false},
+        {"user_name": "Eve", "password_hash": "admin", "affiliate": "Fudan University", "is_admin": false},
+        {"user_name": "Frank", "password_hash": "admin", "affiliate": "Fudan University", "is_admin": false},
+        {"user_name": "Grace", "password_hash": "admin", "affiliate": "Shanghai Jiaotong University", "is_admin": false},
+        {"user_name": "Hannah", "password_hash": "admin", "affiliate": "Shanghai Jiaotong University", "is_admin": false},
+        {"user_name": "Ivy", "password_hash": "admin", "affiliate": "Harvard University", "is_admin": false},
+        {"user_name": "Jack", "password_hash": "admin", "affiliate": "Harvard University", "is_admin": false},
+        {"user_name": "Katherine", "password_hash": "admin", "affiliate": "Harvard University", "is_admin": false},
+        {"user_name": "Liam", "password_hash": "admin", "affiliate": "University of California, Davis", "is_admin": false},
+        {"user_name": "Marselo", "password_hash": "admin", "affiliate": "University of California, Davis", "is_admin": false},
+        {"user_name": "Noah", "password_hash": "admin", "affiliate": "University of California, Berkeley", "is_admin": false},
+        {"user_name": "Olivia", "password_hash": "admin", "affiliate": "Stanford University", "is_admin": false},
+        {"user_name": "Parvage", "password_hash": "admin", "affiliate": "Stanford University", "is_admin": false},
+        {"user_name": "Quinn", "password_hash": "admin", "affiliate": "Massachusetts Institute of Technology", "is_admin": false},
+        {"user_name": "Rico", "password_hash": "admin", "affiliate": "Massachusetts Institute of Technology", "is_admin": false},
+        {"user_name": "Sophia", "password_hash": "admin", "affiliate": "Massachusetts Institute of Technology", "is_admin": false},
+        {"user_name": "Thomas", "password_hash": "admin", "affiliate": "University of Pennsylvania", "is_admin": false},
+        {"user_name": "Uma", "password_hash": "admin", "affiliate": "University of Pennsylvania", "is_admin": false},
+        {"user_name": "Victor", "password_hash": "admin", "affiliate": "University of Pennsylvania", "is_admin": false},
+        {"user_name": "Wendy", "password_hash": "admin", "affiliate": "University of Pennsylvania", "is_admin": false},
+        {"user_name": "Xander", "password_hash": "admin", "affiliate": "University of Chicago", "is_admin": false},
+        {"user_name": "Yasmine", "password_hash": "admin", "affiliate": "University of Chicago", "is_admin": false},
+        {"user_name": "Zoe", "password_hash": "admin", "affiliate": "University of Chicago", "is_admin": false}
+
+    ],
+    "dataset": [
+        {
+          "ds_name": "JovialValley/syllable_totaldataset_3",
+          "ds_size": 487,
+          "media": "audio",
+          "task": ["classification"],
+          "columns": [
+            {"col_name": "name", "col_datatype": "string"},
+            {"col_name": "audio", "col_datatype": "Audio"},
+            {"col_name": "label", "col_datatype": "string"},
+            {"col_name": "emotion", "col_datatype": "string"},
+            {"col_name": "emotion_str", "col_datatype": "string"}
+          ]
+        },
+        {
+          "ds_name": "JovialValley/phoneme_totaldataset_0",
+          "ds_size": 487,
+          "media": "audio",
+          "task": ["classification"],
+          "columns": [
+            {"col_name": "name", "col_datatype": "string"},
+            {"col_name": "audio", "col_datatype": "Audio"},
+            {"col_name": "label", "col_datatype": "string"},
+            {"col_name": "emotion", "col_datatype": "string"},
+            {"col_name": "emotion_str", "col_datatype": "string"}
+          ]
+        },
+        {
+          "ds_name": "JovialValley/phoneme_totaldataset_3",
+          "ds_size": 487,
+          "media": "audio",
+          "task": ["classification"],
+          "columns": [
+            {"col_name": "name", "col_datatype": "string"},
+            {"col_name": "audio", "col_datatype": "Audio"},
+            {"col_name": "label", "col_datatype": "string"},
+            {"col_name": "emotion", "col_datatype": "string"},
+            {"col_name": "emotion_str", "col_datatype": "string"}
+          ]
+        },
+        {
+          "ds_name": "JovialValley/phoneme_totaldataset_2",
+          "ds_size": 487,
+          "media": "audio",
+          "task": ["classification"],
+          "columns": [
+            {"col_name": "name", "col_datatype": "string"},
+            {"col_name": "audio", "col_datatype": "Audio"},
+            {"col_name": "label", "col_datatype": "string"},
+            {"col_name": "emotion", "col_datatype": "string"},
+            {"col_name": "emotion_str", "col_datatype": "string"}
+          ]
+        },
+        {
+          "ds_name": "JovialValley/phoneme_totaldataset_1",
+          "ds_size": 487,
+          "media": "audio",
+          "task": ["classification"],
+          "columns": [
+            {"col_name": "name", "col_datatype": "string"},
+            {"col_name": "audio", "col_datatype": "Audio"},
+            {"col_name": "label", "col_datatype": "string"},
+            {"col_name": "emotion", "col_datatype": "string"},
+            {"col_name": "emotion_str", "col_datatype": "string"}
+          ]
+        },
+        {
+          "ds_name": "one-sec-cv12/chunk_72",
+          "ds_size": 260137,
+          "media": "audio",
+          "task": ["classification"],
+          "columns": [
+            {"col_name": "audio", "col_datatype": "Audio"}
+          ]
+        },
+        {
+          "ds_name": "one-sec-cv12/chunk_177",
+          "ds_size": 228146,
+          "media": "audio",
+          "task": ["classification"],
+          "columns": [
+            {"col_name": "audio", "col_datatype": "Audio"}
+          ]
+        },
+        {
+          "ds_name": "neel-17/audio_dataset_aug_20K",
+          "ds_size": 21699,
+          "media": "audio",
+          "task": ["classification"],
+          "columns": [
+            {"col_name": "audio", "col_datatype": "Audio"},
+            {"col_name": "label", "col_datatype": "int64"}
+          ]
+        },
+        {
+          "ds_name": "JoshuaW1997/FUTGA",
+          "ds_size": 100000,
+          "media": "audio",
+          "task": ["generation", "classification"],
+          "columns": [
+            {"col_name": "audio", "col_datatype": "Audio"},
+            {"col_name": "description", "col_datatype": "string"},
+            {"col_name": "label", "col_datatype": "string"}
+          ]
+        },
+        {
+          "ds_name": "BirdSet",
+          "ds_size": 700000,
+          "media": "audio",
+          "task": ["classification"],
+          "columns": [
+            {"col_name": "audio", "col_datatype": "Audio"},
+            {"col_name": "species", "col_datatype": "string"}
+          ]
+        },
+        {
+          "ds_name": "Audio-FLAN",
+          "ds_size": 100000000,
+          "media": "audio",
+          "task": ["generation", "classification"],
+          "columns": [
+            {"col_name": "audio", "col_datatype": "Audio"},
+            {"col_name": "instruction", "col_datatype": "string"},
+            {"col_name": "response", "col_datatype": "string"}
+          ]
+        },
+        {
+          "ds_name": "FSD50K",
+          "ds_size": 51000,
+          "media": "audio",
+          "task": ["classification"],
+          "columns": [
+            {"col_name": "audio", "col_datatype": "Audio"},
+            {"col_name": "label", "col_datatype": "string"}
+          ]
+        },
+        {
+          "ds_name": "Clotho",
+          "ds_size": 4981,
+          "media": "audio",
+          "task": ["generation"],
+          "columns": [
+            {"col_name": "audio", "col_datatype": "Audio"},
+            {"col_name": "caption", "col_datatype": "string"}
+          ]
+        },
+        {
+          "ds_name": "PolyAI/minds14",
+          "ds_size": 563,
+          "media": "audio",
+          "task": ["classification"],
+          "columns": [
+            {"col_name": "audio", "col_datatype": "Audio"},
+            {"col_name": "intent_class", "col_datatype": "ClassLabel"}
+          ]
+        },
+        {
+          "ds_name": "Ram00121222/audio-no.1",
+          "ds_size": 108,
+          "media": "audio",
+          "task": ["generation"],
+          "columns": [
+            {"col_name": "audio", "col_datatype": "Audio"},
+            {"col_name": "text", "col_datatype": "string"}
+          ]
+        },
+          {
+          "ds_name": "lj_speech",
+          "ds_size": 13100,
+          "media": "audio",
+          "task": ["generation"],
+          "columns": [
+            {"col_name": "id", "col_datatype": "string"},
+            {"col_name": "audio", "col_datatype": "Audio"},
+            {"col_name": "text", "col_datatype": "string"},
+            {"col_name": "normalized_text", "col_datatype": "string"}
+          ]
+        },
+        {
+          "ds_name": "common_voice/sah",
+          "ds_size": 2606,
+          "media": "audio",
+          "task": ["classification"],
+          "columns": [
+            {"col_name": "client_id", "col_datatype": "string"},
+            {"col_name": "audio", "col_datatype": "Audio"},
+            {"col_name": "sentence", "col_datatype": "string"},
+            {"col_name": "age", "col_datatype": "string"},
+            {"col_name": "gender", "col_datatype": "string"},
+            {"col_name": "accent", "col_datatype": "string"},
+            {"col_name": "locale", "col_datatype": "string"}
+          ]
+        },
+        {
+          "ds_name": "openslr/SLR71",
+          "ds_size": 4374,
+          "media": "audio",
+          "task": ["classification"],
+          "columns": [
+            {"col_name": "path", "col_datatype": "string"},
+            {"col_name": "audio", "col_datatype": "Audio"},
+            {"col_name": "sentence", "col_datatype": "string"}
+          ]
+        },
+        {
+          "ds_name": "openslr/SLR72",
+          "ds_size": 4903,
+          "media": "audio",
+          "task": ["classification"],
+          "columns": [
+            {"col_name": "path", "col_datatype": "string"},
+            {"col_name": "audio", "col_datatype": "Audio"},
+            {"col_name": "sentence", "col_datatype": "string"}
+          ]
+        },
+        {
+          "ds_name": "saahith/EMSContExt_audio",
+          "ds_size": 109,
+          "media": "audio",
+          "task": ["generation"],
+          "columns": [
+            {"col_name": "audio", "col_datatype": "Audio"},
+            {"col_name": "transcript", "col_datatype": "string"},
+            {"col_name": "duration", "col_datatype": "float64"}
+          ]
+        },
+        {
+          "ds_name": "axelprsvl/my_dataset",
+          "ds_size": 5,
+          "media": "audio",
+          "task": ["generation"],
+          "columns": [
+            {"col_name": "audio", "col_datatype": "Audio"}
+          ]
+        },
+        {
+          "ds_name": "one-sec-cv12/chunk_197",
+          "ds_size": 176162,
+          "media": "audio",
+          "task": ["classification"],
+          "columns": [
+            {"col_name": "audio", "col_datatype": "Audio"}
+          ]
+        },
+        {
+          "ds_name": "chrisjay/crowd-speech-africa",
+          "ds_size": 10000,
+          "media": "audio",
+          "task": ["classification"],
+          "columns": [
+            {"col_name": "audio", "col_datatype": "Audio"},
+            {"col_name": "label", "col_datatype": "string"},
+            {"col_name": "language", "col_datatype": "string"}
+          ]
+        },
+        {
+          "ds_name": "gijs/audio-datasets",
+          "ds_size": 101352,
+          "media": "audio",
+          "task": ["classification"],
+          "columns": [
+            {"col_name": "audio", "col_datatype": "Audio"},
+            {"col_name": "description", "col_datatype": "string"}
+          ]
+        },
+        {
+          "ds_name": "MLCommons/unsupervised-peoples-speech",
+          "ds_size": 1000000,
+          "media": "audio",
+          "task": ["generation"],
+          "columns": [
+            {"col_name": "audio", "col_datatype": "Audio"}
+          ]
+        },
+        {
+          "ds_name": "mozilla-foundation/common_voice_13_0",
+          "ds_size": 7000000,
+          "media": "audio",
+          "task": ["classification"],
+          "columns": [
+            {"col_name": "client_id", "col_datatype": "string"},
+            {"col_name": "audio", "col_datatype": "Audio"},
+            {"col_name": "sentence", "col_datatype": "string"},
+            {"col_name": "age", "col_datatype": "string"},
+            {"col_name": "gender", "col_datatype": "string"},
+            {"col_name": "accent", "col_datatype": "string"},
+            {"col_name": "locale", "col_datatype": "string"}
+          ]
+        },
+        {
+          "ds_name": "giga_speech",
+          "ds_size": 10000000,
+          "media": "audio",
+          "task": ["generation"],
+          "columns": [
+            {"col_name": "audio", "col_datatype": "Audio"},
+            {"col_name": "text", "col_datatype": "string"}
+          ]
+        },
+        {
+          "ds_name": "tedlium",
+          "ds_size": 1185,
+          "media": "audio",
+          "task": ["generation"],
+          "columns": [
+            {"col_name": "audio", "col_datatype": "Audio"},
+            {"col_name": "text", "col_datatype": "string"},
+            {"col_name": "speaker_id", "col_datatype": "string"}
+          ]
+        },
+        {
+          "ds_name": "voxpopuli",
+          "ds_size": 100000,
+          "media": "audio",
+          "task": ["generation"],
+          "columns": [
+            {"col_name": "audio", "col_datatype": "Audio"},
+            {"col_name": "text", "col_datatype": "string"},
+            {"col_name": "language", "col_datatype": "string"}
+          ]
+        },
+        {
+          "ds_name": "earnings-22",
+          "ds_size": 119,
+          "media": "audio",
+          "task": ["generation"],
+          "columns": [
+            {"col_name": "audio", "col_datatype": "Audio"},
+            {"col_name": "transcript", "col_datatype": "string"},
+            {"col_name": "speaker_id", "col_datatype": "string"}
+          ]
+        },
+        {
+          "ds_name": "ag_news",
+          "ds_size": 120000,
+          "media": "text",
+          "task": ["classification"],
+          "columns": [
+            {"col_name": "text", "col_datatype": "string"},
+            {"col_name": "label", "col_datatype": "int"}
+          ]
+        },
+        {
+          "ds_name": "imdb",
+          "ds_size": 50000,
+          "media": "text",
+          "task": ["classification"],
+          "columns": [
+            {"col_name": "text", "col_datatype": "string"},
+            {"col_name": "label", "col_datatype": "int"}
+          ]
+        },
+        {
+          "ds_name": "yelp_review_full",
+          "ds_size": 650000,
+          "media": "text",
+          "task": ["classification"],
+          "columns": [
+            {"col_name": "text", "col_datatype": "string"},
+            {"col_name": "label", "col_datatype": "int"}
+          ]
+        },
+        {
+          "ds_name": "amazon_polarity",
+          "ds_size": 4000000,
+          "media": "text",
+          "task": ["classification"],
+          "columns": [
+            {"col_name": "content", "col_datatype": "string"},
+            {"col_name": "label", "col_datatype": "int"}
+          ]
+        },
+        {
+          "ds_name": "squad",
+          "ds_size": 87599,
+          "media": "text",
+          "task": ["generation"],
+          "columns": [
+            {"col_name": "context", "col_datatype": "string"},
+            {"col_name": "question", "col_datatype": "string"},
+            {"col_name": "answers", "col_datatype": "dict"}
+          ]
+        },
+        {
+          "ds_name": "cnn_dailymail",
+          "ds_size": 312085,
+          "media": "text",
+          "task": ["generation"],
+          "columns": [
+            {"col_name": "article", "col_datatype": "string"},
+            {"col_name": "highlights", "col_datatype": "string"}
+          ]
+        },
+        {
+          "ds_name": "multi_nli",
+          "ds_size": 433000,
+          "media": "text",
+          "task": ["classification"],
+          "columns": [
+            {"col_name": "premise", "col_datatype": "string"},
+            {"col_name": "hypothesis", "col_datatype": "string"},
+            {"col_name": "label", "col_datatype": "int"}
+          ]
+        },
+        {
+          "ds_name": "snli",
+          "ds_size": 570000,
+          "media": "text",
+          "task": ["classification"],
+          "columns": [
+            {"col_name": "premise", "col_datatype": "string"},
+            {"col_name": "hypothesis", "col_datatype": "string"},
+            {"col_name": "label", "col_datatype": "int"}
+          ]
+        },
+        {
+          "ds_name": "bookcorpus",
+          "ds_size": 7400000,
+          "media": "text",
+          "task": ["generation"],
+          "columns": [
+            {"col_name": "text", "col_datatype": "string"}
+          ]
+        },
+        {
+          "ds_name": "wikitext",
+          "ds_size": 1032270,
+          "media": "text",
+          "task": ["generation"],
+          "columns": [
+            {"col_name": "text", "col_datatype": "string"}
+          ]
+        },
+        {
+          "ds_name": "xsum",
+          "ds_size": 226711,
+          "media": "text",
+          "task": ["generation"],
+          "columns": [
+            {"col_name": "document", "col_datatype": "string"},
+            {"col_name": "summary", "col_datatype": "string"}
+          ]
+        },
+        {
+          "ds_name": "gigaword",
+          "ds_size": 4000000,
+          "media": "text",
+          "task": ["generation"],
+          "columns": [
+            {"col_name": "document", "col_datatype": "string"},
+            {"col_name": "summary", "col_datatype": "string"}
+          ]
+        },
+        {
+          "ds_name": "common_crawl",
+          "ds_size": 1000000000,
+          "media": "text",
+          "task": ["generation"],
+          "columns": [
+            {"col_name": "text", "col_datatype": "string"}
+          ]
+        },
+        {
+          "ds_name": "openwebtext",
+          "ds_size": 8000000,
+          "media": "text",
+          "task": ["generation"],
+          "columns": [
+            {"col_name": "text", "col_datatype": "string"}
+          ]
+        },
+        {
+          "ds_name": "wikipedia",
+          "ds_size": 6000000,
+          "media": "text",
+          "task": ["generation"],
+          "columns": [
+            {"col_name": "text", "col_datatype": "string"},
+            {"col_name": "title", "col_datatype": "string"}
+          ]
+        },
+        {
+          "ds_name": "reuters",
+          "ds_size": 21578,
+          "media": "text",
+          "task": ["classification"],
+          "columns": [
+            {"col_name": "text", "col_datatype": "string"},
+            {"col_name": "label", "col_datatype": "string"}
+          ]
+        },
+        {
+          "ds_name": "dbpedia_14",
+          "ds_size": 560000,
+          "media": "text",
+          "task": ["classification"],
+          "columns": [
+            {"col_name": "content", "col_datatype": "string"},
+            {"col_name": "label", "col_datatype": "int"}
+          ]
+        },
+        {
+          "ds_name": "tweet_eval",
+          "ds_size": 59000,
+          "media": "text",
+          "task": ["classification"],
+          "columns": [
+            {"col_name": "text", "col_datatype": "string"},
+            {"col_name": "label", "col_datatype": "int"}
+          ]
+        },
+        {
+          "ds_name": "go_emotions",
+          "ds_size": 58000,
+          "media": "text",
+          "task": ["classification"],
+          "columns": [
+            {"col_name": "text", "col_datatype": "string"},
+            {"col_name": "labels", "col_datatype": "list"}
+          ]
+        },
+        {
+          "ds_name": "rotten_tomatoes",
+          "ds_size": 10662,
+          "media": "text",
+          "task": ["classification"],
+          "columns": [
+            {"col_name": "text", "col_datatype": "string"},
+            {"col_name": "label", "col_datatype": "int"}
+          ]
+        },
+        {
+          "ds_name": "Mouwiya/Video-10M",
+          "ds_size": 10732607,
+          "media": "video",
+          "task": ["classification"],
+          "columns": [
+            {"col_name": "videoid", "col_datatype": "string"},
+            {"col_name": "contentUrl", "col_datatype": "string"},
+            {"col_name": "duration", "col_datatype": "string"},
+            {"col_name": "page_dir", "col_datatype": "string"},
+            {"col_name": "name", "col_datatype": "string"}
+          ]
+        },
+        {
+          "ds_name": "mfarre/simplevideo",
+          "ds_size": 5,
+          "media": "video",
+          "task": ["generation"],
+          "columns": [
+            {"col_name": "video_id", "col_datatype": "string"},
+            {"col_name": "questions", "col_datatype": "list"},
+            {"col_name": "timestamps", "col_datatype": "dict"},
+            {"col_name": "captions", "col_datatype": "list"},
+            {"col_name": "video_url", "col_datatype": "string"}
+          ]
+        },
+        {
+          "ds_name": "videocon/videocon",
+          "ds_size": 50,
+          "media": "video",
+          "task": ["classification"],
+          "columns": [
+            {"col_name": "video_url", "col_datatype": "string"},
+            {"col_name": "hypothesis", "col_datatype": "string"},
+            {"col_name": "alternative", "col_datatype": "string"},
+            {"col_name": "label", "col_datatype": "bool"}
+          ]
+        },
+        {
+          "ds_name": "lyx97/FETV",
+          "ds_size": 10000,
+          "media": "video",
+          "task": ["classification"],
+          "columns": [
+            {"col_name": "video_id", "col_datatype": "string"},
+            {"col_name": "description", "col_datatype": "string"},
+            {"col_name": "spatial_tags", "col_datatype": "dict"},
+            {"col_name": "temporal_tags", "col_datatype": "dict"},
+            {"col_name": "complexity", "col_datatype": "list"},
+            {"col_name": "source", "col_datatype": "string"},
+            {"col_name": "video_url", "col_datatype": "string"},
+            {"col_name": "additional_info", "col_datatype": "string"}
+          ]
+        },
+        {
+          "ds_name": "UCF101",
+          "ds_size": 13320,
+          "media": "video",
+          "task": ["classification"],
+          "columns": [
+            {"col_name": "video", "col_datatype": "Video"},
+            {"col_name": "label", "col_datatype": "int"}
+          ]
+        },
+        {
+          "ds_name": "Kinetics-700",
+          "ds_size": 650000,
+          "media": "video",
+          "task": ["classification"],
+          "columns": [
+            {"col_name": "video", "col_datatype": "Video"},
+            {"col_name": "label", "col_datatype": "int"}
+          ]
+        },
+        {
+          "ds_name": "HMDB51",
+          "ds_size": 7000,
+          "media": "video",
+          "task": ["classification"],
+          "columns": [
+            {"col_name": "video", "col_datatype": "Video"},
+            {"col_name": "label", "col_datatype": "int"}
+          ]
+        },
+        {
+          "ds_name": "ActivityNet",
+          "ds_size": 20000,
+          "media": "video",
+          "task": ["classification", "detection"],
+          "columns": [
+            {"col_name": "video", "col_datatype": "Video"},
+            {"col_name": "annotations", "col_datatype": "dict"}
+          ]
+        },
+        {
+          "ds_name": "Something-Something V2",
+          "ds_size": 220847,
+          "media": "video",
+          "task": ["classification"],
+          "columns": [
+            {"col_name": "video", "col_datatype": "Video"},
+            {"col_name": "label", "col_datatype": "int"}
+          ]
+        },
+        {
+          "ds_name": "Moments in Time",
+          "ds_size": 1000000,
+          "media": "video",
+          "task": ["classification"],
+          "columns": [
+            {"col_name": "video", "col_datatype": "Video"},
+            {"col_name": "label", "col_datatype": "int"}
+          ]
+        },
+        {
+          "ds_name": "AVA",
+          "ds_size": 43000,
+          "media": "video",
+          "task": ["detection"],
+          "columns": [
+            {"col_name": "video", "col_datatype": "Video"},
+            {"col_name": "annotations", "col_datatype": "dict"}
+          ]
+        },
+        {
+          "ds_name": "Charades",
+          "ds_size": 9848,
+          "media": "video",
+          "task": ["classification"],
+          "columns": [
+            {"col_name": "video", "col_datatype": "Video"},
+            {"col_name": "label", "col_datatype": "int"}
+          ]
+        },
+        {
+          "ds_name": "Kinetics-400",
+          "ds_size": 306245,
+          "media": "video",
+          "task": ["classification"],
+          "columns": [
+            {"col_name": "video", "col_datatype": "Video"},
+            {"col_name": "label", "col_datatype": "int"}
+          ]
+        },
+        {
+          "ds_name": "EPIC-KITCHENS",
+          "ds_size": 55000,
+          "media": "video",
+          "task": ["classification", "detection"],
+          "columns": [
+            {"col_name": "video", "col_datatype": "Video"},
+            {"col_name": "annotations", "col_datatype": "dict"}
+          ]
+        },
+        {
+          "ds_name": "YouTube-8M",
+          "ds_size": 8000000,
+          "media": "video",
+          "task": ["classification"],
+          "columns": [
+            {"col_name": "video_id", "col_datatype": "string"},
+            {"col_name": "features", "col_datatype": "list"},
+            {"col_name": "labels", "col_datatype": "list"}
+          ]
+        },
+        {
+          "ds_name": "HD-EPIC",
+          "ds_size": 10000,
+          "media": "video",
+          "task": ["classification", "detection"],
+          "columns": [
+            {"col_name": "video", "col_datatype": "Video"},
+            {"col_name": "annotations", "col_datatype": "dict"}
+          ]
+        },
+        {
+          "ds_name": "videocon/videocon",
+          "ds_size": 50,
+          "media": "video",
+          "task": ["classification"],
+          "columns": [
+            {"col_name": "video_url", "col_datatype": "string"},
+            {"col_name": "hypothesis", "col_datatype": "string"},
+            {"col_name": "alternative", "col_datatype": "string"},
+            {"col_name": "label", "col_datatype": "bool"}
+          ]
+        },
+        {
+          "ds_name": "CelebV-Text",
+          "ds_size": 10000,
+          "media": "video",
+          "task": ["generation"],
+          "columns": [
+            {"col_name": "video", "col_datatype": "Video"},
+            {"col_name": "description", "col_datatype": "string"}
+          ]
+        },
+        {
+          "ds_name": "UCF101",
+          "ds_size": 13320,
+          "media": "video",
+          "task": ["classification"],
+          "columns": [
+            {"col_name": "video", "col_datatype": "Video"},
+            {"col_name": "label", "col_datatype": "int"}
+          ]
+        },
+        {
+          "ds_name": "Kinetics-700",
+          "ds_size": 650000,
+          "media": "video",
+          "task": ["classification"],
+          "columns": [
+            {"col_name": "video", "col_datatype": "Video"},
+            {"col_name": "label", "col_datatype": "int"}
+          ]
+        },
+        {
+          "ds_name": "HMDB51",
+          "ds_size": 7000,
+          "media": "video",
+          "task": ["classification"],
+          "columns": [
+            {"col_name": "video", "col_datatype": "Video"},
+            {"col_name": "label", "col_datatype": "int"}
+          ]
+        },
+        {
+          "ds_name": "ActivityNet",
+          "ds_size": 20000,
+          "media": "video",
+          "task": ["classification", "detection"],
+          "columns": [
+            {"col_name": "video", "col_datatype": "Video"},
+            {"col_name": "annotations", "col_datatype": "dict"}
+          ]
+        },
+        {
+          "ds_name": "Something-Something V2",
+          "ds_size": 220847,
+          "media": "video",
+          "task": ["classification"],
+          "columns": [
+            {"col_name": "video", "col_datatype": "Video"},
+            {"col_name": "label", "col_datatype": "int"}
+          ]
+        },
+        {
+          "ds_name": "Moments in Time",
+          "ds_size": 1000000,
+          "media": "video",
+          "task": ["classification"],
+          "columns": [
+            {"col_name": "video", "col_datatype": "Video"},
+            {"col_name": "label", "col_datatype": "int"}
+          ]
+        },
+        {
+          "ds_name": "AVA",
+          "ds_size": 43000,
+          "media": "video",
+          "task": ["detection"],
+          "columns": [
+            {"col_name": "video", "col_datatype": "Video"},
+            {"col_name": "annotations", "col_datatype": "dict"}
+          ]
+        },
+        {
+          "ds_name": "Charades",
+          "ds_size": 9848,
+          "media": "video",
+          "task": ["classification"],
+          "columns": [
+            {"col_name": "video", "col_datatype": "Video"},
+            {"col_name": "label", "col_datatype": "int"}
+          ]
+        },
+        {
+          "ds_name": "Kinetics-400",
+          "ds_size": 306245,
+          "media": "video",
+          "task": ["classification"],
+          "columns": [
+            {"col_name": "video", "col_datatype": "Video"},
+            {"col_name": "label", "col_datatype": "int"}
+          ]
+        },
+        {
+          "ds_name": "EPIC-KITCHENS",
+          "ds_size": 55000,
+          "media": "video",
+          "task": ["classification", "detection"],
+          "columns": [
+            {"col_name": "video", "col_datatype": "Video"},
+            {"col_name": "annotations", "col_datatype": "dict"}
+          ]
+        },
+        {
+          "ds_name": "YouTube-8M",
+          "ds_size": 8000000,
+          "media": "video",
+          "task": ["classification"],
+          "columns": [
+            {"col_name": "video_id", "col_datatype": "string"},
+            {"col_name": "features", "col_datatype": "list"},
+            {"col_name": "labels", "col_datatype": "list"}
+          ]
+        },
+        {
+          "ds_name": "MSR-VTT",
+          "ds_size": 10000,
+          "media": "video",
+          "task": ["generation"],
+          "columns": [
+            {"col_name": "video", "col_datatype": "Video"},
+            {"col_name": "caption", "col_datatype": "string"}
+          ]
+        },
+        {
+          "ds_name": "HuggingFaceM4/COCO",
+          "ds_size": 330000,
+          "media": "image",
+          "task": ["detection", "generation"],
+          "columns": [
+            {"col_name": "image", "col_datatype": "Image"},
+            {"col_name": "annotations", "col_datatype": "dict"}
+          ]
+        },
+        {
+          "ds_name": "abcd10987/open-images-v7",
+          "ds_size": 9010000,
+          "media": "image",
+          "task": ["classification", "detection"],
+          "columns": [
+            {"col_name": "image_url", "col_datatype": "string"},
+            {"col_name": "label", "col_datatype": "string"}
+          ]
+        },
+        {
+          "ds_name": "public-data/sample-images-TADNE",
+          "ds_size": 36,
+          "media": "image",
+          "task": ["classification"],
+          "columns": [
+            {"col_name": "image_path", "col_datatype": "string"},
+            {"col_name": "label", "col_datatype": "string"}
+          ]
+        },
+        {
+          "ds_name": "passing2961/stark-image",
+          "ds_size": 1000,
+          "media": "image",
+          "task": ["classification"],
+          "columns": [
+            {"col_name": "image_source", "col_datatype": "string"},
+            {"col_name": "image_url", "col_datatype": "string"},
+            {"col_name": "index", "col_datatype": "string"}
+          ]
+        },
+        {
+          "ds_name": "GettyImages/clean-visual-dataset",
+          "ds_size": 3750,
+          "media": "image",
+          "task": ["classification"],
+          "columns": [
+            {"col_name": "image", "col_datatype": "Image"},
+            {"col_name": "category", "col_datatype": "string"}
+          ]
+        },
+        {
+          "ds_name": "SaintGeorgeOnABike/DEArt",
+          "ds_size": 15000,
+          "media": "image",
+          "task": ["detection", "classification"],
+          "columns": [
+            {"col_name": "image", "col_datatype": "Image"},
+            {"col_name": "bounding_boxes", "col_datatype": "list"},
+            {"col_name": "pose", "col_datatype": "string"}
+          ]
+        },
+        {
+          "ds_name": "fashion-mnist",
+          "ds_size": 70000,
+          "media": "image",
+          "task": ["classification"],
+          "columns": [
+            {"col_name": "image", "col_datatype": "Image"},
+            {"col_name": "label", "col_datatype": "int"}
+          ]
+        },
+        {
+          "ds_name": "mnist",
+          "ds_size": 70000,
+          "media": "image",
+          "task": ["classification"],
+          "columns": [
+            {"col_name": "image", "col_datatype": "Image"},
+            {"col_name": "label", "col_datatype": "int"}
+          ]
+        },
+        {
+          "ds_name": "cifar10",
+          "ds_size": 60000,
+          "media": "image",
+          "task": ["classification"],
+          "columns": [
+            {"col_name": "image", "col_datatype": "Image"},
+            {"col_name": "label", "col_datatype": "int"}
+          ]
+        },
+        {
+          "ds_name": "imagenet-1k",
+          "ds_size": 1400000,
+          "media": "image",
+          "task": ["classification"],
+          "columns": [
+            {"col_name": "image", "col_datatype": "Image"},
+            {"col_name": "label", "col_datatype": "int"}
+          ]
+        },
+        {
+          "ds_name": "lfw",
+          "ds_size": 13233,
+          "media": "image",
+          "task": ["classification"],
+          "columns": [
+            {"col_name": "image", "col_datatype": "Image"},
+            {"col_name": "person", "col_datatype": "string"}
+          ]
+        },
+        {
+          "ds_name": "oxford-flowers-102",
+          "ds_size": 8189,
+          "media": "image",
+          "task": ["classification"],
+          "columns": [
+            {"col_name": "image", "col_datatype": "Image"},
+            {"col_name": "label", "col_datatype": "int"}
+          ]
+        },
+        {
+          "ds_name": "caltech101",
+          "ds_size": 9144,
+          "media": "image",
+          "task": ["classification"],
+          "columns": [
+            {"col_name": "image", "col_datatype": "Image"},
+            {"col_name": "category", "col_datatype": "string"}
+          ]
+        },
+        {
+          "ds_name": "caltech256",
+          "ds_size": 30607,
+          "media": "image",
+          "task": ["classification"],
+          "columns": [
+            {"col_name": "image", "col_datatype": "Image"},
+            {"col_name": "category", "col_datatype": "string"}
+          ]
+        },
+        {
+          "ds_name": "stanford-dogs",
+          "ds_size": 20580,
+          "media": "image",
+          "task": ["classification"],
+          "columns": [
+            {"col_name": "image", "col_datatype": "Image"},
+            {"col_name": "breed", "col_datatype": "string"}
+          ]
+        },
+        {
+          "ds_name": "stanford-cars",
+          "ds_size": 16185,
+          "media": "image",
+          "task": ["classification"],
+          "columns": [
+            {"col_name": "image", "col_datatype": "Image"},
+            {"col_name": "make_model", "col_datatype": "string"}
+          ]
+        },
+        {
+          "ds_name": "food-101",
+          "ds_size": 101000,
+          "media": "image",
+          "task": ["classification"],
+          "columns": [
+            {"col_name": "image", "col_datatype": "Image"},
+            {"col_name": "food_item", "col_datatype": "string"}
+          ]
+        },
+        {
+          "ds_name": "places365",
+          "ds_size": 1800000,
+          "media": "image",
+          "task": ["classification"],
+          "columns": [
+            {"col_name": "image", "col_datatype": "Image"},
+            {"col_name": "scene", "col_datatype": "string"}
+          ]
+        },
+        {
+          "ds_name": "visual-layer/food101-vl-enriched",
+          "ds_size": 101000,
+          "media": "image",
+          "task": ["classification"],
+          "columns": [
+            {"col_name": "image", "col_datatype": "Image"},
+            {"col_name": "label", "col_datatype": "string"},
+            {"col_name": "issues", "col_datatype": "list"}
+          ]
+        },
+        {
+          "ds_name": "visual-layer/cifar10-vl-enriched",
+          "ds_size": 60000,
+          "media": "image",
+          "task": ["classification"],
+          "columns": [
+            {"col_name": "image", "col_datatype": "Image"},
+            {"col_name": "label", "col_datatype": "int"},
+            {"col_name": "issues", "col_datatype": "list"}
+          ]
+        }
+    ],
+    "model":
+    [
+      {
+        "model_name": "ResNet-50",
+        "param_num": 23500000,
+        "media_type": "image",
+        "arch_name": "CNN",
+        "trainname": "pre-train",
+        "task": ["classification", "detection"],
+        "module_num": 5,
+        "modules": [
+          {"conv_size": 64, "pool_type": "max"},
+          {"conv_size": 128, "pool_type": "avg"},
+          {"conv_size": 256, "pool_type": "max"},
+          {"conv_size": 512, "pool_type": "avg"},
+          {"conv_size": 1024, "pool_type": "max"}
+        ],
+        "param": 15
+      },
+      {
+        "model_name": "EfficientNet-B0",
+        "param_num": 5300000,
+        "media_type": "image",
+        "arch_name": "CNN",
+        "trainname": "fine-tune",
+        "task": ["classification"],
+        "module_num": 4,
+        "modules": [
+          {"conv_size": 32, "pool_type": "max"},
+          {"conv_size": 64, "pool_type": "avg"},
+          {"conv_size": 128, "pool_type": "max"},
+          {"conv_size": 256, "pool_type": "avg"}
+        ],
+        "param": 12
+      },
+      {
+        "model_name": "VGG16",
+        "param_num": 138357544,
+        "media_type": "image",
+        "arch_name": "CNN",
+        "trainname": "pre-train",
+        "task": ["classification"],
+        "module_num": 13,
+        "modules": [
+          {"conv_size": 64, "pool_type": "max"},
+          {"conv_size": 128, "pool_type": "max"},
+          {"conv_size": 256, "pool_type": "max"},
+          {"conv_size": 512, "pool_type": "max"},
+          {"conv_size": 512, "pool_type": "max"},
+          {"conv_size": 512, "pool_type": "max"},
+          {"conv_size": 512, "pool_type": "max"},
+          {"conv_size": 512, "pool_type": "max"},
+          {"conv_size": 512, "pool_type": "max"},
+          {"conv_size": 512, "pool_type": "max"},
+          {"conv_size": 512, "pool_type": "max"},
+          {"conv_size": 512, "pool_type": "max"},
+          {"conv_size": 512, "pool_type": "max"}
+        ],
+        "param": 20
+      },
+      {
+        "model_name": "MobileNetV2",
+        "param_num": 3500000,
+        "media_type": "image",
+        "arch_name": "CNN",
+        "trainname": "fine-tune",
+        "task": ["classification"],
+        "module_num": 5,
+        "modules": [
+          {"conv_size": 32, "pool_type": "max"},
+          {"conv_size": 64, "pool_type": "avg"},
+          {"conv_size": 128, "pool_type": "max"},
+          {"conv_size": 256, "pool_type": "avg"},
+          {"conv_size": 512, "pool_type": "max"}
+        ],
+        "param": 10
+      },
+      {
+        "model_name": "InceptionV3",
+        "param_num": 23800000,
+        "media_type": "image",
+        "arch_name": "CNN",
+        "trainname": "pre-train",
+        "task": ["classification"],
+        "module_num": 6,
+        "modules": [
+          {"conv_size": 32, "pool_type": "max"},
+          {"conv_size": 64, "pool_type": "avg"},
+          {"conv_size": 128, "pool_type": "max"},
+          {"conv_size": 256, "pool_type": "avg"},
+          {"conv_size": 512, "pool_type": "max"},
+          {"conv_size": 1024, "pool_type": "avg"}
+        ],
+        "param": 18
+      },
+      {
+        "model_name": "DenseNet-121",
+        "param_num": 8000000,
+        "media_type": "image",
+        "arch_name": "CNN",
+        "trainname": "fine-tune",
+        "task": ["classification"],
+        "module_num": 7,
+        "modules": [
+          {"conv_size": 32, "pool_type": "max"},
+          {"conv_size": 64, "pool_type": "avg"},
+          {"conv_size": 128, "pool_type": "max"},
+          {"conv_size": 256, "pool_type": "avg"},
+          {"conv_size": 512, "pool_type": "max"},
+          {"conv_size": 1024, "pool_type": "avg"},
+          {"conv_size": 2048, "pool_type": "max"}
+        ],
+        "param": 22
+      },
+      {
+        "model_name": "YOLOv5",
+        "param_num": 7000000,
+        "media_type": "image",
+        "arch_name": "CNN",
+        "trainname": "fine-tune",
+        "task": ["detection"],
+        "module_num": 4,
+        "modules": [
+          {"conv_size": 64, "pool_type": "max"},
+          {"conv_size": 128, "pool_type": "avg"},
+          {"conv_size": 256, "pool_type": "max"},
+          {"conv_size": 512, "pool_type": "avg"}
+        ],
+        "param": 15
+      },
+      {
+        "model_name": "RetinaNet",
+        "param_num": 3500000,
+        "media_type": "image",
+        "arch_name": "CNN",
+        "trainname": "pre-train",
+        "task": ["detection"],
+        "module_num": 5,
+        "modules": [
+          {"conv_size": 32, "pool_type": "max"},
+          {"conv_size": 64, "pool_type": "avg"},
+          {"conv_size": 128, "pool_type": "max"},
+          {"conv_size": 256, "pool_type": "avg"},
+          {"conv_size": 512, "pool_type": "max"}
+        ],
+        "param": 12
+      },
+      {
+        "model_name": "ResNet-50",
+        "param_num": 23500000,
+        "media_type": "image",
+        "arch_name": "CNN",
+        "trainname": "pre-train",
+        "task": ["classification", "detection"],
+        "module_num": 5,
+        "modules": [
+          {"conv_size": 64, "pool_type": "max"},
+          {"conv_size": 128, "pool_type": "avg"},
+          {"conv_size": 256, "pool_type": "max"},
+          {"conv_size": 512, "pool_type": "avg"},
+          {"conv_size": 1024, "pool_type": "max"}
+        ],
+        "param": 15
+      },
+      {
+        "model_name": "EfficientNet-B0",
+        "param_num": 5300000,
+        "media_type": "image",
+        "arch_name": "CNN",
+        "trainname": "fine-tune",
+        "task": ["classification"],
+        "module_num": 4,
+        "modules": [
+          {"conv_size": 32, "pool_type": "max"},
+          {"conv_size": 64, "pool_type": "avg"},
+          {"conv_size": 128, "pool_type": "max"},
+          {"conv_size": 256, "pool_type": "avg"}
+        ],
+        "param": 12
+      },
+      {
+        "model_name": "LSTM-TextGen-1",
+        "param_num": 22000000,
+        "media_type": "text",
+        "arch_name": "RNN",
+        "trainname": "fine-tune",
+        "task": ["generation"],
+        "criteria": "MSE",
+        "batch_size": 32,
+        "input_size": 256,
+        "param": 10
+      },
+      {
+        "model_name": "LSTM-TextGen-2",
+        "param_num": 24000000,
+        "media_type": "text",
+        "arch_name": "RNN",
+        "trainname": "fine-tune",
+        "task": ["generation"],
+        "criteria": "MSE",
+        "batch_size": 32,
+        "input_size": 256,
+        "param": 10
+      },
+      {
+        "model_name": "LSTM-TextGen-3",
+        "param_num": 26000000,
+        "media_type": "text",
+        "arch_name": "RNN",
+        "trainname": "fine-tune",
+        "task": ["generation"],
+        "criteria": "MSE",
+        "batch_size": 32,
+        "input_size": 256,
+        "param": 10
+      },
+      {
+        "model_name": "LSTM-TextGen-4",
+        "param_num": 28000000,
+        "media_type": "text",
+        "arch_name": "RNN",
+        "trainname": "fine-tune",
+        "task": ["generation"],
+        "criteria": "MSE",
+        "batch_size": 32,
+        "input_size": 256,
+        "param": 10
+      },
+      {
+        "model_name": "LSTM-TextGen-5",
+        "param_num": 30000000,
+        "media_type": "text",
+        "arch_name": "RNN",
+        "trainname": "fine-tune",
+        "task": ["generation"],
+        "criteria": "MSE",
+        "batch_size": 32,
+        "input_size": 256,
+        "param": 10
+      },
+      {
+        "model_name": "SimpleRNN-TextGen-1",
+        "param_num": 22000000,
+        "media_type": "text",
+        "arch_name": "RNN",
+        "trainname": "fine-tune",
+        "task": ["generation"],
+        "criteria": "MSE",
+        "batch_size": 32,
+        "input_size": 256,
+        "param": 10
+      },
+      {
+        "model_name": "SimpleRNN-TextGen-2",
+        "param_num": 24000000,
+        "media_type": "text",
+        "arch_name": "RNN",
+        "trainname": "fine-tune",
+        "task": ["generation"],
+        "criteria": "MSE",
+        "batch_size": 32,
+        "input_size": 256,
+        "param": 10
+      },
+      {
+        "model_name": "SimpleRNN-TextGen-3",
+        "param_num": 26000000,
+        "media_type": "text",
+        "arch_name": "RNN",
+        "trainname": "fine-tune",
+        "task": ["generation"],
+        "criteria": "MSE",
+        "batch_size": 32,
+        "input_size": 256,
+        "param": 10
+      },
+      {
+        "model_name": "SimpleRNN-TextGen-4",
+        "param_num": 28000000,
+        "media_type": "text",
+        "arch_name": "RNN",
+        "trainname": "fine-tune",
+        "task": ["generation"],
+        "criteria": "MSE",
+        "batch_size": 32,
+        "input_size": 256,
+        "param": 10
+      },
+      {
+        "model_name": "SimpleRNN-TextGen-5",
+        "param_num": 30000000,
+        "media_type": "text",
+        "arch_name": "RNN",
+        "trainname": "fine-tune",
+        "task": ["generation"],
+        "criteria": "MSE",
+        "batch_size": 32,
+        "input_size": 256,
+        "param": 10
+      },
+      {
+        "model_name": "GRU-TextGen-1",
+        "param_num": 22000000,
+        "media_type": "text",
+        "arch_name": "RNN",
+        "trainname": "fine-tune",
+        "task": ["generation"],
+        "criteria": "MSE",
+        "batch_size": 32,
+        "input_size": 256,
+        "param": 10
+      },
+      {
+        "model_name": "GRU-TextGen-2",
+        "param_num": 24000000,
+        "media_type": "text",
+        "arch_name": "RNN",
+        "trainname": "fine-tune",
+        "task": ["generation"],
+        "criteria": "MSE",
+        "batch_size": 32,
+        "input_size": 256,
+        "param": 10
+      },
+      {
+        "model_name": "GRU-TextGen-3",
+        "param_num": 26000000,
+        "media_type": "text",
+        "arch_name": "RNN",
+        "trainname": "fine-tune",
+        "task": ["generation"],
+        "criteria": "MSE",
+        "batch_size": 32,
+        "input_size": 256,
+        "param": 10
+      },
+      {
+        "model_name": "GRU-TextGen-4",
+        "param_num": 28000000,
+        "media_type": "text",
+        "arch_name": "RNN",
+        "trainname": "fine-tune",
+        "task": ["generation"],
+        "criteria": "MSE",
+        "batch_size": 32,
+        "input_size": 256,
+        "param": 10
+      },
+      {
+        "model_name": "GRU-TextGen-5",
+        "param_num": 30000000,
+        "media_type": "text",
+        "arch_name": "RNN",
+        "trainname": "fine-tune",
+        "task": ["generation"],
+        "criteria": "MSE",
+        "batch_size": 32,
+        "input_size": 256,
+        "param": 10
+      },
+      {
+        "model_name": "LSTM-TextGen-1",
+        "param_num": 22000000,
+        "media_type": "text",
+        "arch_name": "RNN",
+        "trainname": "fine-tune",
+        "task": ["generation"],
+        "criteria": "MSE",
+        "batch_size": 32,
+        "input_size": 256,
+        "param": 10
+      },
+      {
+        "model_name": "GRU-TextGen-1",
+        "param_num": 24000000,
+        "media_type": "text",
+        "arch_name": "RNN",
+        "trainname": "pre-train",
+        "task": ["generation"],
+        "criteria": "cross-entropy",
+        "batch_size": 32,
+        "input_size": 256,
+        "param": 10
+      },
+      {
+        "model_name": "SimpleRNN-TextGen-1",
+        "param_num": 20000000,
+        "media_type": "text",
+        "arch_name": "RNN",
+        "trainname": "fine-tune",
+        "task": ["generation"],
+        "criteria": "MSE",
+        "batch_size": 32,
+        "input_size": 256,
+        "param": 10
+      },
+      {
+        "model_name": "BidirectionalLSTM-TextGen-1",
+        "param_num": 26000000,
+        "media_type": "text",
+        "arch_name": "RNN",
+        "trainname": "pre-train",
+        "task": ["generation"],
+        "criteria": "cross-entropy",
+        "batch_size": 32,
+        "input_size": 256,
+        "param": 10
+      },
+      {
+        "model_name": "LSTM-Classifier-1",
+        "param_num": 23000000,
+        "media_type": "text",
+        "arch_name": "RNN",
+        "trainname": "fine-tune",
+        "task": ["classification"],
+        "criteria": "cross-entropy",
+        "batch_size": 32,
+        "input_size": 256,
+        "param": 10
+      },
+      {
+        "model_name": "GRU-Classifier-1",
+        "param_num": 25000000,
+        "media_type": "text",
+        "arch_name": "RNN",
+        "trainname": "pre-train",
+        "task": ["classification"],
+        "criteria": "MSE",
+        "batch_size": 32,
+        "input_size": 256,
+        "param": 10
+      },
+      {
+        "model_name": "SimpleRNN-Classifier-1",
+        "param_num": 21000000,
+        "media_type": "text",
+        "arch_name": "RNN",
+        "trainname": "fine-tune",
+        "task": ["classification"],
+        "criteria": "cross-entropy",
+        "batch_size": 32,
+        "input_size": 256,
+        "param": 10
+      },
+      {
+        "model_name": "BidirectionalGRU-Classifier-1",
+        "param_num": 27000000,
+        "media_type": "text",
+        "arch_name": "RNN",
+        "trainname": "pre-train",
+        "task": ["classification"],
+        "criteria": "MSE",
+        "batch_size": 32,
+        "input_size": 256,
+        "param": 10
+      },
+      {
+        "model_name": "LSTM-TextGen-2",
+        "param_num": 22500000,
+        "media_type": "text",
+        "arch_name": "RNN",
+        "trainname": "fine-tune",
+        "task": ["generation"],
+        "criteria": "cross-entropy",
+        "batch_size": 32,
+        "input_size": 256,
+        "param": 10
+      },
+      {
+        "model_name": "GRU-TextGen-2",
+        "param_num": 24500000,
+        "media_type": "text",
+        "arch_name": "RNN",
+        "trainname": "pre-train",
+        "task": ["generation"],
+        "criteria": "MSE",
+        "batch_size": 32,
+        "input_size": 256,
+        "param": 10
+      },
+      {
+        "model_name": "SimpleRNN-TextGen-2",
+        "param_num": 20500000,
+        "media_type": "text",
+        "arch_name": "RNN",
+        "trainname": "fine-tune",
+        "task": ["generation"],
+        "criteria": "cross-entropy",
+        "batch_size": 32,
+        "input_size": 256,
+        "param": 10
+      },
+      {
+        "model_name": "BidirectionalLSTM-TextGen-2",
+        "param_num": 26500000,
+        "media_type": "text",
+        "arch_name": "RNN",
+        "trainname": "pre-train",
+        "task": ["generation"],
+        "criteria": "MSE",
+        "batch_size": 32,
+        "input_size": 256,
+        "param": 10
+      },
+      {
+        "model_name": "LSTM-Classifier-2",
+        "param_num": 23500000,
+        "media_type": "text",
+        "arch_name": "RNN",
+        "trainname": "fine-tune",
+        "task": ["classification"],
+        "criteria": "MSE",
+        "batch_size": 32,
+        "input_size": 256,
+        "param": 10
+      },
+      {
+        "model_name": "GRU-Classifier-2",
+        "param_num": 25500000,
+        "media_type": "text",
+        "arch_name": "RNN",
+        "trainname": "pre-train",
+        "task": ["classification"],
+        "criteria": "cross-entropy",
+        "batch_size": 32,
+        "input_size": 256,
+        "param": 10
+      },
+      {
+        "model_name": "SimpleRNN-Classifier-2",
+        "param_num": 21500000,
+        "media_type": "text",
+        "arch_name": "RNN",
+        "trainname": "fine-tune",
+        "task": ["classification"],
+        "criteria": "MSE",
+        "batch_size": 32,
+        "input_size": 256,
+        "param": 10
+      },
+      {
+        "model_name": "BERT",
+        "param_num": 110000000,
+        "media_type": "text",
+        "arch_name": "Transformer",
+        "trainname": "fine-tune",
+        "task": ["classification"],
+        "decoder_num": 6,
+        "attn_size": 512,
+        "up_size": 2048,
+        "down_size": 1024,
+        "embed_size": 768,
+        "param": 10
+      },
+      {
+        "model_name": "RoBERTa",
+        "param_num": 125000000,
+        "media_type": "text",
+        "arch_name": "Transformer",
+        "trainname": "pre-train",
+        "task": ["classification"],
+        "decoder_num": 6,
+        "attn_size": 512,
+        "up_size": 2048,
+        "down_size": 1024,
+        "embed_size": 768,
+        "param": 10
+      },
+      {
+        "model_name": "DistilBERT",
+        "param_num": 66000000,
+        "media_type": "text",
+        "arch_name": "Transformer",
+        "trainname": "pre-train",
+        "task": ["classification"],
+        "decoder_num": 6,
+        "attn_size": 512,
+        "up_size": 2048,
+        "down_size": 1024,
+        "embed_size": 768,
+        "param": 10
+      },
+      {
+        "model_name": "XLNet",
+        "param_num": 117000000,
+        "media_type": "text",
+        "arch_name": "Transformer",
+        "trainname": "pre-train",
+        "task": ["classification"],
+        "decoder_num": 6,
+        "attn_size": 512,
+        "up_size": 2048,
+        "down_size": 1024,
+        "embed_size": 768,
+        "param": 10
+      },
+      {
+        "model_name": "ALBERT",
+        "param_num": 120000000,
+        "media_type": "text",
+        "arch_name": "Transformer",
+        "trainname": "pre-train",
+        "task": ["classification"],
+        "decoder_num": 6,
+        "attn_size": 512,
+        "up_size": 2048,
+        "down_size": 1024,
+        "embed_size": 768,
+        "param": 10
+      },
+      {
+        "model_name": "GPT-2",
+        "param_num": 117000000,
+        "media_type": "text",
+        "arch_name": "Transformer",
+        "trainname": "pre-train",
+        "task": ["generation"],
+        "decoder_num": 12,
+        "attn_size": 768,
+        "up_size": 3072,
+        "down_size": 1536,
+        "embed_size": 768,
+        "param": 10
+      },
+      {
+        "model_name": "GPT-3",
+        "param_num": 175000000000,
+        "media_type": "text",
+        "arch_name": "Transformer",
+        "trainname": "pre-train",
+        "task": ["generation"],
+        "decoder_num": 96,
+        "attn_size": 12288,
+        "up_size": 49152,
+        "down_size": 24576,
+        "embed_size": 12288,
+        "param": 10
+      },
+      {
+        "model_name": "T5",
+        "param_num": 220000000,
+        "media_type": "text",
+        "arch_name": "Transformer",
+        "trainname": "pre-train",
+        "task": ["generation", "classification"],
+        "decoder_num": 12,
+        "attn_size": 768,
+        "up_size": 3072,
+        "down_size": 1536,
+        "embed_size": 768,
+        "param": 10
+      },
+      {
+        "model_name": "BART",
+        "param_num": 139000000,
+        "media_type": "text",
+        "arch_name": "Transformer",
+        "trainname": "pre-train",
+        "task": ["generation", "classification"],
+        "decoder_num": 12,
+        "attn_size": 768,
+        "up_size": 3072,
+        "down_size": 1536,
+        "embed_size": 768,
+        "param": 10
+      },
+      {
+        "model_name": "DeBERTa",
+        "param_num": 140000000,
+        "media_type": "text",
+        "arch_name": "Transformer",
+        "trainname": "pre-train",
+        "task": ["classification"],
+        "decoder_num": 12,
+        "attn_size": 768,
+        "up_size": 3072,
+        "down_size": 1536,
+        "embed_size": 768,
+        "param": 10
+      },
+      {
+        "model_name": "Longformer",
+        "param_num": 148000000,
+        "media_type": "text",
+        "arch_name": "Transformer",
+        "trainname": "pre-train",
+        "task": ["classification"],
+        "decoder_num": 12,
+        "attn_size": 768,
+        "up_size": 3072,
+        "down_size": 1536,
+        "embed_size": 768,
+        "param": 10
+      },
+      {
+        "model_name": "Electra",
+        "param_num": 140000000,
+        "media_type": "text",
+        "arch_name": "Transformer",
+        "trainname": "pre-train",
+        "task": ["classification"],
+        "decoder_num": 12,
+        "attn_size": 768,
+        "up_size": 3072,
+        "down_size": 1536,
+        "embed_size": 768,
+        "param": 10
+      },
+      {
+        "model_name": "Pegasus",
+        "param_num": 568000000,
+        "media_type": "text",
+        "arch_name": "Transformer",
+        "trainname": "pre-train",
+        "task": ["generation"],
+        "decoder_num": 16,
+        "attn_size": 1024,
+        "up_size": 4096,
+        "down_size": 2048,
+        "embed_size": 1024,
+        "param": 10
+      },
+      {
+        "model_name": "Whisper",
+        "param_num": 155000000,
+        "media_type": "audio",
+        "arch_name": "Transformer",
+        "trainname": "pre-train",
+        "task": ["generation"],
+        "decoder_num": 12,
+        "attn_size": 768,
+        "up_size": 3072,
+        "down_size": 1536,
+        "embed_size": 768,
+        "param": 10
+      },
+      {
+        "model_name": "SpeechT5",
+        "param_num": 220000000,
+        "media_type": "audio",
+        "arch_name": "Transformer",
+        "trainname": "pre-train",
+        "task": ["generation", "classification"],
+        "decoder_num": 12,
+        "attn_size": 768,
+        "up_size": 3072,
+        "down_size": 1536,
+        "embed_size": 768,
+        "param": 10
+      },
+      {
+        "model_name": "Audio Spectrogram Transformer",
+        "param_num": 87000000,
+        "media_type": "audio",
+        "arch_name": "Transformer",
+        "trainname": "fine-tune",
+        "task": ["classification"],
+        "decoder_num": 12,
+        "attn_size": 768,
+        "up_size": 3072,
+        "down_size": 1536,
+        "embed_size": 768,
+        "param": 10
+      },
+      {
+        "model_name": "Speech2Text",
+        "param_num": 120000000,
+        "media_type": "audio",
+        "arch_name": "Transformer",
+        "trainname": "fine-tune",
+        "task": ["generation"],
+        "decoder_num": 6,
+        "attn_size": 512,
+        "up_size": 2048,
+        "down_size": 1024,
+        "embed_size": 512,
+        "param": 10
+      },
+      {
+        "model_name": "TVLT",
+        "param_num": 150000000,
+        "media_type": "audio",
+        "arch_name": "Transformer",
+        "trainname": "pre-train",
+        "task": ["classification"],
+        "decoder_num": 12,
+        "attn_size": 768,
+        "up_size": 3072,
+        "down_size": 1536,
+        "embed_size": 768,
+        "param": 10
+      },
+      {
+        "model_name": "Wav2Vec2",
+        "param_num": 95000000,
+        "media_type": "audio",
+        "arch_name": "Transformer",
+        "trainname": "pre-train",
+        "task": ["classification"],
+        "decoder_num": 12,
+        "attn_size": 768,
+        "up_size": 3072,
+        "down_size": 1536,
+        "embed_size": 768,
+        "param": 10
+      },
+      {
+        "model_name": "HuBERT",
+        "param_num": 94000000,
+        "media_type": "audio",
+        "arch_name": "Transformer",
+        "trainname": "pre-train",
+        "task": ["classification"],
+        "decoder_num": 12,
+        "attn_size": 768,
+        "up_size": 3072,
+        "down_size": 1536,
+        "embed_size": 768,
+        "param": 10
+      },
+      {
+        "model_name": "Conformer",
+        "param_num": 118000000,
+        "media_type": "audio",
+        "arch_name": "Transformer",
+        "trainname": "fine-tune",
+        "task": ["classification"],
+        "decoder_num": 16,
+        "attn_size": 512,
+        "up_size": 2048,
+        "down_size": 1024,
+        "embed_size": 512,
+        "param": 10
+      },
+      {
+        "model_name": "SpeechTransformer",
+        "param_num": 85000000,
+        "media_type": "audio",
+        "arch_name": "Transformer",
+        "trainname": "fine-tune",
+        "task": ["generation"],
+        "decoder_num": 6,
+        "attn_size": 512,
+        "up_size": 2048,
+        "down_size": 1024,
+        "embed_size": 512,
+        "param": 10
+      },
+      {
+        "model_name": "VGGTransformer",
+        "param_num": 90000000,
+        "media_type": "audio",
+        "arch_name": "Transformer",
+        "trainname": "fine-tune",
+        "task": ["classification"],
+        "decoder_num": 8,
+        "attn_size": 512,
+        "up_size": 2048,
+        "down_size": 1024,
+        "embed_size": 512,
+        "param": 10
+      },
+      {
+        "model_name": "AST-Large",
+        "param_num": 121000000,
+        "media_type": "audio",
+        "arch_name": "Transformer",
+        "trainname": "fine-tune",
+        "task": ["classification"],
+        "decoder_num": 24,
+        "attn_size": 1024,
+        "up_size": 4096,
+        "down_size": 2048,
+        "embed_size": 1024,
+        "param": 10
+      },
+      {
+        "model_name": "SpeechBERT",
+        "param_num": 110000000,
+        "media_type": "audio",
+        "arch_name": "Transformer",
+        "trainname": "pre-train",
+        "task": ["classification"],
+        "decoder_num": 12,
+        "attn_size": 768,
+        "up_size": 3072,
+        "down_size": 1536,
+        "embed_size": 768,
+        "param": 10
+      },
+      {
+        "model_name": "AudioBERT",
+        "param_num": 125000000,
+        "media_type": "audio",
+        "arch_name": "Transformer",
+        "trainname": "pre-train",
+        "task": ["classification"],
+        "decoder_num": 12,
+        "attn_size": 768,
+        "up_size": 3072,
+        "down_size": 1536,
+        "embed_size": 768,
+        "param": 10
+      },
+      {
+        "model_name": "ViViT",
+        "param_num": 88000000,
+        "media_type": "video",
+        "arch_name": "Transformer",
+        "trainname": "pre-train",
+        "task": ["classification"],
+        "decoder_num": 12,
+        "attn_size": 768,
+        "up_size": 3072,
+        "down_size": 1536,
+        "embed_size": 768,
+        "param": 10
+      },
+      {
+        "model_name": "VideoMAE",
+        "param_num": 93000000,
+        "media_type": "video",
+        "arch_name": "Transformer",
+        "trainname": "pre-train",
+        "task": ["classification"],
+        "decoder_num": 12,
+        "attn_size": 768,
+        "up_size": 3072,
+        "down_size": 1536,
+        "embed_size": 768,
+        "param": 10
+      },
+      {
+        "model_name": "TimeSformer",
+        "param_num": 121000000,
+        "media_type": "video",
+        "arch_name": "Transformer",
+        "trainname": "pre-train",
+        "task": ["classification"],
+        "decoder_num": 12,
+        "attn_size": 768,
+        "up_size": 3072,
+        "down_size": 1536,
+        "embed_size": 768,
+        "param": 10
+      },
+      {
+        "model_name": "Video Swin Transformer",
+        "param_num": 197000000,
+        "media_type": "video",
+        "arch_name": "Transformer",
+        "trainname": "fine-tune",
+        "task": ["classification"],
+        "decoder_num": 24,
+        "attn_size": 1024,
+        "up_size": 4096,
+        "down_size": 2048,
+        "embed_size": 1024,
+        "param": 10
+      },
+      {
+        "model_name": "MViT",
+        "param_num": 36000000,
+        "media_type": "video",
+        "arch_name": "Transformer",
+        "trainname": "pre-train",
+        "task": ["classification"],
+        "decoder_num": 16,
+        "attn_size": 512,
+        "up_size": 2048,
+        "down_size": 1024,
+        "embed_size": 512,
+        "param": 10
+      },
+      {
+        "model_name": "X3D",
+        "param_num": 35000000,
+        "media_type": "video",
+        "arch_name": "Transformer",
+        "trainname": "fine-tune",
+        "task": ["classification"],
+        "decoder_num": 16,
+        "attn_size": 512,
+        "up_size": 2048,
+        "down_size": 1024,
+        "embed_size": 512,
+        "param": 10
+      },
+      {
+        "model_name": "Video-LLaVA",
+        "param_num": 130000000,
+        "media_type": "video",
+        "arch_name": "Transformer",
+        "trainname": "fine-tune",
+        "task": ["generation"],
+        "decoder_num": 12,
+        "attn_size": 768,
+        "up_size": 3072,
+        "down_size": 1536,
+        "embed_size": 768,
+        "param": 10
+      },
+      {
+        "model_name": "VideoBERT",
+        "param_num": 110000000,
+        "media_type": "video",
+        "arch_name": "Transformer",
+        "trainname": "pre-train",
+        "task": ["classification"],
+        "decoder_num": 12,
+        "attn_size": 768,
+        "up_size": 3072,
+        "down_size": 1536,
+        "embed_size": 768,
+        "param": 10
+      },
+      {
+        "model_name": "VideoGPT",
+        "param_num": 150000000,
+        "media_type": "video",
+        "arch_name": "Transformer",
+        "trainname": "pre-train",
+        "task": ["generation"],
+        "decoder_num": 12,
+        "attn_size": 768,
+        "up_size": 3072,
+        "down_size": 1536,
+        "embed_size": 768,
+        "param": 10
+      },
+      {
+        "model_name": "VideoDiffusion",
+        "param_num": 140000000,
+        "media_type": "video",
+        "arch_name": "Transformer",
+        "trainname": "pre-train",
+        "task": ["generation"],
+        "decoder_num": 12,
+        "attn_size": 768,
+        "up_size": 3072,
+        "down_size": 1536,
+        "embed_size": 768,
+        "param": 10
+      },
+      {
+        "model_name": "AnimateDiff",
+        "param_num": 160000000,
+        "media_type": "video",
+        "arch_name": "Transformer",
+        "trainname": "fine-tune",
+        "task": ["generation"],
+        "decoder_num": 12,
+        "attn_size": 768,
+        "up_size": 3072,
+        "down_size": 1536,
+        "embed_size": 768,
+        "param": 10
+      },
+      {
+        "model_name": "CogVideoX",
+        "param_num": 180000000,
+        "media_type": "video",
+        "arch_name": "Transformer",
+        "trainname": "pre-train",
+        "task": ["generation"],
+        "decoder_num": 12,
+        "attn_size": 768,
+        "up_size": 3072,
+        "down_size": 1536,
+        "embed_size": 768,
+        "param": 10
+      },
+      {
+        "model_name": "HunyuanVideo",
+        "param_num": 200000000,
+        "media_type": "video",
+        "arch_name": "Transformer",
+        "trainname": "pre-train",
+        "task": ["generation"],
+        "decoder_num": 12,
+        "attn_size": 768,
+        "up_size": 3072,
+        "down_size": 1536,
+        "embed_size": 768,
+        "param": 10
+      },
+      {
+        "model_name": "ViT-Base",
+        "param_num": 86000000,
+        "media_type": "image",
+        "arch_name": "Transformer",
+        "trainname": "pre-train",
+        "task": ["classification"],
+        "decoder_num": 12,
+        "attn_size": 768,
+        "up_size": 3072,
+        "down_size": 1536,
+        "embed_size": 768,
+        "param": 10
+      },
+      {
+        "model_name": "Swin-T",
+        "param_num": 29000000,
+        "media_type": "image",
+        "arch_name": "Transformer",
+        "trainname": "pre-train",
+        "task": ["classification"],
+        "decoder_num": 12,
+        "attn_size": 768,
+        "up_size": 3072,
+        "down_size": 1536,
+        "embed_size": 768,
+        "param": 10
+      },
+      {
+        "model_name": "DeiT-Small",
+        "param_num": 22000000,
+        "media_type": "image",
+        "arch_name": "Transformer",
+        "trainname": "pre-train",
+        "task": ["classification"],
+        "decoder_num": 12,
+        "attn_size": 384,
+        "up_size": 1536,
+        "down_size": 768,
+        "embed_size": 384,
+        "param": 10
+      },
+      {
+        "model_name": "BEiT-Base",
+        "param_num": 86000000,
+        "media_type": "image",
+        "arch_name": "Transformer",
+        "trainname": "pre-train",
+        "task": ["classification"],
+        "decoder_num": 12,
+        "attn_size": 768,
+        "up_size": 3072,
+        "down_size": 1536,
+        "embed_size": 768,
+        "param": 10
+      },
+      {
+        "model_name": "PVT-Small",
+        "param_num": 24000000,
+        "media_type": "image",
+        "arch_name": "Transformer",
+        "trainname": "pre-train",
+        "task": ["classification"],
+        "decoder_num": 12,
+        "attn_size": 512,
+        "up_size": 2048,
+        "down_size": 1024,
+        "embed_size": 512,
+        "param": 10
+      },
+      {
+        "model_name": "ImageGPT",
+        "param_num": 76000000,
+        "media_type": "image",
+        "arch_name": "Transformer",
+        "trainname": "pre-train",
+        "task": ["generation"],
+        "decoder_num": 12,
+        "attn_size": 768,
+        "up_size": 3072,
+        "down_size": 1536,
+        "embed_size": 768,
+        "param": 10
+      },
+      {
+        "model_name": "DALL·E",
+        "param_num": 120000000,
+        "media_type": "image",
+        "arch_name": "Transformer",
+        "trainname": "pre-train",
+        "task": ["generation"],
+        "decoder_num": 12,
+        "attn_size": 1024,
+        "up_size": 4096,
+        "down_size": 2048,
+        "embed_size": 1024,
+        "param": 10
+      },
+      {
+        "model_name": "TrOCR-Base",
+        "param_num": 86000000,
+        "media_type": "image",
+        "arch_name": "Transformer",
+        "trainname": "fine-tune",
+        "task": ["classification"],
+        "decoder_num": 12,
+        "attn_size": 768,
+        "up_size": 3072,
+        "down_size": 1536,
+        "embed_size": 768,
+        "param": 10
+      },
+      {
+        "model_name": "SegFormer-B0",
+        "param_num": 3700000,
+        "media_type": "image",
+        "arch_name": "Transformer",
+        "trainname": "pre-train",
+        "task": ["segmentation"],
+        "decoder_num": 12,
+        "attn_size": 256,
+        "up_size": 1024,
+        "down_size": 512,
+        "embed_size": 256,
+        "param": 10
+      },
+      {
+        "model_name": "MaskFormer",
+        "param_num": 85000000,
+        "media_type": "image",
+        "arch_name": "Transformer",
+        "trainname": "fine-tune",
+        "task": ["segmentation"],
+        "decoder_num": 12,
+        "attn_size": 768,
+        "up_size": 3072,
+        "down_size": 1536,
+        "embed_size": 768,
+        "param": 10
+      },
+      {
+        "model_name": "Pix2Seq",
+        "param_num": 90000000,
+        "media_type": "image",
+        "arch_name": "Transformer",
+        "trainname": "pre-train",
+        "task": ["detection"],
+        "decoder_num": 12,
+        "attn_size": 768,
+        "up_size": 3072,
+        "down_size": 1536,
+        "embed_size": 768,
+        "param": 10
+      },
+      {
+        "model_name": "YOLOS-Tiny",
+        "param_num": 6000000,
+        "media_type": "image",
+        "arch_name": "Transformer",
+        "trainname": "pre-train",
+        "task": ["detection"],
+        "decoder_num": 12,
+        "attn_size": 256,
+        "up_size": 1024,
+        "down_size": 512,
+        "embed_size": 256,
+        "param": 10
+      },
+      {
+        "model_name": "ViT-Large",
+        "param_num": 307000000,
+        "media_type": "image",
+        "arch_name": "Transformer",
+        "trainname": "pre-train",
+        "task": ["classification"],
+        "decoder_num": 24,
+        "attn_size": 1024,
+        "up_size": 4096,
+        "down_size": 2048,
+        "embed_size": 1024,
+        "param": 10
+      }
+  ]   
+}
