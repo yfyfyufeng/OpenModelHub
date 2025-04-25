@@ -1,12 +1,16 @@
 import json
 import os
+import sys
 import asyncio
 from pathlib import Path
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 import shutil
+from database_interface import *
+from database_schema import ArchType, Trainname, Media_type, Task_name
 # 添加项目根目录到系统路径
-import sys
+
+
 current_dir = Path(__file__).parent
 project_root = current_dir.parent
 sys.path.extend([str(project_root), str(project_root/"database")])
@@ -28,46 +32,73 @@ def save_file(file_data: bytes, filename: str) -> str:
         f.write(file_data)
     return str(file_path)
 
-# 枚举值映射
+# Mapping string values to enum members
+
 TRAINNAME_MAP = {
     "pre-train": Trainname.PRETRAIN,
     "fine-tune": Trainname.FINETUNE,
-    "finetune": Trainname.FINETUNE,  # 添加不带连字符的版本
-    "rl": Trainname.RL
+    "reinforcement learning": Trainname.RL
 }
 
+ARCHTYPE_MAP = {
+    "cnn": ArchType.CNN,
+    "rnn": ArchType.RNN,
+    "transformer": ArchType.TRANSFORMER
+}
+
+MEDIATYPE_MAP = {
+    "text": Media_type.TEXT,
+    "image": Media_type.IMAGE,
+    "audio": Media_type.AUDIO,
+    "video": Media_type.VIDEO
+}
+
+
+TASKTYPE_SET = {t.value for t in Task_name}
+
 def patch_enum_fields(model: dict) -> dict:
-    """将字符串类型的枚举值转换为对应的枚举类型"""
-    # 处理 trainname
-    trainname = model["trainname"].lower()
-    # 移除可能的前缀
-    if "." in trainname:
-        trainname = trainname.split(".")[-1]
-    # 标准化训练类型名称
-    if trainname == "finetune":
-        trainname = "fine-tune"
+    """
+    Convert string-based enum fields in the model dict to their enum values using mapping.
+    Also validates task names against the TaskType enum.
+    """
+
+    # -------- Trainname --------
+    trainname = model.get("trainname", "").lower()
     if trainname in TRAINNAME_MAP:
         model["trainname"] = TRAINNAME_MAP[trainname]
     else:
-        raise ValueError(f"无效的训练类型: {trainname}")
-    
-    # 处理 arch_name
-    arch_name = model["arch_name"].upper()
-    try:
-        model["arch_name"] = ArchType[arch_name]  # 使用字典访问方式
-    except KeyError:
-        raise ValueError(f"无效的架构类型: {arch_name}")
-    
-    # 处理 media_type
-    media_type = model["media_type"].upper()  # 直接转换为大写
-    try:
-        model["media_type"] = Media_type[media_type]  # 使用字典访问方式
-    except KeyError:
-        raise ValueError(f"无效的媒体类型: {media_type}")
-    
+        raise ValueError(f"❌ Invalid trainname: '{trainname}'. Expected one of: {list(TRAINNAME_MAP.keys())}")
+
+    # -------- ArchType --------
+    arch = model.get("arch_name", "").lower()
+    if arch in ARCHTYPE_MAP:
+        model["arch_name"] = ARCHTYPE_MAP[arch]
+    else:
+        raise ValueError(f"❌ Invalid architecture: '{arch}'. Expected one of: {list(ARCHTYPE_MAP.keys())}")
+
+    # -------- MediaType --------
+    media = model.get("media_type", "").lower()
+    if media in MEDIATYPE_MAP:
+        model["media_type"] = MEDIATYPE_MAP[media]
+    else:
+        raise ValueError(f"❌ Invalid media type: '{media}'. Expected one of: {list(MEDIATYPE_MAP.keys())}")
+
+    # -------- Task List --------
+    if "task" in model:
+        if isinstance(model["task"], list):
+            validated_tasks = []
+            for task in model["task"]:
+                task_lower = task.lower()
+                if task_lower in TASKTYPE_SET:
+                    validated_tasks.append(task_lower)
+                else:
+                    raise ValueError(f"❌ Invalid task type: '{task}'. Expected one of: {list(TASKTYPE_SET)}")
+            model["task"] = validated_tasks
+
     return model
 
 def add_default_values(model: dict) -> dict:
+    
     """为模型添加默认值"""
     defaults = {
         "criteria": "MSE",
@@ -93,6 +124,7 @@ def add_default_values(model: dict) -> dict:
     return model
 
 async def check_user_exists(session: AsyncSession, user_name: str) -> bool:
+    
     """检查用户是否已存在"""
     stmt = select(User).where(User.user_name == user_name)
     result = await session.execute(stmt)
@@ -157,7 +189,16 @@ async def load_json_file(session: AsyncSession, file_path: str, current_user: Us
                 except ValueError as e:
                     print(f"处理模型 {model.get('model_name', '未知')} 时出错: {str(e)}")
                     continue
-    
+
+        if 'task' in data:
+            for task in data['task']:
+                # 处理任务数据
+                task_data = {
+                    "task_name": task['task_name'],
+                    "task_type": task.get('task_type', 'classification')
+                }
+                
+
     print(f"文件 {file_path} 加载完成")
 
 async def load_all_records(session: AsyncSession, current_user: User = None):
@@ -207,8 +248,8 @@ async def load_all_records(session: AsyncSession, current_user: User = None):
     print("数据加载完成")
 
 async def main():
-    """主函数"""
-    # 初始化数据库
+
+    await drop_database()
     await init_database()
     
     # 获取数据库会话
