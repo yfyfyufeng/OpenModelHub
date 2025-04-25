@@ -295,7 +295,7 @@ def render_models():
     st.title("Model Repository")
     
      # Use unified search section
-    if create_search_section("models"):
+    if create_search_section("models", 1):
         return
     
     # Model upload
@@ -478,7 +478,7 @@ def render_models():
 # Modified dataset management
 def render_datasets():
     """Render dataset management page"""
-    st.title("Dataset Management")
+    st.title("Dataset Management", 2)
     
     # Use unified search section
     if create_search_section("datasets"):

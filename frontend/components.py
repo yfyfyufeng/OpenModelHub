@@ -19,7 +19,7 @@ from database.database_schema import ArchType, Media_type, Task_name, Trainname
 nest_asyncio.apply()
 
 # Create global search bar and type query dropdown
-def create_search_section(search_key: str):
+def create_search_section(search_key: str, search_type = 0):
     entity_types = ["All", "Model", "Dataset", "User", "Organization"]
     
     entity_dict = {
@@ -49,7 +49,7 @@ def create_search_section(search_key: str):
             search_type = st.selectbox(
                 "Search Type",
                 entity_types,
-                key=f"search_type_{search_key}"
+                index = search_type,
             )
         with col3:
             search_clicked = st.button(
@@ -132,7 +132,7 @@ class UserManager:
         st.header("👥 User Management")
         
         # Use unified search section
-        if create_search_section("users"):
+        if create_search_section("users", 3):
             return
         
         # Create user form
