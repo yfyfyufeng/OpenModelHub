@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker
 from database_interface import *
 
 # ========= Load Env =========
-load_dotenv()
+load_dotenv()database/db_operations_test_main_0425.py database/db_operations_test_original.py
 DB_USERNAME = os.getenv("DB_USERNAME")
 DB_PASSWORD = os.getenv("DB_PASSWORD")
 DB_HOST = os.getenv("DB_HOST", "127.0.0.1")

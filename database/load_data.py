@@ -161,26 +161,49 @@ async def load_json_file(session: AsyncSession, file_path: str, current_user: Us
     print(f"文件 {file_path} 加载完成")
 
 async def load_all_records(session: AsyncSession, current_user: User = None):
+    
+    
     """加载 records 目录下最新的 JSON 文件"""
+    
     records_dir = Path(__file__).parent / "records"
     
     if not records_dir.exists():
         print(f"目录 {records_dir} 不存在")
         return
     
+    
+    
     # 获取所有JSON文件并按修改时间排序
-    json_files = list(records_dir.glob("data_*.json"))
+    json_files = list(records_dir.glob("*.json"))
     if not json_files:
         print(f"在 {records_dir} 中没有找到数据文件")
         return
     
     # 按修改时间排序，获取最新的文件
-    latest_file = max(json_files, key=lambda x: x.stat().st_mtime)
-    print(f"找到最新的数据文件: {latest_file.name}")
+    # latest_file = max(json_files, key=lambda x: x.stat().st_mtime)
+    json_files.sort(key=lambda x: x.stat().st_mtime, reverse=True)
     
+    print("json files listed in chronological order (newest first):")
+    
+    for i in range(len(json_files)):
+        
+        print(f"{i+1}: {json_files[i].name}")
+        
+    # print(f"找到最新的数据文件: {latest_file.name}")
+    
+    choice = input("Please choose the numeber of file to load:\n> ")
+    try:
+        choice = int(choice)
+        if choice < 1 or choice > len(json_files):
+            print("Invalid input.")
+            return
+        chosen_file = json_files[choice - 1]
+    except:
+        print("Invalid input.")
+        return
+
     # 只加载最新的文件
-    await load_json_file(session, str(latest_file), current_user)
-    
+    await load_json_file(session, str(chosen_file), current_user)    
     print("数据加载完成")
 
 async def main():
