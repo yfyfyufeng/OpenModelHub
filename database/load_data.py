@@ -262,24 +262,48 @@ async def load_json_file(session: AsyncSession, file_path: str, current_user: Us
         if relationship_exist:
             print("Relationship already exists, skipping random relationship creation...")
             if 'user_ds' in data:
-                # 1. user & dataset
                 for user_ds in data['user_ds']:
                     user_id = user_ds['user_id']
                     ds_id = user_ds['ds_id']
-                    await link_user_dataset(session, user_id, ds_id)
+
+                    user_obj = await session.get(User, user_id)
+                    dataset_obj = await session.get(Dataset, ds_id)
+
+                    if user_obj and dataset_obj:
+                        await link_user_dataset(session, user_id, ds_id)
+                    else:
+                        print(f"⚠️ Skipping invalid user_ds link: user_id {user_id} or ds_id {ds_id} not found.")
+
             # 2. model & author
             if 'model_author' in data:
                 for model_author in data['model_author']:
                     model_id = model_author['model_id']
                     user_id = model_author['user_id']
-                    await link_model_author(session, model_id, user_id)
+
+                    # 检查 model_id 和 user_id 是否存在
+                    model_obj = await session.get(Model, model_id)
+                    user_obj = await session.get(User, user_id)
+
+                    if model_obj and user_obj:
+                        await link_model_author(session, model_id, user_id)
+                    else:
+                        print(f"⚠️ Skipping invalid relationship: model_id {model_id} or user_id {user_id} not found.")
+
             # 3. model & dataset
             if 'model_dataset' in data:
                 for model_dataset in data['model_dataset']:
                     model_id = model_dataset['model_id']
                     ds_id = model_dataset['ds_id']
-                    await link_model_dataset(session, model_id, ds_id)  
-            print("Relationships loaded.")  
+
+                    # 检查 model 和 dataset 是否存在
+                    model_obj = await session.get(Model, model_id)
+                    dataset_obj = await session.get(Dataset, ds_id)
+
+                    if model_obj and dataset_obj:
+                        await link_model_dataset(session, model_id, ds_id)
+                    else:
+                        print(f"⚠️ Skipping invalid model_dataset link: model_id {model_id} or dataset_id {ds_id} not found.")
+
         else:
             # 1. random relationship: author and model/ds
             print("Relationship not exist, creating random relationships...")
