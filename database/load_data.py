@@ -135,20 +135,6 @@ async def load_json_file(session: AsyncSession, file_path: str, current_user: Us
         # 插入 Dataset 数据
         if 'dataset' in data:
             for dataset in data['dataset']:
-                # 如果指定了当前用户，使用当前用户作为创建者
-                if current_user:
-                    dataset['creator_id'] = current_user.user_id
-                # 如果数据中指定了创建者，使用指定的创建者
-                elif 'creator' in dataset:
-                    creator = await get_user_by_name(session, dataset['creator'])
-                    if creator:
-                        dataset['creator_id'] = creator.user_id
-                    else:
-                        print(f"警告: 未找到创建者 {dataset['creator']}，使用默认创建者")
-                        dataset['creator_id'] = 1  # 默认使用admin用户
-                else:
-                    dataset['creator_id'] = 1  # 默认使用admin用户
-                
                 # 保存数据集文件
                 if 'file_data' in dataset:
                     file_path = save_file(dataset['file_data'], f"{dataset['ds_name']}.txt")
@@ -159,20 +145,6 @@ async def load_json_file(session: AsyncSession, file_path: str, current_user: Us
         # 插入 Model 数据
         if 'model' in data:
             for model in data['model']:
-                # 如果指定了当前用户，使用当前用户作为创建者
-                if current_user:
-                    model['creator_id'] = current_user.user_id
-                # 如果数据中指定了创建者，使用指定的创建者
-                elif 'creator' in model:
-                    creator = await get_user_by_name(session, model['creator'])
-                    if creator:
-                        model['creator_id'] = creator.user_id
-                    else:
-                        print(f"警告: 未找到创建者 {model['creator']}，使用默认创建者")
-                        model['creator_id'] = 1  # 默认使用admin用户
-                else:
-                    model['creator_id'] = 1  # 默认使用admin用户
-                
                 # 保存模型文件
                 if 'file_data' in model:
                     file_path = save_file(model['file_data'], f"{model['model_name']}.pt")
