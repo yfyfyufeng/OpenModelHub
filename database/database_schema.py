@@ -1,5 +1,5 @@
 from sqlalchemy import (
-    Column, Integer, String, Enum, ForeignKey, Boolean, DateTime, CheckConstraint, LargeBinary
+    Column, Integer, String, Enum, ForeignKey, Boolean, DateTime, CheckConstraint, LargeBinary, UniqueConstraint
 )
 from sqlalchemy.orm import relationship, declarative_base
 from sqlalchemy.dialects.mysql import BIGINT
@@ -115,13 +115,17 @@ class POOLING_TYPE(enum.Enum):
 class Module(Base):
     __tablename__ = 'module'
 
-    model_id = Column(Integer, ForeignKey("cnn.model_id", ondelete='CASCADE'))
-    conv_size = Column(Integer)
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    model_id = Column(Integer, ForeignKey("cnn.model_id", ondelete='CASCADE'), nullable=False)
+    conv_size = Column(Integer, nullable=False)
     pool_type = Column(Enum(POOLING_TYPE), nullable=False)
+
     __table_args__ = (
-        PrimaryKeyConstraint('model_id', 'conv_size', name='pk_module'),
         CheckConstraint('conv_size >= 0', name='conv_size'),
+        # 👇 Ensure (model_id, id) is unique
+        UniqueConstraint('model_id', 'id', name='uq_model_id_module_id')
     )
+
     cnn = relationship("CNN", back_populates="modules")
 
 
