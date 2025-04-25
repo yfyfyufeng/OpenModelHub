@@ -694,6 +694,9 @@ def render_data_insight():
     st.write("## param_num summary:")
     st.dataframe(model["param_num"])
 
+    st.write("## AI Summary:")
+    st.write(model["comment"])
+
     st.write("---")
 
     st.write("# dataset")
@@ -707,7 +710,10 @@ def render_data_insight():
     st.plotly_chart(fig, use_container_width=True)
 
     st.write("## param_num summary:")
-    st.dataframe(model["param_num"])
+    st.dataframe(dataset["ds_size"])
+
+    st.write("## AI Summary:")
+    st.write(dataset["comment"])
 
     st.write("---")
     
