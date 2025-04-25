@@ -71,17 +71,18 @@ If the user asks to see the structure of a table, use the information_schema.col
 
 The database schema is as follows:
 
-- model(model_id, model_name, param_num, media_type, arch_name, trainname)
+- model(model_id, model_name, param_num, media_type, arch_name, trainname, param)
   - model_id: Unique identifier
   - model_name: Name of the model
   - param_num: Number of parameters
   - media_type: Type of media the model handles, in { 'text', 'image', 'audio', 'video' }
   - arch_name: Architecture of the model, in { 'CNN', 'RNN', 'Transformer' }
-  - trainname: Training method, in { 'pretrain', 'fine-tune', 'reinforcement learning' }
+  - trainname: Training method (string): can be 'pretrain', 'fine-tune', 'reinforcement learning'
+  - param: Model parameter binary blob (LargeBinary)
 
 - model_tasks(model_id, task_name)
-  - model_id: Model ID
-  - task_name: Task the model performs, in { 'classification', 'detection', 'generation', 'regression' }
+  - model_id: Foreign key to model
+  - task_name: Task the model performs, in { 'classification', 'detection', 'generation', 'segmentation' }
 
 - cnn(model_id, module_num)
   - model_id: Foreign key to model
@@ -89,7 +90,7 @@ The database schema is as follows:
 
 - module(model_id, conv_size, pool_type)
   - model_id: Foreign key to cnn
-  - conv_size: Size of convolutional kernel (integer ≥ 0)
+  - conv_size: Size of convolution kernel (integer ≥ 0)
   - pool_type: Type of pooling, in { 'max', 'avg', 'min', 'other' }
 
 - transformer(model_id, decoder_num, attn_size, up_size, down_size, embed_size)
@@ -102,32 +103,32 @@ The database schema is as follows:
 
 - rnn(model_id, criteria, batch_size, input_size)
   - model_id: Foreign key to model
-  - criteria: Loss function used (string)
+  - criteria: Loss function name (string)
   - batch_size: Batch size (integer ≥ 0)
   - input_size: Input size (integer ≥ 0)
 
-- Dataset(ds_id, ds_name, ds_size, media, created_at)
+- Dataset(ds_id, ds_name, ds_size, media, created_at, description)
   - ds_id: Dataset ID
   - ds_name: Dataset name
   - ds_size: Number of data samples (integer ≥ 0)
-  - media: Type of media in the dataset, in { 'text', 'image', 'audio', 'video' }
+  - media: Type of media contained, in { 'text', 'image', 'audio', 'video' }
   - created_at: Timestamp of creation
-  - in the attributes, "ds" is the abbreviation of "dataset".
+  - description: A textual description of the dataset
 
 - Dataset_TASK(ds_id, task)
   - ds_id: Foreign key to dataset
-  - task: Task associated with the dataset, in { 'classification', 'detection', 'generation', 'regression' }
+  - task: Associated task, in { 'classification', 'detection', 'generation', 'segmentation' }
 
 - ds_col(ds_id, col_name, col_datatype)
   - ds_id: Foreign key to dataset
-  - col_name: Name of a column in the dataset
+  - col_name: Name of a column
   - col_datatype: Datatype of the column (e.g., 'int', 'string')
 
 - user(user_id, user_name, password_hash, affiliate, is_admin)
   - user_id: User ID
-  - user_name: Unique user name
-  - password_hash: Encrypted password string
-  - affiliate: Text name of organization
+  - user_name: Unique username
+  - password_hash: Hashed password
+  - affiliate: Name of the user's organization
   - is_admin: Boolean flag { true, false }
 
 - affil(affil_id, affil_name)
@@ -135,21 +136,23 @@ The database schema is as follows:
   - affil_name: Name of the organization
 
 - user_affil(user_id, affil_id)
-  - Mapping of user to affiliation
+  - Mapping between user and their affiliations
 
 - model_author(model_id, user_id)
-  - Mapping of model to its author
+  - Mapping between models and authors (users)
 
 - model_dataset(model_id, dataset_id)
-  - Mapping of model to dataset
+  - Mapping between models and datasets
 
 - user_ds(user_id, ds_id)
-  - Mapping of user to dataset
+  - Mapping between users and datasets
 
 # Synonym Handling:
-- If the user query refers to a "language model", map it to "models where media_type = 'text'".
+- If the user query mentions "language model", treat it as "models where media_type = 'text'".
+- If the user query mentions "vision model", treat it as "models where media_type = 'image'".
 
 Only return the SQL query. Do not add explanations.
+
 """
 
 # ----------------------
