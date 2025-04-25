@@ -277,13 +277,13 @@ def create_pagination(items, type, page_size=10, page_key="default"):
             
         # Previous page button
         with col2:
-            if st.button("←", key=f"prev_{page_key}"):
+            if st.button("←", key=f"prev_{page_key}") and st.session_state[page_state_key] > 1:
                 st.session_state[page_state_key] -= 1
                 st.rerun()
         
         # Next page button
         with col3:
-            if st.button("→", key=f"next_{page_key}"):
+            if st.button("→", key=f"next_{page_key}") and st.session_state[page_state_key] < total_pages:
                 st.session_state[page_state_key] += 1
                 st.rerun()
     
@@ -297,43 +297,6 @@ def render_models():
      # Use unified search section
     if create_search_section("models"):
         return
-    
-    # Add search input box
-    st.markdown("""
-        <style>
-        .stButton > button {
-            margin-top: 25px;  /* Adjust this value to match your input height */
-        }
-        div.row-widget.stSelectbox {
-            margin-top: 25px;  /* Match the button margin */
-        }
-        </style>
-    """, unsafe_allow_html=True)
-    
-    with st.container():
-        col1, col2 = st.columns([4.6, 0.4])
-        
-        with col1:
-            search_query = st.text_input("Search Models", placeholder="Enter natural language query")
-        with col2:
-            search_clicked = st.button("Search", key="model_search", use_container_width=True)
-    
-    if search_query and search_clicked:
-        results, query_info = db_api.db_agent_query(search_query)
-        # Display query details
-        with st.expander("Query Details"):
-            st.json({
-                'natural_language_query': query_info['natural_language_query'],
-                'generated_sql': query_info['generated_sql'],
-                'error_code': query_info['error_code'],
-                'has_results': query_info['has_results'],
-                'error': query_info.get('error', None),
-                'sql_res': results
-            })
-        if results:
-            df = pd.DataFrame(results)
-            st.dataframe(df)
-            return
     
     # Model upload
     with st.expander("Upload New Model"):
@@ -511,24 +474,6 @@ def render_models():
         hide_index=True,
         use_container_width=True
     )
-    
-    # Model details sidebar
-    selected_id = st.number_input("Enter model ID to view details", min_value=1)
-    if selected_id:
-        model = db_api.db_get_model(selected_id)
-        if model:
-            with st.expander(f"Model Details - {model.model_name}"):
-                st.write(f"**Architecture Type**: {model.arch_name.value}")
-                st.write(f"**Applicable Media Type**: {model.media_type}")
-                
-                if model.tasks:
-                    st.write("**Supported Tasks**:")
-                    for task in model.tasks:
-                        st.code(task.task_name)
-                
-                # Download button
-                if st.button("Download Model"):
-                    st.success("Download started... (Demo)")
 
 # Modified dataset management
 def render_datasets():
@@ -538,42 +483,6 @@ def render_datasets():
     # Use unified search section
     if create_search_section("datasets"):
         return
-    
-    # Add search input box
-    st.markdown("""
-        <style>
-        .stButton > button {
-            margin-top: 25px;  /* Adjust this value to match your input height */
-        }
-        div.row-widget.stSelectbox {
-            margin-top: 25px;  /* Match the button margin */
-        }
-        </style>
-    """, unsafe_allow_html=True)
-    
-    with st.container():
-        col1, col2 = st.columns([4.6, 0.4])
-        
-        with col1:
-            search_query = st.text_input("Search Datasets", placeholder="Enter natural language query")
-        with col2:
-            search_clicked = st.button("Search", key="dataset_search", use_container_width=True)
-    if search_query and search_clicked:
-        results, query_info = db_api.db_agent_query(search_query)
-        # Display query details
-        with st.expander("Query Details"):
-            st.json({
-                'natural_language_query': query_info['natural_language_query'],
-                'generated_sql': query_info['generated_sql'],
-                'error_code': query_info['error_code'],
-                'has_results': query_info['has_results'],
-                'error': query_info.get('error', None),
-                'sql_res': results
-            })
-        if results:
-            df = pd.DataFrame(results)
-            st.dataframe(df)
-            return
     
     # Dataset upload
     with st.expander("Upload New Dataset"):

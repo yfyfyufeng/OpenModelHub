@@ -42,7 +42,7 @@ def create_search_section(search_key: str):
     """, unsafe_allow_html=True)
     
     with st.container():
-        col1, col2, col3 = st.columns([3.9, 0.7, 0.4])
+        col1, col2, col3 = st.columns([3.9, 0.7, 0.5])
         with col1:
             query = st.text_input("Search", placeholder="Enter natural language query", key=f"search_input_{search_key}")
         with col2:
