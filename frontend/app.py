@@ -348,7 +348,7 @@ def render_datasets():
     # 处理搜索逻辑
     if search_clicked:
         if search_query:  # 自然语言搜索
-            results, query_info = db_api.db_agent_query(search_query)
+            results, query_info = db_api.db_agent_query(search_query, instance_type=2)  # 2 表示数据集类型
             with st.expander("查询详情"):
                 st.json({
                     '自然语言查询': query_info['natural_language_query'],
@@ -470,294 +470,175 @@ def render_models():
     """Render model repository page"""
     st.title("Model Repository")
     
-     # Use unified search section
-    if create_search_section("models"):
-        return
-    
-    # Add search input box
-    st.markdown("""
-        <style>
-        .stButton > button {
-            margin-top: 25px;  /* Adjust this value to match your input height */
-        }
-        div.row-widget.stSelectbox {
-            margin-top: 25px;  /* Match the button margin */
-        }
-        </style>
-    """, unsafe_allow_html=True)
-    
+    # 搜索功能区
     with st.container():
-        col1, col2 = st.columns([4.6, 0.4])
-        
+        col1, col2, col3 = st.columns([3, 2, 1])
         with col1:
-            search_query = st.text_input("Search Models", placeholder="Enter natural language query")
+            search_query = st.text_input("搜索模型", placeholder="输入自然语言查询")
         with col2:
-            search_clicked = st.button("Search", key="model_search", use_container_width=True)
+            model_attr = st.selectbox(
+                "选择字段",
+                ["model_id", "model_name", "param_num", "media_type", "arch_name", "trainname"]
+            )
+            model_val = st.text_input("输入查询值")
+        with col3:
+            search_clicked = st.button("搜索", key="model_search", use_container_width=True)
     
-    if search_query and search_clicked:
-        results, query_info = db_api.db_agent_query(search_query)
-        # Display query details
-        with st.expander("Query Details"):
-            st.json({
-                'natural_language_query': query_info['natural_language_query'],
-                'generated_sql': query_info['generated_sql'],
-                'error_code': query_info['error_code'],
-                'has_results': query_info['has_results'],
-                'error': query_info.get('error', None),
-                'sql_res': results
-            })
-        if results:
-            df = pd.DataFrame(results)
-            st.dataframe(df)
-            return
+    # 处理搜索逻辑
+    if search_clicked:
+        if search_query:  # 自然语言搜索
+            results, query_info = db_api.db_agent_query(search_query, instance_type=1)  # 1 表示模型类型
+            with st.expander("查询详情"):
+                st.json({
+                    '自然语言查询': query_info['natural_language_query'],
+                    '生成SQL': query_info['generated_sql'],
+                    '错误代码': query_info['error_code'],
+                    '是否有结果': query_info['has_results'],
+                    '错误信息': query_info.get('error', None),
+                    '查询结果': results
+                })
+            if results:
+                df = pd.DataFrame(results)
+                st.dataframe(df)
+                return
+        else:  # 属性搜索
+            loop = asyncio.new_event_loop()
+            async def fetch_ids():
+                async with get_db_session()() as session:
+                    return await get_model_ids_by_attribute(
+                        session, model_attr, model_val
+                    )
+            ids = loop.run_until_complete(fetch_ids())
+            if not ids:
+                st.info("未找到符合条件的模型")
+            else:
+                st.session_state.filtered_ids = ids
     
-    # Model upload
-    with st.expander("Upload New Model"):
-        with st.form("model_upload"):
-            name = st.text_input("Model Name")
-            param_num = st.number_input("Parameter Count", min_value=1000, value=1000000)
+    # 模型上传
+    with st.expander("上传新模型", expanded=False):
+        with st.form("model_upload", clear_on_submit=True):
+            name = st.text_input("模型名称*")
+            param_num = st.number_input("参数量", min_value=1000, value=1000000)
             
-            # Architecture type selection
-            arch_types = ["CNN", "RNN", "TRANSFORMER"]
-            arch_type = st.selectbox(
-                "Architecture Type",
-                arch_types,
-                help="Select model architecture type"
-            )
+            col1, col2 = st.columns(2)
+            with col1:
+                arch_type = st.selectbox(
+                    "架构类型*",
+                    ["CNN", "RNN", "TRANSFORMER"],
+                    help="选择模型架构类型"
+                )
+                media_type = st.selectbox(
+                    "媒体类型*",
+                    ["TEXT", "IMAGE", "AUDIO", "VIDEO"],
+                    help="选择适用媒体类型"
+                )
+            with col2:
+                train_type = st.selectbox(
+                    "训练类型*",
+                    ["PRETRAIN", "FINETUNE", "RL"],
+                    help="选择训练类型"
+                )
+                selected_tasks = st.multiselect(
+                    "任务类型*",
+                    ["CLASSIFICATION", "DETECTION", "GENERATION", "SEGMENTATION"],
+                    default=["CLASSIFICATION"]
+                )
             
-            # Media type selection
-            media_types = ["TEXT", "IMAGE", "AUDIO", "VIDEO"]
-            media_type = st.selectbox(
-                "Media Type",
-                media_types,
-                help="Select media type the model is suitable for"
-            )
+            file = st.file_uploader("选择模型文件*", type=["pt", "pth", "ckpt"])
             
-            # Task selection
-            task_types = ["CLASSIFICATION", "DETECTION", "GENERATION", "SEGMENTATION"]
-            selected_tasks = st.multiselect(
-                "Task Types",
-                task_types,
-                default=["CLASSIFICATION"],
-                help="You can select multiple task types"
-            )
-            
-            # Training type selection
-            train_types = ["PRETRAIN", "FINETUNE", "RL"]
-            train_type = st.selectbox(
-                "Training Type",
-                train_types,
-                help="Select model training type"
-            )
-            
-            # File upload
-            file = st.file_uploader("Select Model File", type=["pt", "pth", "ckpt", "bin", "txt"])
-            
-            if st.form_submit_button("Submit"):
-                if file and name:
+            if st.form_submit_button("提交"):
+                if not name or not file:
+                    st.error("带*的字段为必填项")
+                else:
                     try:
-                        # Save file
                         file_path = db_api.db_save_file(file.getvalue(), file.name)
-                        
-                        # Create model
                         model_data = {
                             "model_name": name,
                             "param_num": param_num,
                             "arch_name": arch_type,
-                            "media_type": media_type,  # 直接使用大写值
+                            "media_type": media_type,
                             "tasks": selected_tasks,
                             "trainname": train_type,
-                            "param": str(file_path),
-                            "creator_id": st.session_state.current_user["user_id"] if st.session_state.get("current_user") else 1
+                            "param": str(file_path)
                         }
                         db_api.db_create_model(model_data)
-                        st.success("Model uploaded successfully!")
+                        st.success("模型上传成功！")
                         st.rerun()
                     except Exception as e:
-                        st.error(f"Upload failed: {str(e)}")
-                else:
-                    st.error("Please enter model name and select a file")
-                    
-    st.markdown("""
-        <style>
-        /* Reduce model card padding */
-        .stContainer {
-            padding: 1rem !important;
-        }
-        
-        /* Make subheader smaller */
-        .stMarkdown h3 {
-            font-size: 1.4rem !important;
-            margin: 0 !important;
-            padding: 0 !important;
-        }
-        
-        /* Reduce caption size and spacing */
-        .stMarkdown p {
-            font-size: 0.9rem !important;
-            margin: 0.2rem 0 !important;
-            padding: 0 !important;
-        }
-        
-        /* Make buttons smaller */
-        .stButton button {
-            padding: 0.2rem 1rem !important;
-            height: auto !important;
-        }
-        </style>
-    """, unsafe_allow_html=True)
+                        st.error(f"上传失败：{str(e)}")
     
-    # Display all models
+    # 获取所有模型
     models = db_api.db_list_models()
     
     if not models:
-        st.info("No models available")
+        st.info("暂无可用模型")
         return
     
-    # Sort models by creation time
-    sorted_models = sorted(models, 
-                           key=lambda x: x.created_at if hasattr(x, 'created_at') else datetime.now(), 
-                           reverse=True)
+    # 过滤模型（如果进行了属性搜索）
+    if search_clicked and not search_query and st.session_state.get('filtered_ids'):
+        models = [m for m in models if m.model_id in st.session_state.get('filtered_ids', [])]
     
-    # Get current page items
-    create_pagination(sorted_models, "models")
+    # 显示模型列表
+    create_pagination(models, "models")
     
-    # Display model details
+    # 显示模型详情
     if st.session_state.get("current_page") == "model_detail":
         model = st.session_state.get("selected_model")
         if model:
             st.markdown("---")
-            st.subheader(f"Model Details - {model.model_name}")
+            st.subheader(f"模型详情 - {model.model_name if hasattr(model, 'model_name') else model.get('model_name', '')}")
             
-            col1, col2 = st.columns(2)
-            with col1:
-                st.write("**Architecture Type:**")
-                st.write(model.arch_name.value)
-                
-                st.write("**Media Type:**")
-                st.write(model.media_type.value)
-                
-                st.write("**Parameter Count:**")
-                st.write(f"{model.param_num:,}")
+            # 显示基本信息
+            st.write("**基本信息：**")
+            info_data = {
+                "模型ID": model.model_id if hasattr(model, 'model_id') else model.get('model_id', ''),
+                "架构类型": model.arch_name.value if hasattr(model, 'arch_name') else model.get('arch_name', ''),
+                "参数量": f"{model.param_num:,}" if hasattr(model, 'param_num') else f"{model.get('param_num', 0):,}",
+                "训练类型": model.trainname.value if hasattr(model, 'trainname') else model.get('trainname', '')
+            }
+            st.table(pd.DataFrame(list(info_data.items()), columns=["属性", "值"]))
             
-            with col2:
-                st.write("**Training Type:**")
-                st.write(model.trainname.value)
-                
-                st.write("**Supported Tasks:**")
-                tasks = [task.task_name.value for task in model.tasks] if hasattr(model, 'tasks') else []
-                st.write(", ".join(tasks) if tasks else "No tasks")
+            # 显示关联信息
+            st.write("**关联信息：**")
+            if hasattr(model, 'tasks'):
+                tasks = [task.task_name.value for task in model.tasks]
+            else:
+                tasks = model.get('tasks', [])
             
-            # Download button
-            if st.button("Download Model", key=f"download_{model.model_id}"):
-                file_data = db_api.db_get_file(f"{model.model_name}.pt")
+            if hasattr(model, 'authors'):
+                authors = [author.user_name for author in model.authors]
+            else:
+                authors = model.get('authors', [])
+            
+            if hasattr(model, 'datasets'):
+                datasets = [dataset.ds_name for dataset in model.datasets]
+            else:
+                datasets = model.get('datasets', [])
+            
+            rel_data = {
+                "支持任务": ", ".join(tasks),
+                "作者": ", ".join(authors),
+                "关联数据集": ", ".join(datasets)
+            }
+            st.table(pd.DataFrame(list(rel_data.items()), columns=["类型", "名称"]))
+            
+            # 下载按钮
+            if st.button("下载模型", key=f"download_{model.model_id if hasattr(model, 'model_id') else model.get('model_id', '')}"):
+                file_data = db_api.db_get_file(model.model_name if hasattr(model, 'model_name') else model.get('model_name', '') + ".pt")
                 if file_data:
                     st.download_button(
-                        label="Click to Download",
+                        label="点击下载",
                         data=file_data,
-                        file_name=f"{model.model_name}.pt",
+                        file_name=f"{model.model_name if hasattr(model, 'model_name') else model.get('model_name', '')}.pt",
                         mime="application/octet-stream"
                     )
                 else:
-                    st.error("File does not exist")
+                    st.error("文件不存在")
             
-            # Return button
-            if st.button("Back to List", key="back_to_list"):
+            # 返回按钮
+            if st.button("返回列表", key="back_to_list"):
                 st.session_state.current_page = "models"
                 st.rerun()
-    
-    # If no search or search has no results, display all models
-    models = db_api.db_list_models()
-    
-    # Show model list
-    df = pd.DataFrame([{
-        "ID": model.model_id,
-        "Name": model.model_name,
-        "Type": model.arch_name.value,
-        "Parameter Count": f"{model.param_num:,}" if hasattr(model, 'param_num') else "Unknown"
-    } for model in models])
-    
-    st.dataframe(
-        df,
-        column_config={
-            "ID": "Model ID",
-            "Name": "Model Name",
-            "Type": "Architecture Type",
-            "Parameter Count": "Parameter Count"
-        },
-        hide_index=True,
-        use_container_width=True
-    )
-
-    # 数据集详情查看部分
-    selected_id = st.number_input("输入数据集ID查看详情", min_value=1, step=1)
-    if selected_id:
-        loop = st.session_state.dataset_loop
-
-        async def get_dataset_details():
-            async with get_db_session()() as session:
-                return await get_dataset_info(session, selected_id)
-
-        dataset_info = loop.run_until_complete(get_dataset_details())
-
-        if dataset_info:
-            with st.expander(f"数据集详情 – {dataset_info['dataset']['ds_name']} --basic", expanded=False):
-                # Basic info as dataframe
-                st.subheader("基本信息")
-                basic_info = {
-                    "数据集名称": dataset_info['dataset']['ds_name'],
-                    "数据集ID": dataset_info['dataset']['ds_id'],
-                    "数据量": f"{dataset_info['dataset']['ds_size']:,}",
-                    "媒体类型": str(dataset_info['dataset']['media'].value)
-                    if hasattr(dataset_info['dataset']['media'], 'value')
-                    else str(dataset_info['dataset']['media']),
-                    "创建时间": dataset_info['dataset']['created_at'].strftime("%Y-%m-%d %H:%M")
-                    if dataset_info['dataset']['created_at'] else ""
-                }
-                df_basic = pd.DataFrame(list(basic_info.items()), columns=["属性", "值"])
-                st.dataframe(df_basic, hide_index=True, use_container_width=True)
-
-            with st.expander(f"数据集详情 – {dataset_info['dataset']['ds_name']} --detailed", expanded=False):
-
-                st.subheader("数据集列")
-                if dataset_info['columns']:
-                    df_cols = pd.DataFrame({
-                        "列名/数据类型": [
-                            f"{c.get('col_name', '')}/{c.get('col_datatype', '')}"
-                            for c in dataset_info['columns']
-                        ]
-                    })
-                    st.dataframe(df_cols, hide_index=True, use_container_width=True)
-                else:
-                    st.info("无列信息")
-
-                st.subheader("支持任务")
-                if dataset_info['tasks']:
-                    df_tasks = pd.DataFrame({
-                        "任务": [
-                            str(t.value) if hasattr(t, 'value') else str(t)
-                            for t in dataset_info['tasks']
-                        ]
-                    })
-                    st.dataframe(df_tasks, hide_index=True, use_container_width=True)
-                else:
-                    st.info("无任务信息")
-
-                st.subheader("关联模型")
-                if dataset_info['models']:
-                    df_models = pd.DataFrame({"模型": [str(m) for m in dataset_info['models']]})
-                    st.dataframe(df_models, hide_index=True, use_container_width=True)
-                else:
-                    st.info("无关联模型")
-
-                st.subheader("数据集作者")
-                if dataset_info['authors']:
-                    df_authors = pd.DataFrame({"作者": [str(a) for a in dataset_info['authors']]})
-                    st.dataframe(df_authors, hide_index=True, use_container_width=True)
-                else:
-                    st.info("无作者信息")
-        else:
-            st.error(f"未找到ID为{selected_id}的数据集")
 
 def get_current_page_data(page_type: str):
     """获取当前页面的数据
