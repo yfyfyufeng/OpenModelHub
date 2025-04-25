@@ -7,6 +7,7 @@ import pandas as pd
 import sys
 import asyncio
 from datetime import datetime
+import plotly.express as px
 import nest_asyncio
 current_dir = Path(__file__).parent
 project_root = current_dir.parent
@@ -19,6 +20,7 @@ from database.database_interface import (
     create_user, update_user, delete_user, get_dataset_info, get_model_info,
     get_model_ids_by_attribute, get_dataset_ids_by_attribute
 )
+from data_analysis import data_ins
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import select
@@ -658,6 +660,67 @@ def get_current_page_data(page_type: str):
         st.error(f"获取数据失败: {str(e)}")
         return []
 
+def render_data_insight():
+    attributes = ["media_type", "arch_name", "trainname"]
+    types = {"media_type":["audio", "image", "text", "video"],
+             "arch_name": ["CNN", "RNN", "Transformer"], 
+             "trainname": ["Trainname.FINETUNE", "Trainname.PRETRAIN", "Trainname.RL"],
+            }
+    output = data_ins()
+
+    st.write("# Model")
+    model = output["model"]
+    for attr in attributes:
+        data = pd.DataFrame({
+            "Category": types[attr],
+            "Value": model[attr].values()
+        })
+        fig = px.pie(
+            data,
+            names="Category",
+            values="Value",
+            title=f"number & percentage of each {attr} of model"
+        )
+        st.plotly_chart(fig)
+
+    fig = px.imshow(
+        pd.DataFrame(model["media_task_relation"]),
+        labels=dict(x="media", y="task", color="Value"),
+        color_continuous_scale="Viridis",
+        title="media_task_relation"
+    )
+    st.plotly_chart(fig, use_container_width=True)
+
+    st.write("## param_num summary:")
+    st.dataframe(model["param_num"])
+
+    st.write("---")
+
+    st.write("# dataset")
+    dataset = output["dataset"]
+    fig = px.imshow(
+        pd.DataFrame(dataset["media_task_relation"]),
+        labels=dict(x="media", y="task", color="Value"),
+        color_continuous_scale="Viridis",
+        title="media_task_relation"
+    )
+    st.plotly_chart(fig, use_container_width=True)
+
+    st.write("## param_num summary:")
+    st.dataframe(model["param_num"])
+
+    st.write("---")
+    
+    st.write("# user")
+    user = output["user"]
+    fig = px.bar(
+        user,
+        x="affiliate",
+        y="count",
+        title="Grouped Bar Chart"
+    )
+    st.plotly_chart(fig)
+    
 # User management (admin function)
 def render_users():
     """Render user management page"""
@@ -706,6 +769,9 @@ def main():
         render_users()
     elif page == "系统管理":
         st.write("系统管理功能正在开发中...")
+    elif page == "data insight":
+        #st.write("data insight is under developing")
+        render_data_insight()
 
 if __name__ == "__main__":
     try:
