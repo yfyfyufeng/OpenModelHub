@@ -267,7 +267,65 @@ def render_home():
     with col3:
         st.metric("Registered Users", len(users))
     with col4:
-        st.metric("Today's Downloads", 2543)
+        st.metric("今日下载量", 2543)
+    
+    # 添加导出数据按钮
+    if st.button("导出所有数据"):
+        try:
+            # 获取所有数据
+            json_data = db_api.db_export_all_data()
+            if json_data:
+                # 生成文件名
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                filename = f"data_{timestamp}.json"
+                
+                # 转换为JSON字符串，确保使用UTF-8编码
+                import json
+                json_str = json.dumps(json_data, indent=4, ensure_ascii=False)
+                
+                # 提供下载
+                st.download_button(
+                    label="点击下载数据",
+                    data=json_str.encode('utf-8'),  # 确保使用UTF-8编码
+                    file_name=filename,
+                    mime="application/json"
+                )
+            else:
+                st.error("导出数据失败")
+        except Exception as e:
+            st.error(f"导出数据时出错：{str(e)}")
+    
+    # 添加注册功能
+    if not st.session_state.get('authenticated'):
+        st.markdown("---")
+        st.subheader("新用户注册")
+        with st.form("注册", clear_on_submit=True):
+            new_username = st.text_input("用户名")
+            new_password = st.text_input("密码", type="password")
+            confirm_password = st.text_input("确认密码", type="password")
+            
+            if st.form_submit_button("注册"):
+                if new_username and new_password:
+                    if new_password != confirm_password:
+                        st.error("两次输入的密码不一致")
+                        return
+                    try:
+                        # 检查用户名是否已存在
+                        existing_user = db_api.db_get_user_by_username(new_username)
+                        if existing_user:
+                            st.error("用户名已存在")
+                            return
+                            
+                        # 创建新用户，默认非管理员
+                        user = db_api.db_create_user(new_username, new_password, is_admin=False)
+                        if user:
+                            st.success("注册成功！请使用新账号登录")
+                        else:
+                            st.error("注册失败，请重试")
+                    except Exception as e:
+                        st.error(f"注册失败：{str(e)}")
+                else:
+                    st.error("请填写用户名和密码")
 
 # Pages
 def create_pagination(items, type, page_size=10, page_key="default"):
@@ -366,6 +424,7 @@ def create_unified_search_section(page_type: str = None):
     """
     # Search section
     with st.container():
+        # First row
         col1, col2, col3 = st.columns([3, 2, 1])
         with col1:
             search_query = st.text_input(f"Search {page_type.capitalize() if page_type else ''}", 
@@ -387,7 +446,12 @@ def create_unified_search_section(page_type: str = None):
             elif selected_type == "Users" and page_type != "users":
                 st.session_state.current_page = "users"
                 st.rerun()
-            
+        with col3:
+            search_clicked = st.button("Search", key=f"{page_type}_search", use_container_width=True)
+        
+        # Second row
+        col1, col2, col3 = st.columns([3, 2, 1])
+        with col1:
             # Get appropriate field options based on page type
             if page_type == "models":
                 field_options = ["model_id", "model_name", "param_num", "media_type", "arch_name", "trainname"]
@@ -396,20 +460,32 @@ def create_unified_search_section(page_type: str = None):
             else:
                 field_options = ["user_id", "user_name", "email", "role"]
             
-            field_attr = st.selectbox(
-                "Select Field",
-                field_options
-            )
-            field_val = st.text_input("Enter Query Value")
-        with col3:
-            search_clicked = st.button("Search", key=f"{page_type}_search", use_container_width=True)
+            # Create three columns for field selection, query value and search button
+            field_col1, field_col2, field_col3 = st.columns([1, 1, 0.5])
+            with field_col1:
+                field_attr = st.selectbox(
+                    "Select Field",
+                    field_options
+                )
+            with field_col2:
+                field_val = st.text_input("Enter Query Value")
+            with field_col3:
+                field_search_clicked = st.button("Search", key=f"{page_type}_field_search", use_container_width=True)
     
     # Handle search logic
-    if search_clicked:
-        if search_query:  # Natural language search
+    if search_clicked or field_search_clicked:
+        if search_clicked and search_query:  # Natural language search
             instance_type = 1 if page_type == "models" else (2 if page_type == "datasets" else 3)
             results, query_info = db_api.db_agent_query(search_query, instance_type=instance_type)
-            with st.expander("Query Details"):
+            
+            if results:
+                # First show results table
+                df = pd.DataFrame(results)
+                st.dataframe(df)
+                
+                # Then show query details
+                st.markdown("---")
+                st.subheader("Query Details")
                 st.json({
                     'Natural Language Query': query_info['natural_language_query'],
                     'Generated SQL': query_info['generated_sql'],
@@ -418,11 +494,11 @@ def create_unified_search_section(page_type: str = None):
                     'Error Message': query_info.get('error', None),
                     'Query Results': results
                 })
-            if results:
-                df = pd.DataFrame(results)
-                st.dataframe(df)
                 return True
-        else:  # Attribute search
+            else:
+                st.info("No results found")
+                return True
+        elif field_search_clicked and field_val:  # Attribute search
             try:
                 # Use asyncio.run to create new event loop
                 if page_type == "models":
@@ -670,15 +746,96 @@ def render_datasets():
 # User management (admin function)
 def render_users():
     """Render user management page"""
-    st.title("User Management")
+    st.title("用户管理")
     
-    # Use unified search section
-    if create_unified_search_section("users"):
+    # 获取所有用户
+    users = db_api.db_list_users()
+    
+    if not users:
+        st.info("暂无用户")
         return
     
-    user_manager = UserManager()
-    user_manager.render()
-
+    # 创建用户表单
+    with st.expander("添加新用户", expanded=False):
+        with st.form("new_user", clear_on_submit=True):
+            username = st.text_input("用户名*")
+            password = st.text_input("密码*", type="password")
+            is_admin = st.checkbox("管理员权限")
+            affiliate = st.text_input("所属机构")
+            
+            if st.form_submit_button("创建用户"):
+                if not username or not password:
+                    st.error("带*的字段为必填项")
+                else:
+                    try:
+                        # 检查用户名是否已存在
+                        existing_user = db_api.db_get_user_by_username(username)
+                        if existing_user:
+                            st.error(f"用户名 '{username}' 已存在")
+                        else:
+                            # 创建新用户
+                            db_api.db_create_user(username, password, affiliate, is_admin=is_admin)
+                            st.success("用户创建成功")
+                            st.rerun()
+                    except Exception as e:
+                        st.error(f"创建失败：{str(e)}")
+    
+    # 用户列表
+    st.subheader("用户列表")
+    
+    # 创建用户数据表格
+    user_data = []
+    for user in users:
+        user_data.append({
+            "ID": user.user_id,
+            "用户名": user.user_name,
+            "所属机构": user.affiliate,
+            "管理员": user.is_admin
+        })
+    
+    # 显示用户表格
+    df = pd.DataFrame(user_data)
+    st.dataframe(
+        df,
+        column_config={
+            "ID": st.column_config.NumberColumn("用户ID", width="small"),
+            "用户名": st.column_config.TextColumn("用户名", width="medium"),
+            "所属机构": st.column_config.TextColumn("所属机构", width="medium"),
+            "管理员": st.column_config.CheckboxColumn("管理员权限", width="small")
+        },
+        hide_index=True,
+        use_container_width=True
+    )
+    
+    # 管理员权限管理
+    if st.session_state.get('current_user', {}).get('role') == 'admin':
+        st.subheader("管理员权限管理")
+        selected_user = st.selectbox(
+            "选择用户",
+            options=[(user.user_id, user.user_name) for user in users],
+            format_func=lambda x: x[1]
+        )
+        
+        if selected_user:
+            user_id = selected_user[0]
+            current_user = next((u for u in users if u.user_id == user_id), None)
+            
+            if current_user:
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.write(f"当前用户：{current_user.user_name}")
+                    st.write(f"当前权限：{'管理员' if current_user.is_admin else '普通用户'}")
+                
+                with col2:
+                    if st.button("切换管理员权限", key=f"toggle_admin_{user_id}"):
+                        try:
+                            # 更新用户权限
+                            db_api.db_update_user(user_id, is_admin=not current_user.is_admin)
+                            st.success(f"已{'授予' if not current_user.is_admin else '撤销'} {current_user.user_name} 的管理员权限")
+                            st.rerun()
+                        except Exception as e:
+                            st.error(f"权限更新失败：{str(e)}")
+    
 # Default login function
 def default_login():
     """Use default account to login, for development testing"""

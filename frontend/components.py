@@ -131,9 +131,9 @@ class UserManager:
         """Render user management interface"""
         st.header("👥 User Management")
         
-        # Use unified search section
-        if create_search_section("users", 3):
-            return
+        # # Use unified search section
+        # if create_search_section("users", 3):
+        #     return
         
         # Create user form
         with st.expander("➕ Add New User", expanded=False):
