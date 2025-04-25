@@ -34,8 +34,7 @@ async def create_model(session: AsyncSession, model_data: Dict) -> Union[Model, 
         media_type=model_data["media_type"],
         arch_name=model_data["arch_name"],
         trainname = model_data["trainname"],
-        param = model_data['param'],
-        creator_id = model_data.get("creator_id", 1)  # 默认使用admin用户
+        param = model_data['param']
     )
     session.add(model)
     await session.flush()
@@ -215,14 +214,12 @@ async def create_dataset(session: AsyncSession, dataset_data: dict) -> Dataset:
         ds_name=dataset_data["ds_name"],
         ds_size=dataset_data["ds_size"],
         media=dataset_data["media"],
-        creator_id=dataset_data.get("creator_id", 1),  # 默认使用admin用户
-        file_path=dataset_data.get("file_path", ""),  # 添加文件路径字段
         description=dataset_data.get("description", "")  # 添加描述字段
     )
     session.add(dataset)
     await session.flush()
     
-    print(f"数据集已创建，ID: {dataset.ds_id}, 文件路径: {dataset.file_path}")  # 调试信息
+    print(f"数据集已创建，ID: {dataset.ds_id}")  # 调试信息
 
     for task in dataset_data.get("task", []):
         task_rel = Dataset_TASK(
