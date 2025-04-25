@@ -27,16 +27,23 @@
         {
             "user_id": 2,
             "user_name": "user1",
-            "password_hash": "password1",
+            "password_hash": "123456",
             "affiliate": "清华大学",
             "is_admin": false
         },
         {
             "user_id": 3,
             "user_name": "user2",
-            "password_hash": "password2",
+            "password_hash": "123456",
             "affiliate": "北京大学",
             "is_admin": false
+        },
+        {
+            "user_id": 4,
+            "user_name": "123",
+            "password_hash": "123456",
+            "affiliate": null,
+            "is_admin": true
         }
     ],
     "dataset": [
@@ -1137,6 +1144,34 @@
         },
         {
             "ds_name": "lyf",
+            "ds_size": 1169,
+            "media": "text",
+            "task": [
+                "classification"
+            ],
+            "columns": [
+                {
+                    "col_name": "content",
+                    "col_datatype": "text"
+                }
+            ]
+        },
+        {
+            "ds_name": "2",
+            "ds_size": 1169,
+            "media": "text",
+            "task": [
+                "classification"
+            ],
+            "columns": [
+                {
+                    "col_name": "content",
+                    "col_datatype": "text"
+                }
+            ]
+        },
+        {
+            "ds_name": "288",
             "ds_size": 1169,
             "media": "text",
             "task": [

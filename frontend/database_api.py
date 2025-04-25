@@ -91,7 +91,7 @@ async def db_list_models():
             
             # Load related data for each model
             for model in models:
-                await session.refresh(model, ['tasks', 'authors', 'datasets', 'cnn', 'rnn', 'transformer', 'creator'])
+                await session.refresh(model, ['tasks', 'authors', 'datasets', 'cnn', 'rnn', 'transformer'])
             
             return models
         except Exception as e:
@@ -108,8 +108,7 @@ async def db_get_model(model_id: int):
             selectinload(Model.datasets),
             selectinload(Model.cnn),
             selectinload(Model.rnn),
-            selectinload(Model.transformer),
-            selectinload(Model.creator)  # 添加creator关系的预加载
+            selectinload(Model.transformer)
         ).filter(Model.model_id == model_id)
         result = await session.execute(stmt)
         return result.scalar_one_or_none()
@@ -120,8 +119,7 @@ async def db_list_datasets():
     async with get_db_session()() as session:
         stmt = select(Dataset).options(
             selectinload(Dataset.columns),
-            selectinload(Dataset.Dataset_TASK),
-            selectinload(Dataset.creator)  # 添加creator关系的预加载
+            selectinload(Dataset.Dataset_TASK)
         )
         result = await session.execute(stmt)
         return result.scalars().all()
@@ -145,8 +143,7 @@ async def db_get_dataset(dataset_id: int):
     async with get_db_session()() as session:
         stmt = select(Dataset).options(
             selectinload(Dataset.columns),
-            selectinload(Dataset.Dataset_TASK),
-            selectinload(Dataset.creator)  # 添加creator关系的预加载
+            selectinload(Dataset.Dataset_TASK)
         ).filter(Dataset.ds_id == dataset_id)
         result = await session.execute(stmt)
         return result.scalar_one_or_none()

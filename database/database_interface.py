@@ -17,6 +17,7 @@ import aiomysql
 from dotenv import load_dotenv
 import asyncio
 from sqlalchemy.orm import selectinload
+from datetime import datetime
 
 # --------------------------------------
 # 🔧 Model-related Operations
@@ -214,7 +215,8 @@ async def create_dataset(session: AsyncSession, dataset_data: dict) -> Dataset:
         ds_name=dataset_data["ds_name"],
         ds_size=dataset_data["ds_size"],
         media=dataset_data["media"],
-        description=dataset_data.get("description", "")  # 添加描述字段
+        description=dataset_data.get("description", ""),  # 添加描述字段
+        created_at=datetime.now()  # 添加创建时间
     )
     session.add(dataset)
     await session.flush()

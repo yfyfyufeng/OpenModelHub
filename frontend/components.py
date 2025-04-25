@@ -55,9 +55,15 @@ class Sidebar:
 
     def _render_navigation(self):
         """渲染导航菜单"""
-        menu_items = ["主页", "模型仓库", "数据集", "用户管理"]
-        if self.auth_manager.is_admin():
-            menu_items += ["系统管理"]
+        # 主页始终显示
+        menu_items = ["主页"]
+        
+        # 其他菜单项需要登录
+        if self.auth_manager.is_authenticated():
+            menu_items.extend(["模型仓库", "数据集", "用户管理"])
+            if self.auth_manager.is_admin():
+                menu_items.append("系统管理")
+                
         return st.radio("导航菜单", menu_items)
 
 class UserManager:
@@ -243,3 +249,38 @@ class ModelUploader:
         except Exception as e:
             st.error(f"上传失败：{str(e)}")
             return False
+
+def create_search_section(type: str = None):
+    """创建搜索区域
+    Args:
+        type: 搜索类型，可以是 "models" 或 "datasets"
+    """
+    with st.container():
+        col1, col2 = st.columns([3, 1])
+        with col1:
+            search_query = st.text_input("搜索", placeholder="输入关键词搜索...")
+        with col2:
+            if type:
+                search_type = type
+            else:
+                search_type = st.selectbox("类型", ["全部", "模型", "数据集"])
+        
+        if search_query:
+            # 根据搜索类型和关键词进行搜索
+            if search_type == "全部" or search_type == "models" or search_type == "模型":
+                models = db_api.db_search_models(search_query)
+                if models:
+                    st.subheader("模型搜索结果")
+                    for model in models:
+                        with st.container(border=True):
+                            st.write(f"### {model.model_name}")
+                            st.caption(f"架构: {model.arch_name.value} | 媒体类型: {model.media_type.value}")
+            
+            if search_type == "全部" or search_type == "datasets" or search_type == "数据集":
+                datasets = db_api.db_search_datasets(search_query)
+                if datasets:
+                    st.subheader("数据集搜索结果")
+                    for dataset in datasets:
+                        with st.container(border=True):
+                            st.write(f"### {dataset.ds_name}")
+                            st.caption(f"类型: {dataset.media} | 大小: {dataset.ds_size/1024:.1f}KB")
