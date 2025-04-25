@@ -4,9 +4,18 @@
         {"affil_name": "Peking University"},
         {"affil_name": "Fudan University"},
         {"affil_name": "Shanghai Jiaotong University"},
-        {"affil_name": "The Chinese University of Hong Kong, Shenzhen"}
+        {"affil_name": "The Chinese University of Hong Kong, Shenzhen"},
+        {"affil_name": "Harvard University"},
+        {"affil_name": "University of California, Davis"},
+        {"affil_name": "University of California, Berkeley"},
+        {"affil_name": "Stanford University"},
+        {"affil_name": "Massachusetts Institute of Technology"},
+        {"affil_name": "University of Pennsylvania"},
+        {"affil_name": "University of Chicago"}
     ],
     "user": [
+        {"user_name": "Bradley", "affiliate": "The Chinese University of Hong Kong"},
+        {"user_name": "Rosalind", "affiliate": "The Chinese University of Hong Kong"},
         {"user_name": "Alice", "affiliate": "Tsinghua University"},
         {"user_name": "Bob", "affiliate": "Tsinghua University"},
         {"user_name": "Charlie", "affiliate": "Peking University"},
@@ -15,8 +24,25 @@
         {"user_name": "Frank", "affiliate": "Fudan University"},
         {"user_name": "Grace", "affiliate": "Shanghai Jiaotong University"},
         {"user_name": "Hannah", "affiliate": "Shanghai Jiaotong University"},
-        {"user_name": "Ivy", "affiliate": "The Chinese University of Hong Kong"},
-        {"user_name": "Jack", "affiliate": "The Chinese University of Hong Kong"}
+        {"user_name": "Ivy", "affiliate": "Harvard University"},
+        {"user_name": "Jack", "affiliate": "Harvard University"},
+        {"user_name": "Katherine", "affiliate": "Harvard University"},
+        {"user_name": "Liam", "affiliate": "University of California, Davis"},
+        {"user_name": "Marselo", "affiliate": "University of California, Davis"},
+        {"user_name": "Noah", "affiliate": "University of California, Berkeley"},
+        {"user_name": "Olivia", "affiliate": "Stanford University"},
+        {"user_name": "Parvage", "affiliate": "Stanford University"},
+        {"user_name": "Quinn", "affiliate":  "Massachusetts Institute of Technology"},
+        {"user_name": "Rico", "affiliate":  "Massachusetts Institute of Technology"},
+        {"user_name": "Sophia", "affiliate": "Massachusetts Institute of Technology"},
+        {"user_name": "Thomas", "affiliate": "University of Pennsylvania"},
+        {"user_name": "Uma", "affiliate": "University of Pennsylvania"},
+        {"user_name": "Victor", "affiliate": "University of Pennsylvania"},
+        {"user_name": "Wendy", "affiliate": "University of Pennsylvania"},
+        {"user_name": "Xander", "affiliate": "University of Chicago"},
+        {"user_name": "Yasmine", "affiliate": "University of Chicago"},
+        {"user_name": "Zoe", "affiliate":"University of Chicago"}
+
     ],
     "dataset": [
         {
@@ -2340,6 +2366,5 @@
         "embed_size": 1024,
         "param": 10
       }
-  ]
-    
+  ]   
 }

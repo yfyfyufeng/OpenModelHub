@@ -25,21 +25,26 @@ from datetime import datetime
 # --------------------------------------
 # 🔧 创建模型（按类型分发）
 # --------------------------------------
-async def create_model(session: AsyncSession, model_data: Dict) -> Union[Model, CNN, RNN, Transformer]:
+# --------------------------------------
+# 🔧 创建模型（按类型分发）
+# --------------------------------------
+async def create_model(session: AsyncSession, model_data: Dict, retChild: bool = True) -> Union[Model, CNN, RNN, Transformer]:
     if not model_data.get("task"):
         raise ValueError("A model must have at least one task")
 
+    # Create the base Model
     model = Model(
         model_name=model_data["model_name"],
         param_num=model_data["param_num"],
         media_type=model_data["media_type"],
         arch_name=model_data["arch_name"],
-        trainname = model_data["trainname"],
-        param = model_data['param']
+        trainname=model_data["trainname"],
+        param=model_data["param"]
     )
     session.add(model)
     await session.flush()
 
+    # Insert associated tasks
     for task_name in model_data["task"]:
         task = ModelTask(
             model_id=model.model_id,
@@ -52,11 +57,11 @@ async def create_model(session: AsyncSession, model_data: Dict) -> Union[Model, 
 
     arch_name = model_data["arch_name"]
 
+    # Depending on architecture, create the specific model child table
     if arch_name == ArchType.CNN:
         cnn = CNN(model_id=model.model_id, module_num=model_data["module_num"])
         session.add(cnn)
-        await session.commit()
-        await session.refresh(cnn)
+        await session.flush()
 
         for module_data in model_data.get("modules", []):
             module = Module(
@@ -68,7 +73,7 @@ async def create_model(session: AsyncSession, model_data: Dict) -> Union[Model, 
 
         await session.commit()
         await session.refresh(cnn)
-        return cnn
+        return cnn if retChild else model
 
     elif arch_name == ArchType.RNN:
         rnn = RNN(
@@ -80,7 +85,7 @@ async def create_model(session: AsyncSession, model_data: Dict) -> Union[Model, 
         session.add(rnn)
         await session.commit()
         await session.refresh(rnn)
-        return rnn
+        return rnn if retChild else model
 
     elif arch_name == ArchType.TRANSFORMER:
         tf = Transformer(
@@ -94,10 +99,11 @@ async def create_model(session: AsyncSession, model_data: Dict) -> Union[Model, 
         session.add(tf)
         await session.commit()
         await session.refresh(tf)
-        return tf
+        return tf if retChild else model
 
     else:
         raise ValueError(f"Unsupported architecture type: {arch_name}")
+
 
 
 # --------------------------------------
