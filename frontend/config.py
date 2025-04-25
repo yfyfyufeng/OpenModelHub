@@ -30,12 +30,15 @@ APP_CONFIG = {
 UPLOAD_CONFIG = {
     "allowed_types": ["csv", "txt", "zip"],
     "max_size": 100 * 1024 * 1024  # 100MB
+} 
+
+# 数据上传
+DATA_CONFIG = {
+    "base_dir": project_root / "database" / "data",
+    "models_dir": project_root / "database" / "data" / "models",
+    "datasets_dir": project_root / "database" / "data" / "datasets"
 }
 
-# 数据配置
-DATA_CONFIG = {
-    "data_dir": project_root / "database" / "data",
-    "model_dir": project_root / "database" / "models",
-    "dataset_dir": project_root / "database" / "datasets",
-    "temp_dir": project_root / "database" / "temp"
-} 
+# 如果不存在数据
+for dir_path in DATA_CONFIG.values():
+    dir_path.mkdir(parents=True, exist_ok=True)

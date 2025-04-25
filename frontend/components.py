@@ -15,17 +15,80 @@ from frontend.utils import parse_csv_columns, validate_file_upload
 from frontend.config import UPLOAD_CONFIG
 from database.database_schema import ArchType, Media_type, Task_name, Trainname
 
-# 允许嵌套事件循环
+# Allow nested event loops
 nest_asyncio.apply()
+
+# Create global search bar and type query dropdown
+def create_search_section(search_key: str, search_type = 0):
+    entity_types = ["All", "Model", "Dataset", "User", "Organization"]
+    
+    entity_dict = {
+        "All": 0,
+        "Model": 1,
+        "Dataset": 2,
+        "User": 3,
+        "Organization": 4
+    }
+    
+    st.markdown("""
+        <style>
+        .stButton > button {
+            margin-top: 25px;  /* Adjust this value to match your input height */
+        }
+        div.row-widget.stSelectbox {
+            margin-top: 25px;  /* Match the button margin */
+        }
+        </style>
+    """, unsafe_allow_html=True)
+    
+    with st.container():
+        col1, col2, col3 = st.columns([3.9, 0.7, 0.5])
+        with col1:
+            query = st.text_input("Search", placeholder="Enter natural language query", key=f"search_input_{search_key}")
+        with col2:
+            search_type = st.selectbox(
+                "Search Type",
+                entity_types,
+                index = search_type,
+            )
+        with col3:
+            search_clicked = st.button(
+                "Search", 
+                key=f"search_button_{search_key}",
+                use_container_width=True
+            )
+    
+    if search_clicked and query:
+        # Add type information to query
+        if search_type != "All":
+            query = f"Search {search_type}: {query}"
+        instance_type = entity_dict[search_type]
+        print(instance_type)
+        results, query_info = db_api.db_agent_query(query, instance_type)
+        # Display query details
+        with st.expander("Query Details"):
+            st.json({
+                'natural_language_query': query_info['natural_language_query'],
+                'generated_sql': query_info['generated_sql'],
+                'error_code': query_info['error_code'],
+                'has_results': query_info['has_results'],
+                'error': query_info.get('error', None),
+                'sql_res': results
+            })
+        if results:
+            df = pd.DataFrame(results)
+            st.dataframe(df)
+            return True
+    return False
 
 class Sidebar:
     def __init__(self, auth_manager):
         self.auth_manager = auth_manager
 
     def render(self):
-        """渲染侧边栏"""
+        """Render sidebar"""
         with st.sidebar:
-            st.title("OpenModelHub")
+            st.title("Open Model Hub")
             if not self.auth_manager.is_authenticated():
                 self._render_login_form()
             else:
@@ -33,85 +96,83 @@ class Sidebar:
             return self._render_navigation()
 
     def _render_login_form(self):
-        """渲染登录表单"""
-        with st.form("登录", clear_on_submit=True):
-            username = st.text_input("用户名")
-            password = st.text_input("密码", type="password")
-            if st.form_submit_button("登录"):
-                # 使用当前事件循环
+        """Render login form"""
+        with st.form("Login", clear_on_submit=True):
+            username = st.text_input("Username")
+            password = st.text_input("Password", type="password")
+            if st.form_submit_button("Login"):
+                # Use current event loop
                 loop = asyncio.get_event_loop()
                 if loop.run_until_complete(self.auth_manager.login(username, password)):
                     st.rerun()
                 else:
-                    st.error("用户名或密码错误")
+                    st.error("Incorrect username or password")
 
     def _render_user_info(self):
-        """渲染用户信息"""
+        """Render user information"""
         user = self.auth_manager.get_current_user()
-        st.success(f"欢迎，{user['username']}！")
-        if st.button("退出登录"):
+        st.success(f"Welcome, {user['username']}!")
+        if st.button("Log Out"):
             self.auth_manager.logout()
             st.rerun()
 
     def _render_navigation(self):
-        """渲染导航菜单"""
-        # 主页始终显示
-        menu_items = ["主页"]
-        
-        # 其他菜单项需要登录
-        if self.auth_manager.is_authenticated():
-            menu_items.extend(["模型仓库", "数据集", "用户管理"])
-            if self.auth_manager.is_admin():
-                menu_items.append("系统管理")
-                
-        return st.radio("导航菜单", menu_items)
+        """Render navigation menu"""
+        menu_items = ["Home", "Model Repository", "Datasets", "User Management"]
+        if self.auth_manager.is_admin():
+            menu_items += ["System Management"]
+        return st.radio("Navigation Menu", menu_items)
 
 class UserManager:
     def __init__(self):
         self.users = db_api.db_list_users()
 
     def render(self):
-        """渲染用户管理界面"""
-        st.header("👥 用户管理")
+        """Render user management interface"""
+        st.header("👥 User Management")
         
-        # 创建用户表单
-        with st.expander("➕ 添加新用户", expanded=False):
+        # # Use unified search section
+        # if create_search_section("users", 3):
+        #     return
+        
+        # Create user form
+        with st.expander("➕ Add New User", expanded=False):
             with st.form("new_user", clear_on_submit=True):
-                username = st.text_input("用户名*")
-                password = st.text_input("密码*", type="password")
-                is_admin = st.checkbox("管理员权限")
-                affiliate = st.text_input("所属机构")
+                username = st.text_input("Username*")
+                password = st.text_input("Password*", type="password")
+                is_admin = st.checkbox("Admin Privileges")
+                affiliate = st.text_input("Organization")
                 
-                if st.form_submit_button("创建用户"):
+                if st.form_submit_button("Create User"):
                     if not username or not password:
-                        st.error("带*的字段为必填项")
+                        st.error("Fields marked with * are required")
                     else:
                         try:
-                            # 检查用户名是否已存在
+                            # Check if username already exists
                             existing_user = db_api.db_get_user_by_username(username)
                             if existing_user:
-                                st.error(f"用户名 '{username}' 已存在")
+                                st.error(f"Username '{username}' already exists")
                             else:
-                                # 创建新用户
+                                # Create new user
                                 db_api.db_create_user(username, password, affiliate, is_admin=is_admin)
-                                st.success("用户创建成功")
+                                st.success("User created successfully")
                                 st.rerun()
                         except Exception as e:
-                            st.error(f"创建失败：{str(e)}")
+                            st.error(f"Creation failed: {str(e)}")
         
-        # 用户列表
+        # User list
         df = pd.DataFrame([{
             "ID": user.user_id,
-            "用户名": user.user_name,
-            "所属机构": user.affiliate,
-            "管理员": "✅" if user.is_admin else "❌"
+            "Username": user.user_name,
+            "Organization": user.affiliate,
+            "Admin": "✅" if user.is_admin else "❌"
         } for user in self.users])
         
         st.dataframe(
             df,
             column_config={
-                "ID": "用户ID",
-                "管理员": st.column_config.CheckboxColumn("管理员状态")
+                "ID": "User ID",
+                "Admin": st.column_config.CheckboxColumn("Admin Status")
             },
             use_container_width=True,
             hide_index=True
@@ -123,23 +184,23 @@ class DatasetUploader:
         self.max_size = UPLOAD_CONFIG["max_size"]
 
     def render(self):
-        """渲染数据集上传组件"""
-        with st.expander("📤 上传新数据集", expanded=False):
+        """Render dataset upload component"""
+        with st.expander("📤 Upload New Dataset", expanded=False):
             with st.form("dataset_upload", clear_on_submit=True):
-                name = st.text_input("数据集名称*")
-                desc = st.text_area("描述")
-                media_type = st.selectbox("媒体类型", ["text", "image", "audio", "video"])
-                task_type = st.selectbox("任务类型", ["classification", "detection", "generation"])
-                file = st.file_uploader("选择数据文件*", type=self.allowed_types)
+                name = st.text_input("Dataset Name*")
+                desc = st.text_area("Description")
+                media_type = st.selectbox("Media Type", ["text", "image", "audio", "video"])
+                task_type = st.selectbox("Task Type", ["classification", "detection", "generation"])
+                file = st.file_uploader("Select Data File*", type=self.allowed_types)
                 
-                if st.form_submit_button("提交"):
+                if st.form_submit_button("Submit"):
                     return self._handle_submit(name, desc, media_type, task_type, file)
         return False
 
     def _handle_submit(self, name: str, desc: str, media_type: str, task_type: str, file):
-        """处理表单提交"""
+        """Handle form submission"""
         if not name or not file:
-            st.error("带*的字段为必填项")
+            st.error("Fields marked with * are required")
             return False
 
         is_valid, error_msg = validate_file_upload(file, self.allowed_types, self.max_size)
@@ -148,7 +209,7 @@ class DatasetUploader:
             return False
 
         try:
-            file_path = db_api.db_save_file(file.getvalue(), file.name)
+            file_path = db_api.db_save_file(file.getvalue(), file.name, file_type="datasets")
             columns = []
             if file.name.endswith(".csv"):
                 columns = parse_csv_columns(file.getvalue())
@@ -162,10 +223,10 @@ class DatasetUploader:
             }
             
             db_api.db_create_dataset(name, dataset_data)
-            st.success("数据集上传成功！")
+            st.success("Dataset uploaded successfully!")
             return True
         except Exception as e:
-            st.error(f"上传失败：{str(e)}")
+            st.error(f"Upload failed: {str(e)}")
             return False 
         
 class ModelUploader:
@@ -174,39 +235,39 @@ class ModelUploader:
         self.max_size = UPLOAD_CONFIG["max_size"]
 
     def render(self):
-        """渲染模型上传组件"""
-        with st.expander("📤 上传新模型", expanded=False):
+        """Render model upload component"""
+        with st.expander("📤 Upload New Model", expanded=False):
             with st.form("model_upload", clear_on_submit=True):
                 # Basic Information
-                name = st.text_input("模型名称*")
-                param_num = st.number_input("参数量", min_value=1000, value=1000000)
+                name = st.text_input("Model Name*")
+                param_num = st.number_input("Parameter Count", min_value=1000, value=1000000)
                 
                 # Model Architecture
                 arch_type = st.selectbox(
-                    "架构类型*", 
+                    "Architecture Type*", 
                     options=[arch.value for arch in ArchType]
                 )
                 
                 # Media and Task Types
                 media_type = st.selectbox(
-                    "媒体类型*",
+                    "Media Type*",
                     options=[media.value for media in Media_type]
                 )
                 
                 tasks = st.multiselect(
-                    "任务类型*",
+                    "Task Types*",
                     options=[task.value for task in Task_name]
                 )
                 
                 train_type = st.selectbox(
-                    "训练类型*",
+                    "Training Type*",
                     options=[train.value for train in Trainname]
                 )
                 
                 # File Upload
-                model_file = st.file_uploader("选择模型文件*", type=self.allowed_types)
+                model_file = st.file_uploader("Select Model File*", type=self.allowed_types)
                 
-                if st.form_submit_button("提交"):
+                if st.form_submit_button("Submit"):
                     return self._handle_submit(
                         name=name,
                         param_num=param_num,
@@ -219,9 +280,9 @@ class ModelUploader:
         return False
 
     def _handle_submit(self, name, param_num, arch_type, media_type, tasks, train_type, file):
-        """处理表单提交"""
+        """Handle form submission"""
         if not all([name, arch_type, media_type, tasks, file]):
-            st.error("带*的字段为必填项")
+            st.error("Fields marked with * are required")
             return False
 
         is_valid, error_msg = validate_file_upload(file, self.allowed_types, self.max_size)
@@ -230,7 +291,7 @@ class ModelUploader:
             return False
 
         try:
-            file_path = db_api.db_save_file(file.getvalue(), file.name)
+            file_path = db_api.db_save_file(file.getvalue(), file.name, file_type="models")
             
             model_data = {
                 "model_name": name,
@@ -243,7 +304,7 @@ class ModelUploader:
             }
             
             db_api.db_create_model(model_data)
-            st.success("模型上传成功！")
+            st.success("Model uploaded successfully!")
             return True
             
         except Exception as e:

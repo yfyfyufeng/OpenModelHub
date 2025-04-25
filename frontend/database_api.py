@@ -422,3 +422,36 @@ async def db_export_all_data():
             print(f"导出数据时出错: {str(e)}")
             return None
 
+@async_to_sync
+async def db_update_user(user_id: int, is_admin: bool = None, affiliate: str = None) -> bool:
+    """Update user information
+    Args:
+        user_id: User ID to update
+        is_admin: New admin status (optional)
+        affiliate: New affiliate (optional)
+    Returns:
+        bool: True if update successful, False otherwise
+    """
+    try:
+        async with get_db_session()() as session:
+            # Get user by ID
+            stmt = select(User).filter(User.user_id == user_id)
+            result = await session.execute(stmt)
+            user = result.scalar_one_or_none()
+            
+            if not user:
+                return False
+            
+            # Update fields if provided
+            if is_admin is not None:
+                user.is_admin = is_admin
+            if affiliate is not None:
+                user.affiliate = affiliate
+            
+            # Commit changes
+            await session.commit()
+            return True
+    except Exception as e:
+        print(f"Error updating user: {str(e)}")
+        return False
+
