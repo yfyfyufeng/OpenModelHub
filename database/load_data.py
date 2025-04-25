@@ -124,7 +124,7 @@ async def load_json_file(session: AsyncSession, file_path: str, current_user: Us
                     # 确保用户数据包含密码
                     user_data = {
                         "user_name": user['user_name'],
-                        "password_hash": user.get('password', '123456'),  # 如果没有密码，使用默认密码
+                        "password_hash": user.get('password_hash'),  # 如果没有密码，使用默认密码
                         "affiliate": user.get('affiliate'),
                         "is_admin": user.get('is_admin', False)
                     }

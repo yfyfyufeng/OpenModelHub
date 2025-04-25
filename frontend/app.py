@@ -675,11 +675,8 @@ def render_datasets():
         st.info("No datasets available")
         return
     
-    # Sort datasets by creation time
-    sorted_datasets = sorted(datasets, key=lambda x: x.created_at, reverse=True)
-    
-    # Get current page items
-    create_pagination(sorted_datasets, "datasets")
+    # 直接使用数据集列表，不进行排序
+    create_pagination(datasets, "datasets")
     
     # Display dataset details
     if st.session_state.get("current_page") == "dataset_detail":
@@ -748,22 +745,25 @@ def main():
     # Get current page
     page = sidebar.render()
     
-    # Check authentication status
-    if not auth_manager.is_authenticated() and page != "Home":
-        st.warning("Please login first to access this page")
+    # 主页不需要登录权限
+    if page == "主页":
+        render_home()
+        return
+        
+    # 其他页面需要登录权限
+    if not auth_manager.is_authenticated():
+        st.warning("请先登录以访问此页面")
         return
     
-    # Route to corresponding page
-    if page == "Home":
-        render_home()
-    elif page == "Model Repository":
+    # 路由到对应页面
+    if page == "模型仓库":
         render_models()
-    elif page == "Datasets":
+    elif page == "数据集":
         render_datasets()
-    elif page == "User Management" and auth_manager.is_admin():
+    elif page == "用户管理" and auth_manager.is_admin():
         render_users()
-    elif page == "System Management":
-        st.write("System management functionality under development...")
+    elif page == "系统管理":
+        st.write("系统管理功能正在开发中...")
 
 if __name__ == "__main__":
     try:
