@@ -329,7 +329,7 @@ def render_home():
 
 def render_datasets():
     """Render dataset management page"""
-    st.title("数据集管理")
+    st.title("Dataset Management")
     
     # 搜索功能区
     with st.container():
@@ -363,17 +363,16 @@ def render_datasets():
                 st.dataframe(df)
                 return
         else:  # 属性搜索
-            loop = asyncio.new_event_loop()
-            async def fetch_ids():
-                async with get_db_session()() as session:
-                    return await get_dataset_ids_by_attribute(
-                        session, dataset_attr, dataset_val
-                    )
-            ids = loop.run_until_complete(fetch_ids())
-            if not ids:
-                st.info("未找到符合条件的数据集")
-            else:
-                st.session_state.filtered_ids = ids
+            try:
+                # 使用 asyncio.run 创建新的事件循环
+                ids = asyncio.run(get_dataset_ids_by_attribute(get_db_session()(), dataset_attr, dataset_val))
+                if not ids:
+                    st.info("未找到符合条件的数据集")
+                else:
+                    st.session_state.filtered_ids = ids
+            except Exception as e:
+                st.error(f"搜索失败：{str(e)}")
+                return
     
     # 数据集上传
     with st.expander("上传新数据集", expanded=False):
@@ -502,17 +501,16 @@ def render_models():
                 st.dataframe(df)
                 return
         else:  # 属性搜索
-            loop = asyncio.new_event_loop()
-            async def fetch_ids():
-                async with get_db_session()() as session:
-                    return await get_model_ids_by_attribute(
-                        session, model_attr, model_val
-                    )
-            ids = loop.run_until_complete(fetch_ids())
-            if not ids:
-                st.info("未找到符合条件的模型")
-            else:
-                st.session_state.filtered_ids = ids
+            try:
+                # 使用 asyncio.run 创建新的事件循环
+                ids = asyncio.run(get_model_ids_by_attribute(get_db_session()(), model_attr, model_val))
+                if not ids:
+                    st.info("未找到符合条件的模型")
+                else:
+                    st.session_state.filtered_ids = ids
+            except Exception as e:
+                st.error(f"搜索失败：{str(e)}")
+                return
     
     # 模型上传
     with st.expander("上传新模型", expanded=False):
