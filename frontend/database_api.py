@@ -36,6 +36,15 @@ except (ImportError, ConnectionRefusedError):
 curr_username = None
 curr_password = None
 
+def safe_get_value(obj, attr_name):
+    if hasattr(obj, attr_name):
+        attr = getattr(obj, attr_name)
+        if hasattr(attr, 'value'):  # Check if it's an enum
+            return attr.value
+        else:
+            return attr
+    return "未知"
+
 def is_port_in_use(port):
     try:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
