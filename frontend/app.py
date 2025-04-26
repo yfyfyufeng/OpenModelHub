@@ -682,7 +682,7 @@ def render_data_insight():
         user,
         x="affiliate",
         y="count",
-        title="Grouped Bar Chart"
+        title="user in different affiliations"
     )
     st.plotly_chart(fig)
     
@@ -809,7 +809,7 @@ def main():
 
     elif page == "系统管理":
         st.write("系统管理功能正在开发中...")
-    elif page == "data insight":
+    elif page == "Data Insights":
         #st.write("data insight is under developing")
         render_data_insight()
     elif page == "System Management":
