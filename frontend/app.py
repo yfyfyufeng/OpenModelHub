@@ -806,7 +806,7 @@ def main():
         render_datasets()
     elif page == "User Management" and auth_manager.is_admin():
         render_users()
-    elif page == "Data Insights":
+    elif page == "data insight":
         #st.write("data insight is under developing")
         render_data_insight()
     # elif page == "System Management":
