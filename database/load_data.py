@@ -418,7 +418,7 @@ async def load_all_records(session: AsyncSession, current_user: User = None):
     
     
     await load_json_file(session, str(chosen_file), current_user)    
-    print("Finish loading jjson file.")
+    print("Finish loading json file.")
 
 async def main():
 
