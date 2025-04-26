@@ -295,63 +295,63 @@ def render_home():
     with col4:
         st.metric("Today's Downloads", 2543)
     
-    # 添加导出数据按钮
-    if st.button("导出所有数据"):
+    # Export data button
+    if st.button("Export All Data"):
         try:
-            # 获取所有数据
+            # Get all data
             json_data = db_api.db_export_all_data()
             if json_data:
-                # 生成文件名
+                # Generate filename
                 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
                 filename = f"data_{timestamp}.json"
                 
-                # 转换为JSON字符串，确保使用UTF-8编码
+                # Convert to JSON string with UTF-8 encoding
                 import json
                 json_str = json.dumps(json_data, indent=4, ensure_ascii=False)
                 
-                # 提供下载
+                # Provide download
                 st.download_button(
-                    label="点击下载数据",
-                    data=json_str.encode('utf-8'),  # 确保使用UTF-8编码
+                    label="Download Data",
+                    data=json_str.encode('utf-8'),
                     file_name=filename,
                     mime="application/json"
                 )
             else:
-                st.error("导出数据失败")
+                st.error("Data export failed")
         except Exception as e:
-            st.error(f"导出数据时出错：{str(e)}")
+            st.error(f"Export error: {str(e)}")
     
-    # 添加注册功能
+    # Registration form
     if not st.session_state.get('authenticated'):
         st.markdown("---")
-        st.subheader("新用户注册")
-        with st.form("注册", clear_on_submit=True):
-            new_username = st.text_input("用户名")
-            new_password = st.text_input("密码", type="password")
-            confirm_password = st.text_input("确认密码", type="password")
+        st.subheader("New User Registration")
+        with st.form("Register", clear_on_submit=True):
+            new_username = st.text_input("Username")
+            new_password = st.text_input("Password", type="password")
+            confirm_password = st.text_input("Confirm Password", type="password")
             
-            if st.form_submit_button("注册"):
+            if st.form_submit_button("Register"):
                 if new_username and new_password:
                     if new_password != confirm_password:
-                        st.error("两次输入的密码不一致")
+                        st.error("Passwords do not match")
                         return
                     try:
-                        # 检查用户名是否已存在
+                        # Check if username exists
                         existing_user = db_api.db_get_user_by_username(new_username)
                         if existing_user:
-                            st.error("用户名已存在")
+                            st.error("Username already exists")
                             return
                             
-                        # 创建新用户，默认非管理员
+                        # Create new user (non-admin by default)
                         user = db_api.db_create_user(new_username, new_password, is_admin=False)
                         if user:
-                            st.success("注册成功！请使用新账号登录")
+                            st.success("Registration successful! Please login with new account")
                         else:
-                            st.error("注册失败，请重试")
+                            st.error("Registration failed")
                     except Exception as e:
-                        st.error(f"注册失败：{str(e)}")
+                        st.error(f"Registration error: {str(e)}")
                 else:
-                    st.error("请填写用户名和密码")
+                    st.error("Please fill in username and password")
 
 # Pages
 def create_pagination(items, type, page_size=10, page_key="default"):
@@ -459,7 +459,7 @@ def create_unified_search_section(page_type: str = None):
             # Add type selection dropdown
             selected_type = st.selectbox(
                 "Select Type",
-                ["Models", "Datasets", "Users"],
+                ["All", "Models", "Datasets", "Users"],
                 key=f"type_select_{page_type}",
                 index=1 if page_type == "datasets" else 0
             )
@@ -479,9 +479,12 @@ def create_unified_search_section(page_type: str = None):
         col1, col2, col3 = st.columns([3, 2, 1])
         with col1:
             # Get appropriate field options based on page type
-            if page_type == "models":
+            field_options = []
+            if selected_type == "All":
+                field_options = ["id", "name", "created_at"]
+            elif selected_type == "Models":
                 field_options = ["model_id", "model_name", "param_num", "media_type", "arch_name", "trainname"]
-            elif page_type == "datasets":
+            elif selected_type == "Datasets":
                 field_options = ["ds_id", "ds_name", "ds_size", "media", "created_at"]
             else:
                 field_options = ["user_id", "user_name", "email", "role"]
@@ -501,7 +504,9 @@ def create_unified_search_section(page_type: str = None):
     # Handle search logic
     if search_clicked or field_search_clicked:
         if search_clicked and search_query:  # Natural language search
-            instance_type = 1 if page_type == "models" else (2 if page_type == "datasets" else 3)
+            instance_type = 0 if selected_type == "All" else (
+                1 if selected_type == "Models" else (
+                2 if selected_type == "Datasets" else 3))
             results, query_info = db_api.db_agent_query(search_query, instance_type=instance_type)
             
             if results:
@@ -527,15 +532,20 @@ def create_unified_search_section(page_type: str = None):
         elif field_search_clicked and field_val:  # Attribute search
             try:
                 # Use asyncio.run to create new event loop
-                if page_type == "models":
+                if selected_type == "Models":
                     ids = asyncio.run(get_model_ids_by_attribute(get_db_session()(), field_attr, field_val))
-                elif page_type == "datasets":
+                elif selected_type == "Datasets":
                     ids = asyncio.run(get_dataset_ids_by_attribute(get_db_session()(), field_attr, field_val))
-                else:
+                elif selected_type == "Users":
                     ids = asyncio.run(get_user_ids_by_attribute(get_db_session()(), field_attr, field_val))
+                elif selected_type == "All":
+                    model_ids = asyncio.run(get_model_ids_by_attribute(get_db_session()(), field_attr, field_val))
+                    dataset_ids = asyncio.run(get_dataset_ids_by_attribute(get_db_session()(), field_attr, field_val))
+                    user_ids = asyncio.run(get_user_ids_by_attribute(get_db_session()(), field_attr, field_val))
+                    ids = model_ids + dataset_ids + user_ids
                 
                 if not ids:
-                    st.info(f"No {page_type} found matching the criteria")
+                    st.info(f"No {selected_type} found matching the criteria")
                 else:
                     st.session_state.filtered_ids = ids
                 return True
@@ -835,40 +845,6 @@ def main():
     if page == "Home":
         render_home()
     elif page == "Model Repository":
-        render_models()
-    elif page == "Datasets":
-        render_datasets()
-    elif page == "User Management" and auth_manager.is_admin():
-        render_users()
-    elif page == "System Management":
-        st.write("System management functionality under development...")
-
-if __name__ == "__main__":
-    try:
-        # Start application directly
-        main()
-    except Exception as e:
-        st.error(f"Application startup failed: {str(e)}")
-        print(f"Error details: {str(e)}")
-    # default_login()  # Uncomment to enable default login
-    
-    # Normal mode: use authentication manager
-    auth_manager = AuthManager()
-    sidebar = Sidebar(auth_manager)
-    
-    # Get current page
-    page = sidebar.render()
-    
-    # Home page doesn't require login
-    if page == "Home":
-        render_home()
-        
-    # Other pages require login
-    if not auth_manager.is_authenticated():
-        st.warning("Please login to access this page")
-    
-    # Route to corresponding page
-    if page == "Model Repository":
         render_models()
     elif page == "Datasets":
         render_datasets()

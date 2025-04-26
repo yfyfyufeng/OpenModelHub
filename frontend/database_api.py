@@ -213,23 +213,6 @@ async def db_get_user_by_username(username: str):
 # File operations
 '''
 @async_to_sync
-async def db_get_user_by_id(user_id: int):
-    async with get_db_session()() as session:
-        return await get_user_by_id(session, user_id)
-
-@async_to_sync
-async def db_update_user(user_id: int, is_admin: bool = None):
-    async with get_db_session()() as session:
-        user = await get_user_by_id(session, user_id)
-        if user:
-            if is_admin is not None:
-                user.is_admin = is_admin
-            await session.commit()
-            return user
-        return None
-
-# 文件操作
-@async_to_sync
 async def db_save_file(file_data: bytes, filename: str):
     global curr_username, curr_password
     if is_port_in_use(8080) and SECURITY_AVAILABLE:
