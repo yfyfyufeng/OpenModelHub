@@ -13,11 +13,14 @@ project_root = current_dir.parent
 sys.path.extend([str(project_root), str(project_root/"database")])
 sys.path.extend([str(project_root), str(project_root/"frontend")])
 import frontend.database_api as db_api
+<<<<<<< Updated upstream
 from database.database_interface import (
      get_model_by_id, list_datasets, get_dataset_by_id,
     list_users, get_user_by_id, list_affiliations, init_database,
     create_user, update_user, delete_user
 )
+=======
+>>>>>>> Stashed changes
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import select
@@ -289,13 +292,21 @@ def create_pagination(items, type, page_size=10, page_key="default"):
     
     st.write("")
 
+<<<<<<< Updated upstream
 # Model repository
+=======
+>>>>>>> Stashed changes
 def render_models():
     """Render model repository page"""
     st.title("Model Repository")
     
+<<<<<<< Updated upstream
      # Use unified search section
     if create_search_section("models", 1):
+=======
+    # Use unified search section
+    if create_search_section("models"):
+>>>>>>> Stashed changes
         return
     
     # Model upload
