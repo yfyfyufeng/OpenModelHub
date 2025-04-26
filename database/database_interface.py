@@ -48,7 +48,7 @@ async def create_model(session: AsyncSession, model_data: Dict, retChild: bool =
     for task_name in model_data["task"]:
         task = ModelTask(
             model_id=model.model_id,
-            task_name=task_name
+            task_name=task_name,
         )
         session.add(task)
 
@@ -59,7 +59,7 @@ async def create_model(session: AsyncSession, model_data: Dict, retChild: bool =
 
     # Depending on architecture, create the specific model child table
     if arch_name == ArchType.CNN:
-        cnn = CNN(model_id=model.model_id, module_num=model_data["module_num"])
+        cnn = CNN(model_id=model.model_id, module_num=model_data["module_num"], train_name = model_data["trainname"])
         session.add(cnn)
         await session.flush()
 
@@ -80,7 +80,8 @@ async def create_model(session: AsyncSession, model_data: Dict, retChild: bool =
             model_id=model.model_id,
             criteria=model_data["criteria"],
             batch_size=model_data["batch_size"],
-            input_size=model_data["input_size"]
+            input_size=model_data["input_size"],
+            train_name = model_data["trainname"]
         )
         session.add(rnn)
         await session.commit()
@@ -94,7 +95,8 @@ async def create_model(session: AsyncSession, model_data: Dict, retChild: bool =
             attn_size=model_data["attn_size"],
             up_size=model_data["up_size"],
             down_size=model_data["down_size"],
-            embed_size=model_data["embed_size"]
+            embed_size=model_data["embed_size"],
+            train_name = model_data["trainname"]
         )
         session.add(tf)
         await session.commit()

@@ -255,7 +255,7 @@ async def load_json_file(session: AsyncSession, file_path: str, current_user: Us
                     model_recs.append(model_record)
                     model_media[(model['media_type']).value].append(model['model_name'])
                 except ValueError as e:
-                    print(f"处理模型 {model.get('model_name', '未知')} 时出错: {str(e)}")
+                    print(f"Error when processing model {model.get('model_name', 'UNKNOWN')}: {str(e)}")
                     continue
                 
         # II. relationships
@@ -414,7 +414,7 @@ async def load_all_records(session: AsyncSession, current_user: User = None):
     
     
     await load_json_file(session, str(chosen_file), current_user)    
-    print("Finish loading jjson file.")
+    print("Finish loading json file.")
 
 async def main():
 

@@ -59,6 +59,8 @@ class Task_name(enum.Enum):
     DETECTION = "detection"
     GENERATION = "generation"
     SEGMENTATION = "segmentation"
+    REGRESSION = "regression"
+
 class ModelTask(Base):
     __tablename__ = 'model_tasks'
 
@@ -82,6 +84,8 @@ class Transformer(Base):
     up_size = Column(Integer)
     down_size = Column(Integer)
     embed_size = Column(Integer)
+    # train_name = Column(Enum(Trainname).value, nullable=False
+    train_name = Column(String(30), nullable=False)
     __table_args__ = (
         CheckConstraint('decoder_num >= 0', name='decoder_num'),
         CheckConstraint('attn_size >= 0', name='attn_size'),
@@ -100,6 +104,8 @@ class CNN(Base):
 
     model_id = Column(Integer, ForeignKey("model.model_id"), primary_key=True)
     module_num = Column(Integer)
+    # train_name = Column(Enum(Trainname).value, nullable=False)
+    train_name = Column(String(30), nullable=False)
     __table_args__ = (
         CheckConstraint('module_num >= 0', name='module_num'),
     )
@@ -134,11 +140,12 @@ class Module(Base):
 # ---------------------------
 class RNN(Base):
     __tablename__ = 'rnn'
-
     model_id = Column(Integer, ForeignKey("model.model_id"), primary_key=True)
     criteria = Column(String(50))
     batch_size = Column(Integer)
     input_size = Column(Integer)
+    train_name = Column(String(30), nullable=False)
+
     __table_args__ = (
         CheckConstraint('batch_size >= 0', name='batch_size'),
         CheckConstraint('input_size >= 0', name='input_size'),
