@@ -276,8 +276,8 @@ def sidebar():
                 st.rerun()
             
         menu_items = ["Home", "Model Repository", "Datasets", "User Management"]
-        if st.session_state.current_user and st.session_state.current_user["role"] == "admin":
-            menu_items += ["System Management"]
+        # if st.session_state.current_user and st.session_state.current_user["role"] == "admin":
+        #     menu_items += ["System Management"]
             
         return st.radio("Navigation Menu", menu_items)
 
@@ -806,14 +806,11 @@ def main():
         render_datasets()
     elif page == "User Management" and auth_manager.is_admin():
         render_users()
-
-    elif page == "系统管理":
-        st.write("系统管理功能正在开发中...")
     elif page == "Data Insights":
         #st.write("data insight is under developing")
         render_data_insight()
-    elif page == "System Management":
-        st.write("System management functionality under development...")
+    # elif page == "System Management":
+    #     st.write("System management functionality under development...")
 
 if __name__ == "__main__":
     try:
