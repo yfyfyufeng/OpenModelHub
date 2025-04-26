@@ -631,50 +631,62 @@ def render_models():
         model = st.session_state.get("selected_model")
         if model:
             st.markdown("---")
-            st.subheader(f"Model Details - {model.model_name if hasattr(model, 'model_name') else model.get('model_name', '')}")
+            st.subheader(f"Model Details - {model.model_name}")
             
             # Display basic information
             st.write("**Basic Information:**")
             info_data = {
-                "Model ID": model.model_id if hasattr(model, 'model_id') else model.get('model_id', ''),
-                "Architecture Type": model.arch_name.value if hasattr(model, 'arch_name') else model.get('arch_name', ''),
-                "Parameter Count": f"{model.param_num:,}" if hasattr(model, 'param_num') else f"{model.get('param_num', 0):,}",
-                "Training Type": model.trainname.value if hasattr(model, 'trainname') else model.get('trainname', '')
+                "Model ID": model.model_id,
+                "Architecture Type": model.arch_name.value if hasattr(model.arch_name, 'value') else model.arch_name,
+                "Parameter Count": f"{model.param_num:,}",
+                "Training Type": model.trainname.value if hasattr(model.trainname, 'value') else model.trainname
             }
             st.table(pd.DataFrame(list(info_data.items()), columns=["Property", "Value"]))
             
             # Display related information
             st.write("**Related Information:**")
             if hasattr(model, 'tasks'):
-                tasks = [task.task_name.value for task in model.tasks]
+                tasks = [task.task_name.value if hasattr(task.task_name, 'value') else task.task_name for task in model.tasks]
             else:
-                tasks = model.get('tasks', [])
+                tasks = []
             
             if hasattr(model, 'authors'):
-                authors = [author.user_name for author in model.authors]
+                # Get author information from the database
+                author_ids = [author.user_id for author in model.authors]
+                authors = []
+                for author_id in author_ids:
+                    author = db_api.db_get_user_by_id(author_id)
+                    if author:
+                        authors.append(author.user_name)
             else:
-                authors = model.get('authors', [])
+                authors = []
             
             if hasattr(model, 'datasets'):
-                datasets = [dataset.ds_name for dataset in model.datasets]
+                # Get dataset information from the database
+                dataset_ids = [dataset.dataset_id for dataset in model.datasets]
+                datasets = []
+                for dataset_id in dataset_ids:
+                    dataset = db_api.db_get_dataset(dataset_id)
+                    if dataset:
+                        datasets.append(dataset.ds_name)
             else:
-                datasets = model.get('datasets', [])
+                datasets = []
             
             rel_data = {
-                "Supported Tasks": ", ".join(tasks),
-                "Authors": ", ".join(authors),
-                "Related Datasets": ", ".join(datasets)
+                "Supported Tasks": ", ".join(tasks) if tasks else "No tasks",
+                "Authors": ", ".join(authors) if authors else "No authors",
+                "Related Datasets": ", ".join(datasets) if datasets else "No datasets"
             }
             st.table(pd.DataFrame(list(rel_data.items()), columns=["Type", "Name"]))
             
             # Download button
-            if st.button("Download Model", key=f"download_{model.model_id if hasattr(model, 'model_id') else model.get('model_id', '')}"):
-                file_data = db_api.db_get_file(model.model_name if hasattr(model, 'model_name') else model.get('model_name', '') + ".pt")
+            if st.button("Download Model", key=f"download_{model.model_id}"):
+                file_data = db_api.db_get_file(f"{model.model_name}.pt")
                 if file_data:
                     st.download_button(
                         label="Click to Download",
                         data=file_data,
-                        file_name=f"{model.model_name if hasattr(model, 'model_name') else model.get('model_name', '')}.pt",
+                        file_name=f"{model.model_name}.pt",
                         mime="application/octet-stream"
                     )
                 else:

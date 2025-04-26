@@ -210,25 +210,27 @@ async def db_get_user_by_username(username: str):
         result = await session.execute(stmt)
         return result.scalar_one_or_none()
 
-# File operations
-'''
-@async_to_sync
+
 async def db_save_file(file_data: bytes, filename: str):
     global curr_username, curr_password
     if is_port_in_use(8080) and SECURITY_AVAILABLE:
         key = os.urandom(32)
+@async_to_sync
+async def db_get_user_by_id(user_id: int):
+    """Get user by ID
+    Args:
+        user_id: User ID to get
+    Returns:
+        User object or None if not found
+    """
+    async with get_db_session()() as session:
         try:
-            StoreFile(curr_username, curr_password, filename, key)
+            stmt = select(User).filter(User.user_id == user_id)
+            result = await session.execute(stmt)
+            return result.scalar_one_or_none()
         except Exception as e:
-            print("Error in security: StoreFile:", str(e))
-        file_data = encrypt(key, file_data)
-
-    upload_dir = Path("uploads")
-    upload_dir.mkdir(exist_ok=True)
-    file_path = upload_dir / filename
-    with open(file_path, "wb") as f:
-        f.write(file_data)
-    return str(file_path)
+            print(f"Error getting user by ID: {str(e)}")
+            return None
 
 @async_to_sync
 async def db_get_file(filename: str):
@@ -238,7 +240,8 @@ async def db_get_file(filename: str):
         with open(file_path, "rb") as f:
             return f.read()
     return None
-'''
+
+# File operations
 @async_to_sync
 async def db_save_file(file_data: bytes, filename: str, file_type: str = "datasets"):
     """Save file to specified directory"""
