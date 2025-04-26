@@ -13,12 +13,6 @@ project_root = current_dir.parent
 sys.path.extend([str(project_root), str(project_root/"database")])
 sys.path.extend([str(project_root), str(project_root/"frontend")])
 import frontend.database_api as db_api
-from database.database_interface import (
-    get_model_by_id, list_datasets, get_dataset_by_id,
-    list_users, get_user_by_id, list_affiliations, init_database,
-    create_user, update_user, delete_user, get_dataset_info, get_model_info,
-    get_model_ids_by_attribute, get_dataset_ids_by_attribute, get_user_ids_by_attribute
-)
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import select
@@ -440,127 +434,12 @@ def create_pagination(items, type, page_size=10, page_key="default"):
     
     st.write("")
 
-# Model repository
-def create_unified_search_section(page_type: str = None):
-    """Create unified search section for different pages
-    Args:
-        page_type: Type of page (models, datasets, users)
-    Returns:
-        bool: True if search was performed, False otherwise
-    """
-    # Search section
-    with st.container():
-        # First row
-        col1, col2, col3 = st.columns([3, 2, 1])
-        with col1:
-            search_query = st.text_input(f"Search {page_type.capitalize() if page_type else ''}", 
-                                       placeholder="Enter natural language query")
-        with col2:
-            # Add type selection dropdown
-            selected_type = st.selectbox(
-                "Select Type",
-                ["All", "Models", "Datasets", "Users"],
-                key=f"type_select_{page_type}",
-                index=1 if page_type == "datasets" else 0
-            )
-            if selected_type == "Models" and page_type != "models":
-                st.session_state.current_page = "models"
-                st.rerun()
-            elif selected_type == "Datasets" and page_type != "datasets":
-                st.session_state.current_page = "datasets"
-                st.rerun()
-            elif selected_type == "Users" and page_type != "users":
-                st.session_state.current_page = "users"
-                st.rerun()
-        with col3:
-            search_clicked = st.button("Search", key=f"{page_type}_search", use_container_width=True)
-        
-        # Second row
-        col1, col2, col3 = st.columns([3, 2, 1])
-        with col1:
-            # Get appropriate field options based on page type
-            field_options = []
-            if selected_type == "All":
-                field_options = ["id", "name", "created_at"]
-            elif selected_type == "Models":
-                field_options = ["model_id", "model_name", "param_num", "media_type", "arch_name", "trainname"]
-            elif selected_type == "Datasets":
-                field_options = ["ds_id", "ds_name", "ds_size", "media", "created_at"]
-            else:
-                field_options = ["user_id", "user_name", "email", "role"]
-            
-            # Create three columns for field selection, query value and search button
-            field_col1, field_col2, field_col3 = st.columns([1, 1, 0.5])
-            with field_col1:
-                field_attr = st.selectbox(
-                    "Select Field",
-                    field_options
-                )
-            with field_col2:
-                field_val = st.text_input("Enter Query Value")
-            with field_col3:
-                field_search_clicked = st.button("Search", key=f"{page_type}_field_search", use_container_width=True)
-    
-    # Handle search logic
-    if search_clicked or field_search_clicked:
-        if search_clicked and search_query:  # Natural language search
-            instance_type = 0 if selected_type == "All" else (
-                1 if selected_type == "Models" else (
-                2 if selected_type == "Datasets" else 3))
-            results, query_info = db_api.db_agent_query(search_query, instance_type=instance_type)
-            
-            if results:
-                # First show results table
-                df = pd.DataFrame(results)
-                st.dataframe(df)
-                
-                # Then show query details
-                st.markdown("---")
-                st.subheader("Query Details")
-                st.json({
-                    'Natural Language Query': query_info['natural_language_query'],
-                    'Generated SQL': query_info['generated_sql'],
-                    'Error Code': query_info['error_code'],
-                    'Has Results': query_info['has_results'],
-                    'Error Message': query_info.get('error', None),
-                    'Query Results': results
-                })
-                return True
-            else:
-                st.info("No results found")
-                return True
-        elif field_search_clicked and field_val:  # Attribute search
-            try:
-                # Use asyncio.run to create new event loop
-                if selected_type == "Models":
-                    ids = asyncio.run(get_model_ids_by_attribute(get_db_session()(), field_attr, field_val))
-                elif selected_type == "Datasets":
-                    ids = asyncio.run(get_dataset_ids_by_attribute(get_db_session()(), field_attr, field_val))
-                elif selected_type == "Users":
-                    ids = asyncio.run(get_user_ids_by_attribute(get_db_session()(), field_attr, field_val))
-                elif selected_type == "All":
-                    model_ids = asyncio.run(get_model_ids_by_attribute(get_db_session()(), field_attr, field_val))
-                    dataset_ids = asyncio.run(get_dataset_ids_by_attribute(get_db_session()(), field_attr, field_val))
-                    user_ids = asyncio.run(get_user_ids_by_attribute(get_db_session()(), field_attr, field_val))
-                    ids = model_ids + dataset_ids + user_ids
-                
-                if not ids:
-                    st.info(f"No {selected_type} found matching the criteria")
-                else:
-                    st.session_state.filtered_ids = ids
-                return True
-            except Exception as e:
-                st.error(f"Search failed: {str(e)}")
-                return True
-    
-    return False
-
 def render_models():
     """Render model repository page"""
     st.title("Model Repository")
     
     # Use unified search section
-    if create_unified_search_section("models"):
+    if create_search_section("models"):
         return
     
     # Model upload
@@ -690,7 +569,7 @@ def render_datasets():
     st.title("Dataset Management")
     
     # Use unified search section
-    if create_unified_search_section("datasets"):
+    if create_search_section("datasets"):
         return
     
     # Dataset upload
