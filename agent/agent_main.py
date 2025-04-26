@@ -235,7 +235,7 @@ async def query_agent(nl_input: str, verbose = False, session = None, instance_t
     
     instance_dict = {
       1: 'model',
-      2: 'Dataset',
+      2: 'dataset',
       3: 'user',
       4: 'affiliation'
     }
@@ -243,9 +243,10 @@ async def query_agent(nl_input: str, verbose = False, session = None, instance_t
     if verbose: print("🎯 User input:", nl_input)
     
     # preprocess user input: input from different pages
-    if instance_type in instance_dict:
-      
+    if instance_type != 0 and instance_type in instance_dict:
       nl_input += f"\nUser wants to search for {instance_dict[instance_type]} instances."
+    elif instance_type == 0:
+      nl_input += "\nUser wants to search for model, dataset, user and affiliation instances."
     
     if verbose: print("🎯 Preprocessed input:", nl_input)
 

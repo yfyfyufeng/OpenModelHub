@@ -210,42 +210,27 @@ async def db_get_user_by_username(username: str):
         result = await session.execute(stmt)
         return result.scalar_one_or_none()
 
-# File operations
-'''
-@async_to_sync
-async def db_get_user_by_id(user_id: int):
-    async with get_db_session()() as session:
-        return await get_user_by_id(session, user_id)
 
-@async_to_sync
-async def db_update_user(user_id: int, is_admin: bool = None):
-    async with get_db_session()() as session:
-        user = await get_user_by_id(session, user_id)
-        if user:
-            if is_admin is not None:
-                user.is_admin = is_admin
-            await session.commit()
-            return user
-        return None
-
-# 文件操作
-@async_to_sync
 async def db_save_file(file_data: bytes, filename: str):
     global curr_username, curr_password
     if is_port_in_use(8080) and SECURITY_AVAILABLE:
         key = os.urandom(32)
+@async_to_sync
+async def db_get_user_by_id(user_id: int):
+    """Get user by ID
+    Args:
+        user_id: User ID to get
+    Returns:
+        User object or None if not found
+    """
+    async with get_db_session()() as session:
         try:
-            StoreFile(curr_username, curr_password, filename, key)
+            stmt = select(User).filter(User.user_id == user_id)
+            result = await session.execute(stmt)
+            return result.scalar_one_or_none()
         except Exception as e:
-            print("Error in security: StoreFile:", str(e))
-        file_data = encrypt(key, file_data)
-
-    upload_dir = Path("uploads")
-    upload_dir.mkdir(exist_ok=True)
-    file_path = upload_dir / filename
-    with open(file_path, "wb") as f:
-        f.write(file_data)
-    return str(file_path)
+            print(f"Error getting user by ID: {str(e)}")
+            return None
 
 @async_to_sync
 async def db_get_file(filename: str):
@@ -255,7 +240,8 @@ async def db_get_file(filename: str):
         with open(file_path, "rb") as f:
             return f.read()
     return None
-'''
+
+# File operations
 @async_to_sync
 async def db_save_file(file_data: bytes, filename: str, file_type: str = "datasets"):
     """Save file to specified directory"""
@@ -421,4 +407,37 @@ async def db_export_all_data():
         except Exception as e:
             print(f"导出数据时出错: {str(e)}")
             return None
+
+@async_to_sync
+async def db_update_user(user_id: int, is_admin: bool = None, affiliate: str = None) -> bool:
+    """Update user information
+    Args:
+        user_id: User ID to update
+        is_admin: New admin status (optional)
+        affiliate: New affiliate (optional)
+    Returns:
+        bool: True if update successful, False otherwise
+    """
+    try:
+        async with get_db_session()() as session:
+            # Get user by ID
+            stmt = select(User).filter(User.user_id == user_id)
+            result = await session.execute(stmt)
+            user = result.scalar_one_or_none()
+            
+            if not user:
+                return False
+            
+            # Update fields if provided
+            if is_admin is not None:
+                user.is_admin = is_admin
+            if affiliate is not None:
+                user.affiliate = affiliate
+            
+            # Commit changes
+            await session.commit()
+            return True
+    except Exception as e:
+        print(f"Error updating user: {str(e)}")
+        return False
 

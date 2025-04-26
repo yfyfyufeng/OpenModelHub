@@ -14,6 +14,7 @@ project_root = current_dir.parent
 sys.path.extend([str(project_root), str(project_root/"database")])
 sys.path.extend([str(project_root), str(project_root/"frontend")])
 import frontend.database_api as db_api
+
 from database.database_interface import (
      get_model_by_id, list_datasets, get_dataset_by_id,
     list_users, get_user_by_id, list_affiliations, init_database,
@@ -42,70 +43,99 @@ nest_asyncio.apply()
 st.set_page_config(**APP_CONFIG)
 
 def create_pagination(items, type, page_size=10, page_key="default"):
-    """创建分页
+    """Create pagination for items
     Args:
-        items: 数据项列表，可以是对象或字典
-        type: 数据类型，如 "models" 或 "datasets"
-        page_size: 每页显示的数量
-        page_key: 分页状态的唯一标识
+        items: List of items to paginate
+        type: Type of items (models, datasets)
+        page_size: Number of items per page
+        page_key: Unique key for pagination state
     """
-    # 获取当前页码
-    page_state_key = f'current_page_num_{page_key}'
+    # Get current page from session state
+    page_state_key = f'current_page_num_{type}'
     if page_state_key not in st.session_state:
         st.session_state[page_state_key] = 1
         
-    # 计算总页数
+    # Calculate total pages
     total_pages = (len(items) + page_size - 1) // page_size
     
-    # 获取当前页的项目
+    if st.session_state[page_state_key] > total_pages:
+        st.session_state[page_state_key] = 1
+    
+    # Get items for current page
     start_idx = (st.session_state[page_state_key] - 1) * page_size
     end_idx = min(start_idx + page_size, len(items))
     current_items = items[start_idx:end_idx]
     
-    # 显示当前页的项目
-    for idx, item in enumerate(current_items):
-        with st.container(border=True):
-            col1, col2 = st.columns([5, 0.7])
-            with col1:
-                # 处理对象和字典两种情况
-                if isinstance(item, dict):
-                    name = item.get('ds_name' if type == 'datasets' else 'model_name', '')
-                    if type == "models":
-                        st.write(f"### {name}")
-                        st.caption(f"架构: {item.get('arch_name', '')} | 媒体类型: {item.get('media_type', '')} | 参数量: {item.get('param_num', 0):,}")
-                    else:
-                        st.write(f"### {name}")
-                        tasks = item.get('task', [])
-                        st.caption(f"类型: {item.get('media', '')} | 任务: {', '.join(tasks)} | 大小: {item.get('ds_size', 0)/1024:.1f}KB")
-                else:
-                    st.write(f"### {item.model_name if type=='models' else item.ds_name}")
-                    if type == "models":
-                        st.caption(f"架构: {item.arch_name.value} | 媒体类型: {item.media_type.value} | 参数量: {item.param_num:,}")
-                    else:
-                        tasks = [task.task.value for task in item.Dataset_TASK] if hasattr(item, 'Dataset_TASK') else []
-                        st.caption(f"类型: {item.media} | 任务: {', '.join(tasks)} | 大小: {item.ds_size/1024:.1f}KB")
-            
-            with col2:
-                item_id = item.get('ds_id' if type == 'datasets' else 'model_id', 0) if isinstance(item, dict) else (item.model_id if type == 'models' else item.ds_id)
-                if st.button("查看详情", key=f"{type[:-1]}_{item_id}_{idx}", use_container_width=True):
-                    st.session_state[f"selected_{type[:-1]}"] = item
-                    st.session_state.current_page = f"{type[:-1]}_detail"
-                    st.rerun()
+    if (type == "models"):
+        # Display model information (sorted by creation time in descending order)
+        for model in current_items:
+            with st.container(border=True):
+                col1, col2 = st.columns([5, 0.7])
+                with col1:
+                    # Put title and button in the same line
+                    st.write(
+                        f"### {model.model_name} ",
+                        unsafe_allow_html=True
+                    )
+                    # Get model tasks
+                    tasks = [task.task_name.value for task in model.tasks] if hasattr(model, 'tasks') else []
+                    task_str = ", ".join(tasks) if tasks else "No tasks"
+                    st.caption(f"Architecture: {model.arch_name.value} | Media Type: {model.media_type.value} | Parameters: {model.param_num:,}")
+                
+                with col2:
+                    # Hide the actual button but keep functionality
+                    if st.button("View Details", key=f"model_{model.model_id}", use_container_width=True):
+                        st.session_state.selected_model = model
+                        st.session_state.current_page = "model_detail"
+                        
+    elif (type == "datasets"):
+        # Display dataset information (sorted by creation time in descending order)
+        for dataset in current_items:
+            with st.container(border=True):
+                col1, col2 = st.columns([5, 0.7])
+                with col1:
+                    # Put title and button in the same line
+                    st.write(
+                        f"### {dataset.ds_name}",
+                        unsafe_allow_html=True
+                    )
+                    # Get dataset tasks
+                    tasks = [task.task.value for task in dataset.Dataset_TASK]
+                    task_str = ", ".join(tasks) if tasks else "No tasks"
+                    st.caption(
+                        f"Type: {dataset.media} | "
+                        f"Tasks: {task_str} | "
+                        f"Size: {dataset.ds_size/1024:.1f}KB"
+                    )
+                with col2:
+                    if st.button("View Details", key=f"dataset_{dataset.ds_id}", use_container_width=True):
+                        st.session_state.selected_dataset = dataset
+                        st.session_state.current_page = "dataset_detail"
     
-    # 分页控制
+    # Create pagination controls on the right
     _, _, col3 = st.columns([10, 10, 3.5])
+    
     with col3:
+        # Use columns for layout
         col1, col2, col3 = st.columns([1.8, 1, 1])
+        
+        # Display page numbers
         with col1:
-            st.button(f'{st.session_state[page_state_key]}/{total_pages}', disabled=True, key=f"page_num_{page_key}")
+            st.button(f'{st.session_state[page_state_key]}/{total_pages}', disabled=True, key=f"page_num_{type}")
+            
+        # Previous page button
         with col2:
-            if st.button("←", key=f"prev_{page_key}"):
-                st.session_state[page_state_key] = max(1, st.session_state[page_state_key] - 1)
+            if st.button("←", key=f"prev_{page_key}") and st.session_state[page_state_key] > 1:
+                st.session_state[page_state_key] -= 1
                 st.rerun()
+        
+        # Next page button
         with col3:
-            if st.button("→", key=f"next_{page_key}"):
-                st.session_state[page_state_key] = min(total_pages, st.session_state[page_state_key] + 1)
+            if st.button("→", key=f"next_{page_key}") and st.session_state[page_state_key] < total_pages:
+                st.session_state[page_state_key] += 1
                 st.rerun()
+    
+    st.write("")
 
 def parse_csv_columns(file_data: bytes) -> List[Dict]:
     df = pd.read_csv(BytesIO(file_data), nrows=1)
@@ -269,286 +299,109 @@ def render_home():
     with col3:
         st.metric("Registered Users", len(users))
     with col4:
-        st.metric("今日下载量", 2543)
+        st.metric("Today's Downloads", 2543)
     
-    # 添加导出数据按钮
-    if st.button("导出所有数据"):
+    # Export data button
+    if st.button("Export All Data"):
         try:
-            # 获取所有数据
+            # Get all data
             json_data = db_api.db_export_all_data()
             if json_data:
-                # 生成文件名
+                # Generate filename
                 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
                 filename = f"data_{timestamp}.json"
                 
-                # 转换为JSON字符串，确保使用UTF-8编码
+                # Convert to JSON string with UTF-8 encoding
                 import json
                 json_str = json.dumps(json_data, indent=4, ensure_ascii=False)
                 
-                # 提供下载
+                # Provide download
                 st.download_button(
-                    label="点击下载数据",
-                    data=json_str.encode('utf-8'),  # 确保使用UTF-8编码
+                    label="Download Data",
+                    data=json_str.encode('utf-8'),
                     file_name=filename,
                     mime="application/json"
                 )
             else:
-                st.error("导出数据失败")
+                st.error("Data export failed")
         except Exception as e:
-            st.error(f"导出数据时出错：{str(e)}")
+            st.error(f"Export error: {str(e)}")
     
-    # 添加注册功能
+    # Registration form
     if not st.session_state.get('authenticated'):
         st.markdown("---")
-        st.subheader("新用户注册")
-        with st.form("注册", clear_on_submit=True):
-            new_username = st.text_input("用户名")
-            new_password = st.text_input("密码", type="password")
-            confirm_password = st.text_input("确认密码", type="password")
+        st.subheader("New User Registration")
+        with st.form("Register", clear_on_submit=True):
+            new_username = st.text_input("Username")
+            new_password = st.text_input("Password", type="password")
+            confirm_password = st.text_input("Confirm Password", type="password")
             
-            if st.form_submit_button("注册"):
+            if st.form_submit_button("Register"):
                 if new_username and new_password:
                     if new_password != confirm_password:
-                        st.error("两次输入的密码不一致")
+                        st.error("Passwords do not match")
                         return
                     try:
-                        # 检查用户名是否已存在
+                        # Check if username exists
                         existing_user = db_api.db_get_user_by_username(new_username)
                         if existing_user:
-                            st.error("用户名已存在")
+                            st.error("Username already exists")
                             return
                             
-                        # 创建新用户，默认非管理员
+                        # Create new user (non-admin by default)
                         user = db_api.db_create_user(new_username, new_password, is_admin=False)
                         if user:
-                            st.success("注册成功！请使用新账号登录")
+                            st.success("Registration successful! Please login with new account")
                         else:
-                            st.error("注册失败，请重试")
+                            st.error("Registration failed")
                     except Exception as e:
-                        st.error(f"注册失败：{str(e)}")
+                        st.error(f"Registration error: {str(e)}")
                 else:
-                    st.error("请填写用户名和密码")
+                    st.error("Please fill in username and password")
 
-def render_datasets():
-    """Render dataset management page"""
-    st.title("Dataset Management")
-    
-    # 搜索功能区
-    with st.container():
-        col1, col2, col3 = st.columns([3, 2, 1])
-        with col1:
-            search_query = st.text_input("搜索数据集", placeholder="输入自然语言查询")
-        with col2:
-            dataset_attr = st.selectbox(
-                "选择字段",
-                ["ds_id", "ds_name", "ds_size", "media", "created_at"]
-            )
-            dataset_val = st.text_input("输入查询值")
-        with col3:
-            search_clicked = st.button("搜索", key="dataset_search", use_container_width=True)
-    
-    # 处理搜索逻辑
-    if search_clicked:
-        if search_query:  # 自然语言搜索
-            results, query_info = db_api.db_agent_query(search_query, instance_type=2)  # 2 表示数据集类型
-            with st.expander("查询详情"):
-                st.json({
-                    '自然语言查询': query_info['natural_language_query'],
-                    '生成SQL': query_info['generated_sql'],
-                    '错误代码': query_info['error_code'],
-                    '是否有结果': query_info['has_results'],
-                    '错误信息': query_info.get('error', None),
-                    '查询结果': results
-                })
-            if results:
-                df = pd.DataFrame(results)
-                st.dataframe(df)
-                return
-        else:  # 属性搜索
-            try:
-                # 使用 asyncio.run 创建新的事件循环
-                ids = asyncio.run(get_dataset_ids_by_attribute(get_db_session()(), dataset_attr, dataset_val))
-                if not ids:
-                    st.info("未找到符合条件的数据集")
-                else:
-                    st.session_state.filtered_ids = ids
-            except Exception as e:
-                st.error(f"搜索失败：{str(e)}")
-                return
-    
-    # 数据集上传
-    with st.expander("上传新数据集", expanded=False):
-        with st.form("dataset_upload", clear_on_submit=True):
-            name = st.text_input("数据集名称*")
-            desc = st.text_area("描述")
-            media_type = st.selectbox("媒体类型", ["text", "image", "audio", "video"])
-            task_type = st.selectbox("任务类型", ["classification", "detection", "generation"])
-            file = st.file_uploader("选择数据文件*", type=["txt", "csv"])
-            
-            if st.form_submit_button("提交"):
-                if not name or not file:
-                    st.error("带*的字段为必填项")
-                else:
-                    try:
-                        # 保存文件
-                        file_path = db_api.db_save_file(file.getvalue(), file.name)
-                        
-                        # 创建数据集
-                        dataset_data = {
-                            "ds_name": name,
-                            "ds_size": len(file.getvalue()),
-                            "media": media_type,
-                            "task": [task_type],
-                            "columns": [
-                                {"col_name": "content", "col_datatype": "text"}
-                            ],
-                            "description": desc
-                        }
-                        db_api.db_create_dataset(name, dataset_data)
-                        st.success("数据集上传成功！")
-                        st.rerun()
-                    except Exception as e:
-                        st.error(f"上传失败：{str(e)}")
-    
-    # 获取所有数据集
-    datasets = db_api.db_list_datasets()
-    
-    if not datasets:
-        st.info("暂无可用数据集")
-        return
-    
-    # 过滤数据集（如果进行了属性搜索）
-    if search_clicked and not search_query and st.session_state.get('filtered_ids'):
-        datasets = [d for d in datasets if d.ds_id in st.session_state.get('filtered_ids', [])]
-    
-    # 显示数据集列表
-    create_pagination(datasets, "datasets")
-    
-    # 显示数据集详情
-    if st.session_state.get("current_page") == "dataset_detail":
-        dataset = st.session_state.get("selected_dataset")
-        if dataset:
-            st.markdown("---")
-            st.subheader(f"数据集详情 - {dataset.ds_name if hasattr(dataset, 'ds_name') else dataset.get('ds_name', '')}")
-            
-            # 显示描述
-            st.write("**描述：**")
-            st.write(dataset.description if hasattr(dataset, 'description') else dataset.get('description', '无描述'))
-            
-            # 显示任务信息
-            st.write("**任务类型：**")
-            if hasattr(dataset, 'Dataset_TASK'):
-                tasks = [task.task.value for task in dataset.Dataset_TASK]
-            else:
-                tasks = dataset.get('task', [])
-            st.write(", ".join(tasks) if tasks else "无任务")
-            
-            # 显示数据集大小
-            st.write("**数据集大小：**")
-            size = dataset.ds_size if hasattr(dataset, 'ds_size') else dataset.get('ds_size', 0)
-            st.write(f"{size/1024:.1f}KB")
-            
-            # 下载按钮
-            if st.button("下载数据集", key=f"download_{dataset.ds_id if hasattr(dataset, 'ds_id') else dataset.get('ds_id', '')}"):
-                file_data = db_api.db_get_file(dataset.ds_name if hasattr(dataset, 'ds_name') else dataset.get('ds_name', '') + ".txt")
-                if file_data:
-                    st.download_button(
-                        label="点击下载",
-                        data=file_data,
-                        file_name=f"{dataset.ds_name if hasattr(dataset, 'ds_name') else dataset.get('ds_name', '')}.txt",
-                        mime="text/plain"
-                    )
-                else:
-                    st.error("文件不存在")
-            
-            # 返回按钮
-            if st.button("返回列表", key="back_to_list"):
-                st.session_state.current_page = "datasets"
-                st.rerun()
-
-# Model repository
 def render_models():
     """Render model repository page"""
     st.title("Model Repository")
     
-    # 搜索功能区
-    with st.container():
-        col1, col2, col3 = st.columns([3, 2, 1])
-        with col1:
-            search_query = st.text_input("搜索模型", placeholder="输入自然语言查询")
-        with col2:
-            model_attr = st.selectbox(
-                "选择字段",
-                ["model_id", "model_name", "param_num", "media_type", "arch_name", "trainname"]
-            )
-            model_val = st.text_input("输入查询值")
-        with col3:
-            search_clicked = st.button("搜索", key="model_search", use_container_width=True)
+    # Use unified search section
+    if create_search_section("models"):
+        return
     
-    # 处理搜索逻辑
-    if search_clicked:
-        if search_query:  # 自然语言搜索
-            results, query_info = db_api.db_agent_query(search_query, instance_type=1)  # 1 表示模型类型
-            with st.expander("查询详情"):
-                st.json({
-                    '自然语言查询': query_info['natural_language_query'],
-                    '生成SQL': query_info['generated_sql'],
-                    '错误代码': query_info['error_code'],
-                    '是否有结果': query_info['has_results'],
-                    '错误信息': query_info.get('error', None),
-                    '查询结果': results
-                })
-            if results:
-                df = pd.DataFrame(results)
-                st.dataframe(df)
-                return
-        else:  # 属性搜索
-            try:
-                # 使用 asyncio.run 创建新的事件循环
-                ids = asyncio.run(get_model_ids_by_attribute(get_db_session()(), model_attr, model_val))
-                if not ids:
-                    st.info("未找到符合条件的模型")
-                else:
-                    st.session_state.filtered_ids = ids
-            except Exception as e:
-                st.error(f"搜索失败：{str(e)}")
-                return
-    
-    # 模型上传
-    with st.expander("上传新模型", expanded=False):
+    # Model upload
+    with st.expander("Upload New Model", expanded=False):
         with st.form("model_upload", clear_on_submit=True):
-            name = st.text_input("模型名称*")
-            param_num = st.number_input("参数量", min_value=1000, value=1000000)
+            name = st.text_input("Model Name*")
+            param_num = st.number_input("Parameter Count", min_value=1000, value=1000000)
             
             col1, col2 = st.columns(2)
             with col1:
                 arch_type = st.selectbox(
-                    "架构类型*",
+                    "Architecture Type*",
                     ["CNN", "RNN", "TRANSFORMER"],
-                    help="选择模型架构类型"
+                    help="Select model architecture type"
                 )
                 media_type = st.selectbox(
-                    "媒体类型*",
+                    "Media Type*",
                     ["TEXT", "IMAGE", "AUDIO", "VIDEO"],
-                    help="选择适用媒体类型"
+                    help="Select applicable media type"
                 )
             with col2:
                 train_type = st.selectbox(
-                    "训练类型*",
+                    "Training Type*",
                     ["PRETRAIN", "FINETUNE", "RL"],
-                    help="选择训练类型"
+                    help="Select training type"
                 )
                 selected_tasks = st.multiselect(
-                    "任务类型*",
+                    "Task Types*",
                     ["CLASSIFICATION", "DETECTION", "GENERATION", "SEGMENTATION"],
                     default=["CLASSIFICATION"]
                 )
             
-            file = st.file_uploader("选择模型文件*", type=["pt", "pth", "ckpt"])
+            file = st.file_uploader("Select Model File*", type=["pt", "pth", "ckpt"])
             
-            if st.form_submit_button("提交"):
+            if st.form_submit_button("Submit"):
                 if not name or not file:
-                    st.error("带*的字段为必填项")
+                    st.error("Fields marked with * are required")
                 else:
                     try:
                         file_path = db_api.db_save_file(file.getvalue(), file.name)
@@ -562,103 +415,209 @@ def render_models():
                             "param": str(file_path)
                         }
                         db_api.db_create_model(model_data)
-                        st.success("模型上传成功！")
+                        st.success("Model uploaded successfully!")
                         st.rerun()
                     except Exception as e:
-                        st.error(f"上传失败：{str(e)}")
+                        st.error(f"Upload failed: {str(e)}")
     
-    # 获取所有模型
+    # Get all models
     models = db_api.db_list_models()
     
     if not models:
-        st.info("暂无可用模型")
+        st.info("No models available")
         return
     
-    # 过滤模型（如果进行了属性搜索）
-    if search_clicked and not search_query and st.session_state.get('filtered_ids'):
-        models = [m for m in models if m.model_id in st.session_state.get('filtered_ids', [])]
-    
-    # 显示模型列表
+    # Display model list
     create_pagination(models, "models")
     
-    # 显示模型详情
+    # Display model details
     if st.session_state.get("current_page") == "model_detail":
         model = st.session_state.get("selected_model")
         if model:
             st.markdown("---")
-            st.subheader(f"模型详情 - {model.model_name if hasattr(model, 'model_name') else model.get('model_name', '')}")
+            st.subheader(f"Model Details - {model.model_name}")
             
-            # 显示基本信息
-            st.write("**基本信息：**")
+            # Display basic information
+            st.write("**Basic Information:**")
             info_data = {
-                "模型ID": model.model_id if hasattr(model, 'model_id') else model.get('model_id', ''),
-                "架构类型": model.arch_name.value if hasattr(model, 'arch_name') else model.get('arch_name', ''),
-                "参数量": f"{model.param_num:,}" if hasattr(model, 'param_num') else f"{model.get('param_num', 0):,}",
-                "训练类型": model.trainname.value if hasattr(model, 'trainname') else model.get('trainname', '')
+                "Model ID": model.model_id,
+                "Architecture Type": model.arch_name.value if hasattr(model.arch_name, 'value') else model.arch_name,
+                "Parameter Count": f"{model.param_num:,}",
+                "Training Type": model.trainname.value if hasattr(model.trainname, 'value') else model.trainname
             }
-            st.table(pd.DataFrame(list(info_data.items()), columns=["属性", "值"]))
+            st.table(pd.DataFrame(list(info_data.items()), columns=["Property", "Value"]))
             
-            # 显示关联信息
-            st.write("**关联信息：**")
+            # Display related information
+            st.write("**Related Information:**")
             if hasattr(model, 'tasks'):
-                tasks = [task.task_name.value for task in model.tasks]
+                tasks = [task.task_name.value if hasattr(task.task_name, 'value') else task.task_name for task in model.tasks]
             else:
-                tasks = model.get('tasks', [])
+                tasks = []
             
             if hasattr(model, 'authors'):
-                authors = [author.user_name for author in model.authors]
+                # Get author information from the database
+                author_ids = [author.user_id for author in model.authors]
+                authors = []
+                for author_id in author_ids:
+                    author = db_api.db_get_user_by_id(author_id)
+                    if author:
+                        authors.append(author.user_name)
             else:
-                authors = model.get('authors', [])
+                authors = []
             
             if hasattr(model, 'datasets'):
-                datasets = [dataset.ds_name for dataset in model.datasets]
+                # Get dataset information from the database
+                dataset_ids = [dataset.dataset_id for dataset in model.datasets]
+                datasets = []
+                for dataset_id in dataset_ids:
+                    dataset = db_api.db_get_dataset(dataset_id)
+                    if dataset:
+                        datasets.append(dataset.ds_name)
             else:
-                datasets = model.get('datasets', [])
+                datasets = []
             
             rel_data = {
-                "支持任务": ", ".join(tasks),
-                "作者": ", ".join(authors),
-                "关联数据集": ", ".join(datasets)
+                "Supported Tasks": ", ".join(tasks) if tasks else "No tasks",
+                "Authors": ", ".join(authors) if authors else "No authors",
+                "Related Datasets": ", ".join(datasets) if datasets else "No datasets"
             }
-            st.table(pd.DataFrame(list(rel_data.items()), columns=["类型", "名称"]))
+            st.table(pd.DataFrame(list(rel_data.items()), columns=["Type", "Name"]))
             
-            # 下载按钮
-            if st.button("下载模型", key=f"download_{model.model_id if hasattr(model, 'model_id') else model.get('model_id', '')}"):
-                file_data = db_api.db_get_file(model.model_name if hasattr(model, 'model_name') else model.get('model_name', '') + ".pt")
-                if file_data:
-                    st.download_button(
-                        label="点击下载",
-                        data=file_data,
-                        file_name=f"{model.model_name if hasattr(model, 'model_name') else model.get('model_name', '')}.pt",
-                        mime="application/octet-stream"
-                    )
-                else:
-                    st.error("文件不存在")
+            # Download button
+            if st.button("Download Model", key=f"download_{model.model_id}"):
+                file_data = b"hello world"
+                st.download_button(
+                    label="Click to Download",
+                    data=file_data,
+                    file_name=f"{model.model_name}.txt",
+                    mime="text/plain"
+                )
             
-            # 返回按钮
-            if st.button("返回列表", key="back_to_list"):
+            # Return button
+            if st.button("Back to List", key="back_to_list"):
                 st.session_state.current_page = "models"
                 st.rerun()
 
-def get_current_page_data(page_type: str):
-    """获取当前页面的数据
-    Args:
-        page_type: 页面类型，可以是 "models", "datasets", "users" 等
-    Returns:
-        当前页面的数据列表
-    """
-    try:
-        if page_type == "models":
-            return db_api.db_list_models()
-        elif page_type == "datasets":
-            return db_api.db_list_datasets()
-        elif page_type == "users":
-            return db_api.db_list_users()
-        else:
-            return []
-    except Exception as e:
-        st.error(f"获取数据失败: {str(e)}")
-        return []
+def render_datasets():
+    """Render dataset management page"""
+    st.title("Dataset Management")
+    
+    # Use unified search section
+    if create_search_section("datasets"):
+        return
+    
+    # Dataset upload
+    with st.expander("Upload New Dataset", expanded=False):
+        with st.form("dataset_upload", clear_on_submit=True):
+            name = st.text_input("Dataset Name*")
+            desc = st.text_area("Description")
+            media_type = st.selectbox("Media Type", ["text", "image", "audio", "video"])
+            task_type = st.selectbox("Task Type", ["classification", "detection", "generation"])
+            file = st.file_uploader("Select Data File*", type=["txt", "csv"])
+            
+            if st.form_submit_button("Submit"):
+                if not name or not file:
+                    st.error("Fields marked with * are required")
+                else:
+                    try:
+                        # Save file
+                        file_path = db_api.db_save_file(file.getvalue(), file.name)
+                        
+                        # Create dataset
+                        dataset_data = {
+                            "ds_name": name,
+                            "ds_size": len(file.getvalue()),
+                            "media": media_type,
+                            "task": [task_type],
+                            "columns": [
+                                {"col_name": "content", "col_datatype": "text"}
+                            ],
+                            "description": desc
+                        }
+                        db_api.db_create_dataset(name, dataset_data)
+                        st.success("Dataset uploaded successfully!")
+                        st.rerun()
+                    except Exception as e:
+                        st.error(f"Upload failed: {str(e)}")
+    
+    # Get all datasets
+    datasets = db_api.db_list_datasets()
+    
+    st.markdown("""
+        <style>
+        /* Reduce model card padding */
+        .stContainer {
+            padding: 1rem !important;
+        }
+        
+        /* Make subheader smaller */
+        .stMarkdown h3 {
+            font-size: 1.5rem !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        
+        /* Reduce caption size and spacing */
+        .stMarkdown p {
+            font-size: 0.9rem !important;
+            margin: 0.2rem 0 !important;
+            padding: 0 !important;
+        }
+        
+        /* Make buttons smaller */
+        .stButton button {
+            padding: 0.2rem 1rem !important;
+            height: auto !important;
+        }
+        </style>
+    """, unsafe_allow_html=True)
+    
+    if not datasets:
+        st.info("No datasets available")
+        return
+    
+    # Display dataset list
+    create_pagination(datasets, "datasets")
+    
+    # Display dataset details
+    if st.session_state.get("current_page") == "dataset_detail":
+        dataset = st.session_state.get("selected_dataset")
+        if dataset:
+            st.markdown("---")
+            st.subheader(f"Dataset Details - {dataset.ds_name if hasattr(dataset, 'ds_name') else dataset.get('ds_name', '')}")
+            
+            # Display description
+            st.write("**Description:**")
+            st.write(dataset.description if hasattr(dataset, 'description') else dataset.get('description', 'No description available'))
+            
+            # Display task information
+            st.write("**Task Types:**")
+            if hasattr(dataset, 'Dataset_TASK'):
+                tasks = [task.task.value for task in dataset.Dataset_TASK]
+            else:
+                tasks = dataset.get('task', [])
+            st.write(", ".join(tasks) if tasks else "No tasks")
+            
+            # Display dataset size
+            st.write("**Dataset Size:**")
+            size = dataset.ds_size if hasattr(dataset, 'ds_size') else dataset.get('ds_size', 0)
+            st.write(f"{size/1024:.1f}KB")
+            
+            # Download button
+            if st.button("Download Dataset", key=f"download_{dataset.ds_id if hasattr(dataset, 'ds_id') else dataset.get('ds_id', '')}"):
+                file_data = b"hello world"
+                st.download_button(
+                    label="Click to Download",
+                    data=file_data,
+                    file_name=f"{dataset.ds_name if hasattr(dataset, 'ds_name') else dataset.get('ds_name', '')}.txt",
+                    mime="text/plain"
+                )
+            
+            # Return button
+            if st.button("Back to List", key="back_to_list"):
+                st.session_state.current_page = "datasets"
+                st.rerun()
+
 
 def render_data_insight():
     attributes = ["media_type", "arch_name", "trainname"]
@@ -728,10 +687,87 @@ def render_data_insight():
     st.plotly_chart(fig)
     
 # User management (admin function)
+
 def render_users():
     """Render user management page"""
+    # 保留原有的UserManager界面
     user_manager = UserManager()
     user_manager.render()
+    
+    # 添加管理员功能
+    st.markdown("---")
+    st.subheader("管理员功能")
+    
+    # Check if current user is admin
+    if not st.session_state.get('current_user', {}).get('role') == 'admin':
+        st.error("只有管理员可以访问此功能")
+        return
+    
+    # 使用统一的字段查询功能
+    col1, col2, col3 = st.columns([1, 1, 0.5])
+    with col1:
+        field_attr = st.selectbox(
+            "Select Field",
+            ["user_id", "user_name", "email", "organization"]
+        )
+    with col2:
+        field_val = st.text_input("Enter Query Value")
+    with col3:
+        if st.button("Search", key="user_field_search"):
+            try:
+                ids = asyncio.run(get_user_ids_by_attribute(get_db_session()(), field_attr, field_val))
+                if ids:
+                    user = db_api.db_get_user_by_id(ids[0])  # 获取第一个匹配的用户
+                    if user:
+                        st.session_state.selected_user = user
+                        st.session_state.current_page = "user_detail"
+                    else:
+                        st.error("未找到该用户")
+                else:
+                    st.error("未找到匹配的用户")
+            except Exception as e:
+                st.error(f"查询失败: {str(e)}")
+    
+    # Display user details and edit form
+    if st.session_state.get("current_page") == "user_detail":
+        user = st.session_state.get("selected_user")
+        if user:
+            st.markdown("---")
+            st.subheader(f"Edit User - {user.user_name}")
+            
+            with st.form("edit_user_form"):
+                # Display current user information
+                st.write("**Current Information:**")
+                info_data = {
+                    "Username": user.user_name,
+                    "Email": user.email if hasattr(user, 'email') else 'N/A',
+                    "Organization": user.organization if hasattr(user, 'organization') else 'N/A',
+                    "Admin Status": "Yes" if user.is_admin else "No"
+                }
+                st.table(pd.DataFrame(list(info_data.items()), columns=["Property", "Value"]))
+                
+                # Edit form
+                st.write("**Edit Information:**")
+                new_organization = st.text_input("Organization", value=user.organization if hasattr(user, 'organization') else '')
+                new_admin_status = st.checkbox("Admin Status", value=user.is_admin)
+                
+                if st.form_submit_button("Save Changes"):
+                    try:
+                        # Update user information
+                        update_data = {
+                            "organization": new_organization,
+                            "is_admin": new_admin_status
+                        }
+                        db_api.db_update_user(user.user_id, update_data)
+                        st.success("User information updated successfully!")
+                        st.rerun()
+                    except Exception as e:
+                        st.error(f"Update failed: {str(e)}")
+            
+            # Return button
+            if st.button("Back to List", key="back_to_list"):
+                st.session_state.current_page = "users"
+                st.rerun()
 
 # Default login function
 def default_login():
@@ -756,28 +792,28 @@ def main():
     # Get current page
     page = sidebar.render()
     
-    # 主页不需要登录权限
-    if page == "主页":
-        render_home()
-        return
-        
-    # 其他页面需要登录权限
-    if not auth_manager.is_authenticated():
-        st.warning("请先登录以访问此页面")
+    # Check authentication status
+    if not auth_manager.is_authenticated() and page != "Home":
+        st.warning("Please login first to access this page")
         return
     
-    # 路由到对应页面
-    if page == "模型仓库":
+    # Route to corresponding page
+    if page == "Home":
+        render_home()
+    elif page == "Model Repository":
         render_models()
-    elif page == "数据集":
+    elif page == "Datasets":
         render_datasets()
-    elif page == "用户管理" and auth_manager.is_admin():
+    elif page == "User Management" and auth_manager.is_admin():
         render_users()
+
     elif page == "系统管理":
         st.write("系统管理功能正在开发中...")
     elif page == "data insight":
         #st.write("data insight is under developing")
         render_data_insight()
+    elif page == "System Management":
+        st.write("System management functionality under development...")
 
 if __name__ == "__main__":
     try:
