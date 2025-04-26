@@ -1,0 +1,1041 @@
+{
+    "affiliation": [
+        {
+            "affil_name": "Tsinghua University"
+        },
+        {
+            "affil_name": "Peking University"
+        },
+        {
+            "affil_name": "Fudan University"
+        },
+        {
+            "affil_name": "Shanghai Jiaotong University"
+        },
+        {
+            "affil_name": "The Chinese University of Hong Kong, Shenzhen"
+        },
+        {
+            "affil_name": "Harvard University"
+        },
+        {
+            "affil_name": "University of California, Davis"
+        },
+        {
+            "affil_name": "University of California, Berkeley"
+        },
+        {
+            "affil_name": "Stanford University"
+        },
+        {
+            "affil_name": "Massachusetts Institute of Technology"
+        },
+        {
+            "affil_name": "University of Pennsylvania"
+        },
+        {
+            "affil_name": "University of Chicago"
+        }
+    ],
+    "user": [
+        {
+            "user_name": "Bradley",
+            "password_hash": "admin",
+            "affiliate": "The Chinese University of Hong Kong",
+            "is_admin": true
+        },
+        {
+            "user_name": "Rosalind",
+            "password_hash": "admin",
+            "affiliate": "The Chinese University of Hong Kong",
+            "is_admin": true
+        },
+        {
+            "user_name": "Alice",
+            "password_hash": "admin",
+            "affiliate": "Tsinghua University",
+            "is_admin": false
+        },
+        {
+            "user_name": "Bob",
+            "password_hash": "admin",
+            "affiliate": "Tsinghua University",
+            "is_admin": false
+        },
+        {
+            "user_name": "Charlie",
+            "password_hash": "admin",
+            "affiliate": "Peking University",
+            "is_admin": false
+        },
+        {
+            "user_name": "David",
+            "password_hash": "admin",
+            "affiliate": "Peking University",
+            "is_admin": false
+        },
+        {
+            "user_name": "Eve",
+            "password_hash": "admin",
+            "affiliate": "Fudan University",
+            "is_admin": false
+        },
+        {
+            "user_name": "Frank",
+            "password_hash": "admin",
+            "affiliate": "Fudan University",
+            "is_admin": false
+        },
+        {
+            "user_name": "Grace",
+            "password_hash": "admin",
+            "affiliate": "Shanghai Jiaotong University",
+            "is_admin": false
+        },
+        {
+            "user_name": "Hannah",
+            "password_hash": "admin",
+            "affiliate": "Shanghai Jiaotong University",
+            "is_admin": false
+        },
+        {
+            "user_name": "Ivy",
+            "password_hash": "admin",
+            "affiliate": "Harvard University",
+            "is_admin": false
+        },
+        {
+            "user_name": "Jack",
+            "password_hash": "admin",
+            "affiliate": "Harvard University",
+            "is_admin": false
+        },
+        {
+            "user_name": "Katherine",
+            "password_hash": "admin",
+            "affiliate": "Harvard University",
+            "is_admin": false
+        },
+        {
+            "user_name": "Liam",
+            "password_hash": "admin",
+            "affiliate": "University of California, Davis",
+            "is_admin": false
+        },
+        {
+            "user_name": "Marselo",
+            "password_hash": "admin",
+            "affiliate": "University of California, Davis",
+            "is_admin": false
+        },
+        {
+            "user_name": "Noah",
+            "password_hash": "admin",
+            "affiliate": "University of California, Berkeley",
+            "is_admin": false
+        },
+        {
+            "user_name": "Olivia",
+            "password_hash": "admin",
+            "affiliate": "Stanford University",
+            "is_admin": false
+        },
+        {
+            "user_name": "Parvage",
+            "password_hash": "admin",
+            "affiliate": "Stanford University",
+            "is_admin": false
+        },
+        {
+            "user_name": "Quinn",
+            "password_hash": "admin",
+            "affiliate": "Massachusetts Institute of Technology",
+            "is_admin": false
+        },
+        {
+            "user_name": "Rico",
+            "password_hash": "admin",
+            "affiliate": "Massachusetts Institute of Technology",
+            "is_admin": false
+        },
+        {
+            "user_name": "Sophia",
+            "password_hash": "admin",
+            "affiliate": "Massachusetts Institute of Technology",
+            "is_admin": false
+        },
+        {
+            "user_name": "Thomas",
+            "password_hash": "admin",
+            "affiliate": "University of Pennsylvania",
+            "is_admin": false
+        },
+        {
+            "user_name": "Uma",
+            "password_hash": "admin",
+            "affiliate": "University of Pennsylvania",
+            "is_admin": false
+        },
+        {
+            "user_name": "Victor",
+            "password_hash": "admin",
+            "affiliate": "University of Pennsylvania",
+            "is_admin": false
+        },
+        {
+            "user_name": "Wendy",
+            "password_hash": "admin",
+            "affiliate": "University of Pennsylvania",
+            "is_admin": false
+        },
+        {
+            "user_name": "Xander",
+            "password_hash": "admin",
+            "affiliate": "University of Chicago",
+            "is_admin": false
+        },
+        {
+            "user_name": "Yasmine",
+            "password_hash": "admin",
+            "affiliate": "University of Chicago",
+            "is_admin": false
+        },
+        {
+            "user_name": "Zoe",
+            "password_hash": "admin",
+            "affiliate": "University of Chicago",
+            "is_admin": false
+        }
+    ],
+    "dataset": [
+        {
+            "ds_name": "JovialValley/syllable_totaldataset_3",
+            "ds_size": 487,
+            "media": "audio",
+            "task": [
+                "classification"
+            ],
+            "columns": [
+                {
+                    "col_name": "name",
+                    "col_datatype": "string"
+                },
+                {
+                    "col_name": "audio",
+                    "col_datatype": "Audio"
+                },
+                {
+                    "col_name": "label",
+                    "col_datatype": "string"
+                },
+                {
+                    "col_name": "emotion",
+                    "col_datatype": "string"
+                },
+                {
+                    "col_name": "emotion_str",
+                    "col_datatype": "string"
+                }
+            ]
+        },
+        {
+            "ds_name": "JovialValley/phoneme_totaldataset_0",
+            "ds_size": 487,
+            "media": "audio",
+            "task": [
+                "classification"
+            ],
+            "columns": [
+                {
+                    "col_name": "name",
+                    "col_datatype": "string"
+                },
+                {
+                    "col_name": "audio",
+                    "col_datatype": "Audio"
+                },
+                {
+                    "col_name": "label",
+                    "col_datatype": "string"
+                },
+                {
+                    "col_name": "emotion",
+                    "col_datatype": "string"
+                },
+                {
+                    "col_name": "emotion_str",
+                    "col_datatype": "string"
+                }
+            ]
+        },
+        {
+            "ds_name": "JovialValley/phoneme_totaldataset_3",
+            "ds_size": 487,
+            "media": "audio",
+            "task": [
+                "classification"
+            ],
+            "columns": [
+                {
+                    "col_name": "name",
+                    "col_datatype": "string"
+                },
+                {
+                    "col_name": "audio",
+                    "col_datatype": "Audio"
+                },
+                {
+                    "col_name": "label",
+                    "col_datatype": "string"
+                },
+                {
+                    "col_name": "emotion",
+                    "col_datatype": "string"
+                },
+                {
+                    "col_name": "emotion_str",
+                    "col_datatype": "string"
+                }
+            ]
+        },
+        {
+            "ds_name": "JovialValley/phoneme_totaldataset_2",
+            "ds_size": 487,
+            "media": "audio",
+            "task": [
+                "classification"
+            ],
+            "columns": [
+                {
+                    "col_name": "name",
+                    "col_datatype": "string"
+                },
+                {
+                    "col_name": "audio",
+                    "col_datatype": "Audio"
+                },
+                {
+                    "col_name": "label",
+                    "col_datatype": "string"
+                },
+                {
+                    "col_name": "emotion",
+                    "col_datatype": "string"
+                },
+                {
+                    "col_name": "emotion_str",
+                    "col_datatype": "string"
+                }
+            ]
+        },
+        {
+            "ds_name": "JovialValley/phoneme_totaldataset_1",
+            "ds_size": 487,
+            "media": "audio",
+            "task": [
+                "classification"
+            ],
+            "columns": [
+                {
+                    "col_name": "name",
+                    "col_datatype": "string"
+                },
+                {
+                    "col_name": "audio",
+                    "col_datatype": "Audio"
+                },
+                {
+                    "col_name": "label",
+                    "col_datatype": "string"
+                },
+                {
+                    "col_name": "emotion",
+                    "col_datatype": "string"
+                },
+                {
+                    "col_name": "emotion_str",
+                    "col_datatype": "string"
+                }
+            ]
+        },
+        {
+            "ds_name": "one-sec-cv12/chunk_72",
+            "ds_size": 260137,
+            "media": "audio",
+            "task": [
+                "classification"
+            ],
+            "columns": [
+                {
+                    "col_name": "audio",
+                    "col_datatype": "Audio"
+                }
+            ]
+        },
+        {
+            "ds_name": "one-sec-cv12/chunk_177",
+            "ds_size": 228146,
+            "media": "audio",
+            "task": [
+                "classification"
+            ],
+            "columns": [
+                {
+                    "col_name": "audio",
+                    "col_datatype": "Audio"
+                }
+            ]
+        },
+        {
+            "ds_name": "neel-17/audio_dataset_aug_20K",
+            "ds_size": 21699,
+            "media": "audio",
+            "task": [
+                "classification"
+            ],
+            "columns": [
+                {
+                    "col_name": "audio",
+                    "col_datatype": "Audio"
+                },
+                {
+                    "col_name": "label",
+                    "col_datatype": "int64"
+                }
+            ]
+        },
+        {
+            "ds_name": "JoshuaW1997/FUTGA",
+            "ds_size": 100000,
+            "media": "audio",
+            "task": [
+                "generation",
+                "classification"
+            ],
+            "columns": [
+                {
+                    "col_name": "audio",
+                    "col_datatype": "Audio"
+                },
+                {
+                    "col_name": "description",
+                    "col_datatype": "string"
+                },
+                {
+                    "col_name": "label",
+                    "col_datatype": "string"
+                }
+            ]
+        },
+        {
+            "ds_name": "BirdSet",
+            "ds_size": 700000,
+            "media": "audio",
+            "task": [
+                "classification"
+            ],
+            "columns": [
+                {
+                    "col_name": "audio",
+                    "col_datatype": "Audio"
+                },
+                {
+                    "col_name": "species",
+                    "col_datatype": "string"
+                }
+            ]
+        },
+        {
+            "ds_name": "Audio-FLAN",
+            "ds_size": 100000000,
+            "media": "audio",
+            "task": [
+                "generation",
+                "classification"
+            ],
+            "columns": [
+                {
+                    "col_name": "audio",
+                    "col_datatype": "Audio"
+                },
+                {
+                    "col_name": "instruction",
+                    "col_datatype": "string"
+                },
+                {
+                    "col_name": "response",
+                    "col_datatype": "string"
+                }
+            ]
+        },
+        {
+            "ds_name": "FSD50K",
+            "ds_size": 51000,
+            "media": "audio",
+            "task": [
+                "classification"
+            ],
+            "columns": [
+                {
+                    "col_name": "audio",
+                    "col_datatype": "Audio"
+                },
+                {
+                    "col_name": "label",
+                    "col_datatype": "string"
+                }
+            ]
+        },
+        {
+            "ds_name": "Clotho",
+            "ds_size": 4981,
+            "media": "audio",
+            "task": [
+                "generation"
+            ],
+            "columns": [
+                {
+                    "col_name": "audio",
+                    "col_datatype": "Audio"
+                },
+                {
+                    "col_name": "caption",
+                    "col_datatype": "string"
+                }
+            ]
+        },
+        {
+            "ds_name": "PolyAI/minds14",
+            "ds_size": 563,
+            "media": "audio",
+            "task": [
+                "classification"
+            ],
+            "columns": [
+                {
+                    "col_name": "audio",
+                    "col_datatype": "Audio"
+                },
+                {
+                    "col_name": "intent_class",
+                    "col_datatype": "ClassLabel"
+                }
+            ]
+        },
+        {
+            "ds_name": "Ram00121222/audio-no.1",
+            "ds_size": 108,
+            "media": "audio",
+            "task": [
+                "generation"
+            ],
+            "columns": [
+                {
+                    "col_name": "audio",
+                    "col_datatype": "Audio"
+                },
+                {
+                    "col_name": "text",
+                    "col_datatype": "string"
+                }
+            ]
+        },
+        {
+            "ds_name": "visual-layer/cifar10-vl-enriched",
+            "ds_size": 60000,
+            "media": "image",
+            "task": [
+                "classification"
+            ],
+            "columns": [
+                {
+                    "col_name": "image",
+                    "col_datatype": "Image"
+                },
+                {
+                    "col_name": "label",
+                    "col_datatype": "int"
+                },
+                {
+                    "col_name": "issues",
+                    "col_datatype": "list"
+                }
+            ]
+        }
+    ],
+    "model": [
+        {
+            "model_name": "ResNet-50",
+            "param_num": 23500000,
+            "media_type": "image",
+            "arch_name": "CNN",
+            "trainname": "pretrain",
+            "task": [
+                "classification",
+                "detection"
+            ],
+            "module_num": 5,
+            "modules": [
+                {
+                    "conv_size": 64,
+                    "pool_type": "max"
+                },
+                {
+                    "conv_size": 128,
+                    "pool_type": "avg"
+                },
+                {
+                    "conv_size": 256,
+                    "pool_type": "max"
+                },
+                {
+                    "conv_size": 512,
+                    "pool_type": "avg"
+                },
+                {
+                    "conv_size": 1024,
+                    "pool_type": "max"
+                }
+            ],
+            "param": 15,
+            "criteria": "MSE",
+            "batch_size": 32,
+            "input_size": 256,
+            "decoder_num": 6,
+            "attn_size": 512,
+            "up_size": 2048,
+            "down_size": 1024,
+            "embed_size": 768
+        },
+        {
+            "model_name": "EfficientNet-B0",
+            "param_num": 5300000,
+            "media_type": "image",
+            "arch_name": "CNN",
+            "trainname": "fine-tune",
+            "task": [
+                "classification"
+            ],
+            "module_num": 4,
+            "modules": [
+                {
+                    "conv_size": 32,
+                    "pool_type": "max"
+                },
+                {
+                    "conv_size": 64,
+                    "pool_type": "avg"
+                },
+                {
+                    "conv_size": 128,
+                    "pool_type": "max"
+                },
+                {
+                    "conv_size": 256,
+                    "pool_type": "avg"
+                }
+            ],
+            "param": 12,
+            "criteria": "MSE",
+            "batch_size": 32,
+            "input_size": 256,
+            "decoder_num": 6,
+            "attn_size": 512,
+            "up_size": 2048,
+            "down_size": 1024,
+            "embed_size": 768
+        },
+        {
+            "model_name": "VGG16",
+            "param_num": 138357544,
+            "media_type": "image",
+            "arch_name": "CNN",
+            "trainname": "pretrain",
+            "task": [
+                "classification"
+            ],
+            "module_num": 13,
+            "modules": [
+                {
+                    "conv_size": 64,
+                    "pool_type": "max"
+                },
+                {
+                    "conv_size": 128,
+                    "pool_type": "max"
+                },
+                {
+                    "conv_size": 256,
+                    "pool_type": "max"
+                },
+                {
+                    "conv_size": 512,
+                    "pool_type": "max"
+                },
+                {
+                    "conv_size": 512,
+                    "pool_type": "max"
+                },
+                {
+                    "conv_size": 512,
+                    "pool_type": "max"
+                },
+                {
+                    "conv_size": 512,
+                    "pool_type": "max"
+                },
+                {
+                    "conv_size": 512,
+                    "pool_type": "max"
+                },
+                {
+                    "conv_size": 512,
+                    "pool_type": "max"
+                },
+                {
+                    "conv_size": 512,
+                    "pool_type": "max"
+                },
+                {
+                    "conv_size": 512,
+                    "pool_type": "max"
+                },
+                {
+                    "conv_size": 512,
+                    "pool_type": "max"
+                },
+                {
+                    "conv_size": 512,
+                    "pool_type": "max"
+                }
+            ],
+            "param": 20,
+            "criteria": "MSE",
+            "batch_size": 32,
+            "input_size": 256,
+            "decoder_num": 6,
+            "attn_size": 512,
+            "up_size": 2048,
+            "down_size": 1024,
+            "embed_size": 768
+        },
+        {
+            "model_name": "MobileNetV2",
+            "param_num": 3500000,
+            "media_type": "image",
+            "arch_name": "CNN",
+            "trainname": "fine-tune",
+            "task": [
+                "classification"
+            ],
+            "module_num": 5,
+            "modules": [
+                {
+                    "conv_size": 32,
+                    "pool_type": "max"
+                },
+                {
+                    "conv_size": 64,
+                    "pool_type": "avg"
+                },
+                {
+                    "conv_size": 128,
+                    "pool_type": "max"
+                },
+                {
+                    "conv_size": 256,
+                    "pool_type": "avg"
+                },
+                {
+                    "conv_size": 512,
+                    "pool_type": "max"
+                }
+            ],
+            "param": 10,
+            "criteria": "MSE",
+            "batch_size": 32,
+            "input_size": 256,
+            "decoder_num": 6,
+            "attn_size": 512,
+            "up_size": 2048,
+            "down_size": 1024,
+            "embed_size": 768
+        },
+        {
+            "model_name": "InceptionV3",
+            "param_num": 23800000,
+            "media_type": "image",
+            "arch_name": "CNN",
+            "trainname": "pretrain",
+            "task": [
+                "classification"
+            ],
+            "module_num": 6,
+            "modules": [
+                {
+                    "conv_size": 32,
+                    "pool_type": "max"
+                },
+                {
+                    "conv_size": 64,
+                    "pool_type": "avg"
+                },
+                {
+                    "conv_size": 128,
+                    "pool_type": "max"
+                },
+                {
+                    "conv_size": 256,
+                    "pool_type": "avg"
+                },
+                {
+                    "conv_size": 512,
+                    "pool_type": "max"
+                },
+                {
+                    "conv_size": 1024,
+                    "pool_type": "avg"
+                }
+            ],
+            "param": 18,
+            "criteria": "MSE",
+            "batch_size": 32,
+            "input_size": 256,
+            "decoder_num": 6,
+            "attn_size": 512,
+            "up_size": 2048,
+            "down_size": 1024,
+            "embed_size": 768
+        }
+    ],
+    "user_ds": [
+        {
+            "user_id": 9,
+            "ds_id": 1
+        },
+        {
+            "user_id": 23,
+            "ds_id": 1
+        },
+        {
+            "user_id": 26,
+            "ds_id": 2
+        },
+        {
+            "user_id": 8,
+            "ds_id": 2
+        },
+        {
+            "user_id": 23,
+            "ds_id": 2
+        },
+        {
+            "user_id": 10,
+            "ds_id": 2
+        },
+        {
+            "user_id": 8,
+            "ds_id": 3
+        },
+        {
+            "user_id": 7,
+            "ds_id": 3
+        },
+        {
+            "user_id": 27,
+            "ds_id": 4
+        },
+        {
+            "user_id": 21,
+            "ds_id": 4
+        },
+        {
+            "user_id": 23,
+            "ds_id": 5
+        },
+        {
+            "user_id": 10,
+            "ds_id": 5
+        },
+        {
+            "user_id": 3,
+            "ds_id": 5
+        },
+        {
+            "user_id": 18,
+            "ds_id": 5
+        },
+        {
+            "user_id": 7,
+            "ds_id": 6
+        },
+        {
+            "user_id": 4,
+            "ds_id": 6
+        },
+        {
+            "user_id": 13,
+            "ds_id": 7
+        },
+        {
+            "user_id": 25,
+            "ds_id": 7
+        },
+        {
+            "user_id": 1,
+            "ds_id": 7
+        },
+        {
+            "user_id": 3,
+            "ds_id": 7
+        },
+        {
+            "user_id": 17,
+            "ds_id": 8
+        },
+        {
+            "user_id": 14,
+            "ds_id": 8
+        },
+        {
+            "user_id": 20,
+            "ds_id": 8
+        },
+        {
+            "user_id": 4,
+            "ds_id": 8
+        },
+        {
+            "user_id": 15,
+            "ds_id": 9
+        },
+        {
+            "user_id": 16,
+            "ds_id": 9
+        },
+        {
+            "user_id": 19,
+            "ds_id": 9
+        },
+        {
+            "user_id": 8,
+            "ds_id": 10
+        },
+        {
+            "user_id": 17,
+            "ds_id": 11
+        },
+        {
+            "user_id": 22,
+            "ds_id": 12
+        },
+        {
+            "user_id": 6,
+            "ds_id": 12
+        },
+        {
+            "user_id": 1,
+            "ds_id": 13
+        },
+        {
+            "user_id": 27,
+            "ds_id": 14
+        },
+        {
+            "user_id": 12,
+            "ds_id": 15
+        },
+        {
+            "user_id": 1,
+            "ds_id": 15
+        },
+        {
+            "user_id": 24,
+            "ds_id": 15
+        },
+        {
+            "user_id": 17,
+            "ds_id": 15
+        },
+        {
+            "user_id": 6,
+            "ds_id": 16
+        },
+        {
+            "user_id": 12,
+            "ds_id": 16
+        }
+    ],
+    "model_author": [
+        {
+            "model_id": 1,
+            "user_id": 17
+        },
+        {
+            "model_id": 1,
+            "user_id": 13
+        },
+        {
+            "model_id": 1,
+            "user_id": 27
+        },
+        {
+            "model_id": 2,
+            "user_id": 28
+        },
+        {
+            "model_id": 3,
+            "user_id": 18
+        },
+        {
+            "model_id": 3,
+            "user_id": 19
+        },
+        {
+            "model_id": 3,
+            "user_id": 28
+        },
+        {
+            "model_id": 3,
+            "user_id": 21
+        },
+        {
+            "model_id": 4,
+            "user_id": 12
+        },
+        {
+            "model_id": 4,
+            "user_id": 25
+        },
+        {
+            "model_id": 4,
+            "user_id": 16
+        },
+        {
+            "model_id": 5,
+            "user_id": 1
+        }
+    ],
+    "model_dataset": [
+        {
+            "model_id": 1,
+            "ds_id": 16
+        },
+        {
+            "model_id": 2,
+            "ds_id": 16
+        },
+        {
+            "model_id": 3,
+            "ds_id": 16
+        },
+        {
+            "model_id": 4,
+            "ds_id": 16
+        },
+        {
+            "model_id": 5,
+            "ds_id": 16
+        }
+    ]
+}

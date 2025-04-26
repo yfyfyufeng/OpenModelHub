@@ -25,7 +25,7 @@ DATABASE_URL = f"mysql+aiomysql://{DB_USERNAME}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT
 
 # ========= 查询测试 =========
 async def run_query_tests(session: AsyncSession):
-    print("\n🚀 开始查询接口测试...\n")
+    print("\n🚀 Start running query tests...\n")
 
     # 创建数据：Affiliation、User、Dataset、Model
     affil = await create_affiliation(session, "QueryAffil")
@@ -93,7 +93,7 @@ async def run_query_tests(session: AsyncSession):
     print(f"\n🔎 user_ids by name = 'QueryUser': {user_ids}")
     assert user.user_id in user_ids
 
-    print("\n✅ 所有查询接口测试通过！")
+    print("\n✅ All query interfaces has been tested!")
 
 
 # ========= MAIN RUNNER =========
