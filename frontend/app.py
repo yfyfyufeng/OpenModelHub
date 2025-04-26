@@ -14,7 +14,7 @@ sys.path.extend([str(project_root), str(project_root/"database")])
 sys.path.extend([str(project_root), str(project_root/"frontend")])
 import frontend.database_api as db_api
 from database.database_interface import (
-     get_model_by_id, list_datasets, get_dataset_by_id,
+    get_model_by_id, list_datasets, get_dataset_by_id,
     list_users, get_user_by_id, list_affiliations, init_database,
     create_user, update_user, delete_user, get_dataset_info, get_model_info,
     get_model_ids_by_attribute, get_dataset_ids_by_attribute, get_user_ids_by_attribute
@@ -40,70 +40,96 @@ nest_asyncio.apply()
 st.set_page_config(**APP_CONFIG)
 
 def create_pagination(items, type, page_size=10, page_key="default"):
-    """创建分页
+    """Create pagination for items
     Args:
-        items: 数据项列表，可以是对象或字典
-        type: 数据类型，如 "models" 或 "datasets"
-        page_size: 每页显示的数量
-        page_key: 分页状态的唯一标识
+        items: List of items to paginate
+        type: Type of items (models, datasets)
+        page_size: Number of items per page
+        page_key: Unique key for pagination state
     """
-    # 获取当前页码
+    # Get current page from session state
     page_state_key = f'current_page_num_{page_key}'
     if page_state_key not in st.session_state:
         st.session_state[page_state_key] = 1
         
-    # 计算总页数
+    # Calculate total pages
     total_pages = (len(items) + page_size - 1) // page_size
     
-    # 获取当前页的项目
+    # Get items for current page
     start_idx = (st.session_state[page_state_key] - 1) * page_size
     end_idx = min(start_idx + page_size, len(items))
     current_items = items[start_idx:end_idx]
     
-    # 显示当前页的项目
-    for idx, item in enumerate(current_items):
-        with st.container(border=True):
-            col1, col2 = st.columns([5, 0.7])
-            with col1:
-                # 处理对象和字典两种情况
-                if isinstance(item, dict):
-                    name = item.get('ds_name' if type == 'datasets' else 'model_name', '')
-                    if type == "models":
-                        st.write(f"### {name}")
-                        st.caption(f"架构: {item.get('arch_name', '')} | 媒体类型: {item.get('media_type', '')} | 参数量: {item.get('param_num', 0):,}")
-                    else:
-                        st.write(f"### {name}")
-                        tasks = item.get('task', [])
-                        st.caption(f"类型: {item.get('media', '')} | 任务: {', '.join(tasks)} | 大小: {item.get('ds_size', 0)/1024:.1f}KB")
-                else:
-                    st.write(f"### {item.model_name if type=='models' else item.ds_name}")
-                    if type == "models":
-                        st.caption(f"架构: {item.arch_name.value} | 媒体类型: {item.media_type.value} | 参数量: {item.param_num:,}")
-                    else:
-                        tasks = [task.task.value for task in item.Dataset_TASK] if hasattr(item, 'Dataset_TASK') else []
-                        st.caption(f"类型: {item.media} | 任务: {', '.join(tasks)} | 大小: {item.ds_size/1024:.1f}KB")
-            
-            with col2:
-                item_id = item.get('ds_id' if type == 'datasets' else 'model_id', 0) if isinstance(item, dict) else (item.model_id if type == 'models' else item.ds_id)
-                if st.button("查看详情", key=f"{type[:-1]}_{item_id}_{idx}", use_container_width=True):
-                    st.session_state[f"selected_{type[:-1]}"] = item
-                    st.session_state.current_page = f"{type[:-1]}_detail"
-                    st.rerun()
+    if (type == "models"):
+        # Display model information (sorted by creation time in descending order)
+        for model in current_items:
+            with st.container(border=True):
+                col1, col2 = st.columns([5, 0.7])
+                with col1:
+                    # Put title and button in the same line
+                    st.write(
+                        f"### {model.model_name} ",
+                        unsafe_allow_html=True
+                    )
+                    # Get model tasks
+                    tasks = [task.task_name.value for task in model.tasks] if hasattr(model, 'tasks') else []
+                    task_str = ", ".join(tasks) if tasks else "No tasks"
+                    st.caption(f"Architecture: {model.arch_name.value} | Media Type: {model.media_type.value} | Parameters: {model.param_num:,}")
+                
+                with col2:
+                    # Hide the actual button but keep functionality
+                    if st.button("View Details", key=f"model_{model.model_id}", use_container_width=True):
+                        st.session_state.selected_model = model
+                        st.session_state.current_page = "model_detail"
+                        
+    elif (type == "datasets"):
+        # Display dataset information (sorted by creation time in descending order)
+        for dataset in current_items:
+            with st.container(border=True):
+                col1, col2 = st.columns([5, 0.7])
+                with col1:
+                    # Put title and button in the same line
+                    st.write(
+                        f"### {dataset.ds_name}",
+                        unsafe_allow_html=True
+                    )
+                    # Get dataset tasks
+                    tasks = [task.task.value for task in dataset.Dataset_TASK]
+                    task_str = ", ".join(tasks) if tasks else "No tasks"
+                    st.caption(
+                        f"Type: {dataset.media} | "
+                        f"Tasks: {task_str} | "
+                        f"Size: {dataset.ds_size/1024:.1f}KB"
+                    )
+                with col2:
+                    if st.button("View Details", key=f"dataset_{dataset.ds_id}", use_container_width=True):
+                        st.session_state.selected_dataset = dataset
+                        st.session_state.current_page = "dataset_detail"
     
-    # 分页控制
+    # Create pagination controls on the right
     _, _, col3 = st.columns([10, 10, 3.5])
+    
     with col3:
+        # Use columns for layout
         col1, col2, col3 = st.columns([1.8, 1, 1])
+        
+        # Display page numbers
         with col1:
             st.button(f'{st.session_state[page_state_key]}/{total_pages}', disabled=True, key=f"page_num_{page_key}")
+            
+        # Previous page button
         with col2:
-            if st.button("←", key=f"prev_{page_key}"):
-                st.session_state[page_state_key] = max(1, st.session_state[page_state_key] - 1)
+            if st.button("←", key=f"prev_{page_key}") and st.session_state[page_state_key] > 1:
+                st.session_state[page_state_key] -= 1
                 st.rerun()
+        
+        # Next page button
         with col3:
-            if st.button("→", key=f"next_{page_key}"):
-                st.session_state[page_state_key] = min(total_pages, st.session_state[page_state_key] + 1)
+            if st.button("→", key=f"next_{page_key}") and st.session_state[page_state_key] < total_pages:
+                st.session_state[page_state_key] += 1
                 st.rerun()
+    
+    st.write("")
 
 def parse_csv_columns(file_data: bytes) -> List[Dict]:
     df = pd.read_csv(BytesIO(file_data), nrows=1)
@@ -267,7 +293,7 @@ def render_home():
     with col3:
         st.metric("Registered Users", len(users))
     with col4:
-        st.metric("今日下载量", 2543)
+        st.metric("Today's Downloads", 2543)
     
     # 添加导出数据按钮
     if st.button("导出所有数据"):
@@ -694,6 +720,35 @@ def render_datasets():
     # Get all datasets
     datasets = db_api.db_list_datasets()
     
+    st.markdown("""
+        <style>
+        /* Reduce model card padding */
+        .stContainer {
+            padding: 1rem !important;
+        }
+        
+        /* Make subheader smaller */
+        .stMarkdown h3 {
+            font-size: 1.5rem !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        
+        /* Reduce caption size and spacing */
+        .stMarkdown p {
+            font-size: 0.9rem !important;
+            margin: 0.2rem 0 !important;
+            padding: 0 !important;
+        }
+        
+        /* Make buttons smaller */
+        .stButton button {
+            padding: 0.2rem 1rem !important;
+            height: auto !important;
+        }
+        </style>
+    """, unsafe_allow_html=True)
+    
     if not datasets:
         st.info("No datasets available")
         return
@@ -743,99 +798,11 @@ def render_datasets():
                 st.session_state.current_page = "datasets"
                 st.rerun()
 
-# User management (admin function)
 def render_users():
     """Render user management page"""
-    st.title("用户管理")
-    
-    # 获取所有用户
-    users = db_api.db_list_users()
-    
-    if not users:
-        st.info("暂无用户")
-        return
-    
-    # 创建用户表单
-    with st.expander("添加新用户", expanded=False):
-        with st.form("new_user", clear_on_submit=True):
-            username = st.text_input("用户名*")
-            password = st.text_input("密码*", type="password")
-            is_admin = st.checkbox("管理员权限")
-            affiliate = st.text_input("所属机构")
-            
-            if st.form_submit_button("创建用户"):
-                if not username or not password:
-                    st.error("带*的字段为必填项")
-                else:
-                    try:
-                        # 检查用户名是否已存在
-                        existing_user = db_api.db_get_user_by_username(username)
-                        if existing_user:
-                            st.error(f"用户名 '{username}' 已存在")
-                        else:
-                            # 创建新用户
-                            db_api.db_create_user(username, password, affiliate, is_admin=is_admin)
-                            st.success("用户创建成功")
-                            st.rerun()
-                    except Exception as e:
-                        st.error(f"创建失败：{str(e)}")
-    
-    # 用户列表
-    st.subheader("用户列表")
-    
-    # 创建用户数据表格
-    user_data = []
-    for user in users:
-        user_data.append({
-            "ID": user.user_id,
-            "用户名": user.user_name,
-            "所属机构": user.affiliate,
-            "管理员": user.is_admin
-        })
-    
-    # 显示用户表格
-    df = pd.DataFrame(user_data)
-    st.dataframe(
-        df,
-        column_config={
-            "ID": st.column_config.NumberColumn("用户ID", width="small"),
-            "用户名": st.column_config.TextColumn("用户名", width="medium"),
-            "所属机构": st.column_config.TextColumn("所属机构", width="medium"),
-            "管理员": st.column_config.CheckboxColumn("管理员权限", width="small")
-        },
-        hide_index=True,
-        use_container_width=True
-    )
-    
-    # 管理员权限管理
-    if st.session_state.get('current_user', {}).get('role') == 'admin':
-        st.subheader("管理员权限管理")
-        selected_user = st.selectbox(
-            "选择用户",
-            options=[(user.user_id, user.user_name) for user in users],
-            format_func=lambda x: x[1]
-        )
-        
-        if selected_user:
-            user_id = selected_user[0]
-            current_user = next((u for u in users if u.user_id == user_id), None)
-            
-            if current_user:
-                col1, col2 = st.columns(2)
-                with col1:
-                    st.write(f"当前用户：{current_user.user_name}")
-                    st.write(f"当前权限：{'管理员' if current_user.is_admin else '普通用户'}")
-                
-                with col2:
-                    if st.button("切换管理员权限", key=f"toggle_admin_{user_id}"):
-                        try:
-                            # 更新用户权限
-                            db_api.db_update_user(user_id, is_admin=not current_user.is_admin)
-                            st.success(f"已{'授予' if not current_user.is_admin else '撤销'} {current_user.user_name} 的管理员权限")
-                            st.rerun()
-                        except Exception as e:
-                            st.error(f"权限更新失败：{str(e)}")
-    
+    user_manager = UserManager()
+    user_manager.render()
+
 # Default login function
 def default_login():
     """Use default account to login, for development testing"""
@@ -859,15 +826,46 @@ def main():
     # Get current page
     page = sidebar.render()
     
+    # Check authentication status
+    if not auth_manager.is_authenticated() and page != "Home":
+        st.warning("Please login first to access this page")
+        return
+    
+    # Route to corresponding page
+    if page == "Home":
+        render_home()
+    elif page == "Model Repository":
+        render_models()
+    elif page == "Datasets":
+        render_datasets()
+    elif page == "User Management" and auth_manager.is_admin():
+        render_users()
+    elif page == "System Management":
+        st.write("System management functionality under development...")
+
+if __name__ == "__main__":
+    try:
+        # Start application directly
+        main()
+    except Exception as e:
+        st.error(f"Application startup failed: {str(e)}")
+        print(f"Error details: {str(e)}")
+    # default_login()  # Uncomment to enable default login
+    
+    # Normal mode: use authentication manager
+    auth_manager = AuthManager()
+    sidebar = Sidebar(auth_manager)
+    
+    # Get current page
+    page = sidebar.render()
+    
     # Home page doesn't require login
     if page == "Home":
         render_home()
-        return
         
     # Other pages require login
     if not auth_manager.is_authenticated():
         st.warning("Please login to access this page")
-        return
     
     # Route to corresponding page
     if page == "Model Repository":
