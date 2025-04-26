@@ -63,6 +63,7 @@ class Sidebar:
             menu_items.extend(["模型仓库", "数据集", "用户管理"])
             if self.auth_manager.is_admin():
                 menu_items.append("系统管理")
+                menu_items.append("data insight")
                 
         return st.radio("导航菜单", menu_items)
 
