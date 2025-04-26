@@ -13,14 +13,12 @@ project_root = current_dir.parent
 sys.path.extend([str(project_root), str(project_root/"database")])
 sys.path.extend([str(project_root), str(project_root/"frontend")])
 import frontend.database_api as db_api
-<<<<<<< Updated upstream
 from database.database_interface import (
-     get_model_by_id, list_datasets, get_dataset_by_id,
+    get_model_by_id, list_datasets, get_dataset_by_id,
     list_users, get_user_by_id, list_affiliations, init_database,
-    create_user, update_user, delete_user
+    create_user, update_user, delete_user, get_dataset_info, get_model_info,
+    get_model_ids_by_attribute, get_dataset_ids_by_attribute, get_user_ids_by_attribute
 )
-=======
->>>>>>> Stashed changes
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import select
@@ -41,6 +39,98 @@ nest_asyncio.apply()
 # Initialize page configuration (must be at the beginning)
 st.set_page_config(**APP_CONFIG)
 
+def create_pagination(items, type, page_size=10, page_key="default"):
+    """Create pagination for items
+    Args:
+        items: List of items to paginate
+        type: Type of items (models, datasets)
+        page_size: Number of items per page
+        page_key: Unique key for pagination state
+    """
+    # Get current page from session state
+    page_state_key = f'current_page_num_{page_key}'
+    if page_state_key not in st.session_state:
+        st.session_state[page_state_key] = 1
+        
+    # Calculate total pages
+    total_pages = (len(items) + page_size - 1) // page_size
+    
+    # Get items for current page
+    start_idx = (st.session_state[page_state_key] - 1) * page_size
+    end_idx = min(start_idx + page_size, len(items))
+    current_items = items[start_idx:end_idx]
+    
+    if (type == "models"):
+        # Display model information (sorted by creation time in descending order)
+        for model in current_items:
+            with st.container(border=True):
+                col1, col2 = st.columns([5, 0.7])
+                with col1:
+                    # Put title and button in the same line
+                    st.write(
+                        f"### {model.model_name} ",
+                        unsafe_allow_html=True
+                    )
+                    # Get model tasks
+                    tasks = [task.task_name.value for task in model.tasks] if hasattr(model, 'tasks') else []
+                    task_str = ", ".join(tasks) if tasks else "No tasks"
+                    st.caption(f"Architecture: {model.arch_name.value} | Media Type: {model.media_type.value} | Parameters: {model.param_num:,}")
+                
+                with col2:
+                    # Hide the actual button but keep functionality
+                    if st.button("View Details", key=f"model_{model.model_id}", use_container_width=True):
+                        st.session_state.selected_model = model
+                        st.session_state.current_page = "model_detail"
+                        
+    elif (type == "datasets"):
+        # Display dataset information (sorted by creation time in descending order)
+        for dataset in current_items:
+            with st.container(border=True):
+                col1, col2 = st.columns([5, 0.7])
+                with col1:
+                    # Put title and button in the same line
+                    st.write(
+                        f"### {dataset.ds_name}",
+                        unsafe_allow_html=True
+                    )
+                    # Get dataset tasks
+                    tasks = [task.task.value for task in dataset.Dataset_TASK]
+                    task_str = ", ".join(tasks) if tasks else "No tasks"
+                    st.caption(
+                        f"Type: {dataset.media} | "
+                        f"Tasks: {task_str} | "
+                        f"Size: {dataset.ds_size/1024:.1f}KB"
+                    )
+                with col2:
+                    if st.button("View Details", key=f"dataset_{dataset.ds_id}", use_container_width=True):
+                        st.session_state.selected_dataset = dataset
+                        st.session_state.current_page = "dataset_detail"
+    
+    # Create pagination controls on the right
+    _, _, col3 = st.columns([10, 10, 3.5])
+    
+    with col3:
+        # Use columns for layout
+        col1, col2, col3 = st.columns([1.8, 1, 1])
+        
+        # Display page numbers
+        with col1:
+            st.button(f'{st.session_state[page_state_key]}/{total_pages}', disabled=True, key=f"page_num_{page_key}")
+            
+        # Previous page button
+        with col2:
+            if st.button("←", key=f"prev_{page_key}") and st.session_state[page_state_key] > 1:
+                st.session_state[page_state_key] -= 1
+                st.rerun()
+        
+        # Next page button
+        with col3:
+            if st.button("→", key=f"next_{page_key}") and st.session_state[page_state_key] < total_pages:
+                st.session_state[page_state_key] += 1
+                st.rerun()
+    
+    st.write("")
+
 def parse_csv_columns(file_data: bytes) -> List[Dict]:
     df = pd.read_csv(BytesIO(file_data), nrows=1)
     return [{"col_name": col, "col_datatype": "text"} for col in df.columns]
@@ -60,9 +150,9 @@ def get_db_session():
     DB_HOST = os.getenv("DB_HOST", "localhost")
     DB_PORT = os.getenv("DB_PORT", 3306)
     TARGET_DB = os.getenv("TARGET_DB")
-    
+
     from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
-    
+
     engine = create_async_engine(
         f"mysql+aiomysql://{DB_USERNAME}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{TARGET_DB}",
         echo=True
@@ -154,7 +244,7 @@ def login_form():
                     user = user
                 else:
                     user = None
-            
+
             if user:
                 st.session_state.authenticated = True
                 st.session_state.current_user = {
@@ -194,7 +284,7 @@ def render_home():
     models = db_api.db_list_models()
     datasets = db_api.db_list_datasets()
     users = db_api.db_list_users()
-    
+
     col1, col2, col3, col4 = st.columns(4)
     with col1:
         st.metric("Total Models", len(models))
@@ -204,6 +294,64 @@ def render_home():
         st.metric("Registered Users", len(users))
     with col4:
         st.metric("Today's Downloads", 2543)
+    
+    # 添加导出数据按钮
+    if st.button("导出所有数据"):
+        try:
+            # 获取所有数据
+            json_data = db_api.db_export_all_data()
+            if json_data:
+                # 生成文件名
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                filename = f"data_{timestamp}.json"
+                
+                # 转换为JSON字符串，确保使用UTF-8编码
+                import json
+                json_str = json.dumps(json_data, indent=4, ensure_ascii=False)
+                
+                # 提供下载
+                st.download_button(
+                    label="点击下载数据",
+                    data=json_str.encode('utf-8'),  # 确保使用UTF-8编码
+                    file_name=filename,
+                    mime="application/json"
+                )
+            else:
+                st.error("导出数据失败")
+        except Exception as e:
+            st.error(f"导出数据时出错：{str(e)}")
+    
+    # 添加注册功能
+    if not st.session_state.get('authenticated'):
+        st.markdown("---")
+        st.subheader("新用户注册")
+        with st.form("注册", clear_on_submit=True):
+            new_username = st.text_input("用户名")
+            new_password = st.text_input("密码", type="password")
+            confirm_password = st.text_input("确认密码", type="password")
+            
+            if st.form_submit_button("注册"):
+                if new_username and new_password:
+                    if new_password != confirm_password:
+                        st.error("两次输入的密码不一致")
+                        return
+                    try:
+                        # 检查用户名是否已存在
+                        existing_user = db_api.db_get_user_by_username(new_username)
+                        if existing_user:
+                            st.error("用户名已存在")
+                            return
+                            
+                        # 创建新用户，默认非管理员
+                        user = db_api.db_create_user(new_username, new_password, is_admin=False)
+                        if user:
+                            st.success("注册成功！请使用新账号登录")
+                        else:
+                            st.error("注册失败，请重试")
+                    except Exception as e:
+                        st.error(f"注册失败：{str(e)}")
+                else:
+                    st.error("请填写用户名和密码")
 
 # Pages
 def create_pagination(items, type, page_size=10, page_key="default"):
@@ -292,72 +440,157 @@ def create_pagination(items, type, page_size=10, page_key="default"):
     
     st.write("")
 
-<<<<<<< Updated upstream
 # Model repository
-=======
->>>>>>> Stashed changes
+def create_unified_search_section(page_type: str = None):
+    """Create unified search section for different pages
+    Args:
+        page_type: Type of page (models, datasets, users)
+    Returns:
+        bool: True if search was performed, False otherwise
+    """
+    # Search section
+    with st.container():
+        # First row
+        col1, col2, col3 = st.columns([3, 2, 1])
+        with col1:
+            search_query = st.text_input(f"Search {page_type.capitalize() if page_type else ''}", 
+                                       placeholder="Enter natural language query")
+        with col2:
+            # Add type selection dropdown
+            selected_type = st.selectbox(
+                "Select Type",
+                ["Models", "Datasets", "Users"],
+                key=f"type_select_{page_type}",
+                index=1 if page_type == "datasets" else 0
+            )
+            if selected_type == "Models" and page_type != "models":
+                st.session_state.current_page = "models"
+                st.rerun()
+            elif selected_type == "Datasets" and page_type != "datasets":
+                st.session_state.current_page = "datasets"
+                st.rerun()
+            elif selected_type == "Users" and page_type != "users":
+                st.session_state.current_page = "users"
+                st.rerun()
+        with col3:
+            search_clicked = st.button("Search", key=f"{page_type}_search", use_container_width=True)
+        
+        # Second row
+        col1, col2, col3 = st.columns([3, 2, 1])
+        with col1:
+            # Get appropriate field options based on page type
+            if page_type == "models":
+                field_options = ["model_id", "model_name", "param_num", "media_type", "arch_name", "trainname"]
+            elif page_type == "datasets":
+                field_options = ["ds_id", "ds_name", "ds_size", "media", "created_at"]
+            else:
+                field_options = ["user_id", "user_name", "email", "role"]
+            
+            # Create three columns for field selection, query value and search button
+            field_col1, field_col2, field_col3 = st.columns([1, 1, 0.5])
+            with field_col1:
+                field_attr = st.selectbox(
+                    "Select Field",
+                    field_options
+                )
+            with field_col2:
+                field_val = st.text_input("Enter Query Value")
+            with field_col3:
+                field_search_clicked = st.button("Search", key=f"{page_type}_field_search", use_container_width=True)
+    
+    # Handle search logic
+    if search_clicked or field_search_clicked:
+        if search_clicked and search_query:  # Natural language search
+            instance_type = 1 if page_type == "models" else (2 if page_type == "datasets" else 3)
+            results, query_info = db_api.db_agent_query(search_query, instance_type=instance_type)
+            
+            if results:
+                # First show results table
+                df = pd.DataFrame(results)
+                st.dataframe(df)
+                
+                # Then show query details
+                st.markdown("---")
+                st.subheader("Query Details")
+                st.json({
+                    'Natural Language Query': query_info['natural_language_query'],
+                    'Generated SQL': query_info['generated_sql'],
+                    'Error Code': query_info['error_code'],
+                    'Has Results': query_info['has_results'],
+                    'Error Message': query_info.get('error', None),
+                    'Query Results': results
+                })
+                return True
+            else:
+                st.info("No results found")
+                return True
+        elif field_search_clicked and field_val:  # Attribute search
+            try:
+                # Use asyncio.run to create new event loop
+                if page_type == "models":
+                    ids = asyncio.run(get_model_ids_by_attribute(get_db_session()(), field_attr, field_val))
+                elif page_type == "datasets":
+                    ids = asyncio.run(get_dataset_ids_by_attribute(get_db_session()(), field_attr, field_val))
+                else:
+                    ids = asyncio.run(get_user_ids_by_attribute(get_db_session()(), field_attr, field_val))
+                
+                if not ids:
+                    st.info(f"No {page_type} found matching the criteria")
+                else:
+                    st.session_state.filtered_ids = ids
+                return True
+            except Exception as e:
+                st.error(f"Search failed: {str(e)}")
+                return True
+    
+    return False
+
 def render_models():
     """Render model repository page"""
     st.title("Model Repository")
     
-<<<<<<< Updated upstream
-     # Use unified search section
-    if create_search_section("models", 1):
-=======
     # Use unified search section
-    if create_search_section("models"):
->>>>>>> Stashed changes
+    if create_unified_search_section("models"):
         return
     
     # Model upload
-    with st.expander("Upload New Model"):
-        with st.form("model_upload"):
-            name = st.text_input("Model Name")
+    with st.expander("Upload New Model", expanded=False):
+        with st.form("model_upload", clear_on_submit=True):
+            name = st.text_input("Model Name*")
             param_num = st.number_input("Parameter Count", min_value=1000, value=1000000)
             
-            # Architecture type selection
-            arch_types = ["CNN", "RNN", "TRANSFORMER"]
-            arch_type = st.selectbox(
-                "Architecture Type",
-                arch_types,
-                help="Select model architecture type"
-            )
+            col1, col2 = st.columns(2)
+            with col1:
+                arch_type = st.selectbox(
+                    "Architecture Type*",
+                    ["CNN", "RNN", "TRANSFORMER"],
+                    help="Select model architecture type"
+                )
+                media_type = st.selectbox(
+                    "Media Type*",
+                    ["TEXT", "IMAGE", "AUDIO", "VIDEO"],
+                    help="Select applicable media type"
+                )
+            with col2:
+                train_type = st.selectbox(
+                    "Training Type*",
+                    ["PRETRAIN", "FINETUNE", "RL"],
+                    help="Select training type"
+                )
+                selected_tasks = st.multiselect(
+                    "Task Types*",
+                    ["CLASSIFICATION", "DETECTION", "GENERATION", "SEGMENTATION"],
+                    default=["CLASSIFICATION"]
+                )
             
-            # Media type selection
-            media_types = ["TEXT", "IMAGE", "AUDIO", "VIDEO"]
-            media_type = st.selectbox(
-                "Media Type",
-                media_types,
-                help="Select media type the model is suitable for"
-            )
-            
-            # Task selection
-            task_types = ["CLASSIFICATION", "DETECTION", "GENERATION", "SEGMENTATION"]
-            selected_tasks = st.multiselect(
-                "Task Types",
-                task_types,
-                default=["CLASSIFICATION"],
-                help="You can select multiple task types"
-            )
-            
-            # Training type selection
-            train_types = ["PRETRAIN", "FINETUNE", "RL"]
-            train_type = st.selectbox(
-                "Training Type",
-                train_types,
-                help="Select model training type"
-            )
-            
-            # File upload
-            file = st.file_uploader("Select Model File", type=["pt", "pth", "ckpt", "bin", "txt"])
+            file = st.file_uploader("Select Model File*", type=["pt", "pth", "ckpt"])
             
             if st.form_submit_button("Submit"):
-                if file and name:
+                if not name or not file:
+                    st.error("Fields marked with * are required")
+                else:
                     try:
-                        # Save file
                         file_path = db_api.db_save_file(file.getvalue(), file.name)
-                        
-                        # Create model
                         model_data = {
                             "model_name": name,
                             "param_num": param_num,
@@ -365,94 +598,73 @@ def render_models():
                             "media_type": media_type,
                             "tasks": selected_tasks,
                             "trainname": train_type,
-                            "param": file_path
+                            "param": str(file_path)
                         }
                         db_api.db_create_model(model_data)
                         st.success("Model uploaded successfully!")
                         st.rerun()
                     except Exception as e:
                         st.error(f"Upload failed: {str(e)}")
-                else:
-                    st.error("Please enter model name and select a file")
-                    
-    st.markdown("""
-        <style>
-        /* Reduce model card padding */
-        .stContainer {
-            padding: 1rem !important;
-        }
-        
-        /* Make subheader smaller */
-        .stMarkdown h3 {
-            font-size: 1.4rem !important;
-            margin: 0 !important;
-            padding: 0 !important;
-        }
-        
-        /* Reduce caption size and spacing */
-        .stMarkdown p {
-            font-size: 0.9rem !important;
-            margin: 0.2rem 0 !important;
-            padding: 0 !important;
-        }
-        
-        /* Make buttons smaller */
-        .stButton button {
-            padding: 0.2rem 1rem !important;
-            height: auto !important;
-        }
-        </style>
-    """, unsafe_allow_html=True)
     
-    # Display all models
+    # Get all models
     models = db_api.db_list_models()
     
     if not models:
         st.info("No models available")
         return
     
-    # Sort models by creation time
-    sorted_models = sorted(models, 
-                           key=lambda x: x.created_at if hasattr(x, 'created_at') else datetime.now(), 
-                           reverse=True)
-    
-    # Get current page items
-    create_pagination(sorted_models, "models")
+    # Display model list
+    create_pagination(models, "models")
     
     # Display model details
     if st.session_state.get("current_page") == "model_detail":
         model = st.session_state.get("selected_model")
         if model:
             st.markdown("---")
-            st.subheader(f"Model Details - {model.model_name}")
+            st.subheader(f"Model Details - {model.model_name if hasattr(model, 'model_name') else model.get('model_name', '')}")
             
-            col1, col2 = st.columns(2)
-            with col1:
-                st.write("**Architecture Type:**")
-                st.write(model.arch_name.value)
-                
-                st.write("**Media Type:**")
-                st.write(model.media_type.value)
-                
-                st.write("**Parameter Count:**")
-                st.write(f"{model.param_num:,}")
+            # Display basic information
+            st.write("**Basic Information:**")
+            info_data = {
+                "Model ID": model.model_id if hasattr(model, 'model_id') else model.get('model_id', ''),
+                "Architecture Type": model.arch_name.value if hasattr(model, 'arch_name') else model.get('arch_name', ''),
+                "Parameter Count": f"{model.param_num:,}" if hasattr(model, 'param_num') else f"{model.get('param_num', 0):,}",
+                "Training Type": model.trainname.value if hasattr(model, 'trainname') else model.get('trainname', '')
+            }
+            st.table(pd.DataFrame(list(info_data.items()), columns=["Property", "Value"]))
             
-            with col2:
-                st.write("**Training Type:**")
-                st.write(model.trainname.value)
-                
-                st.write("**Supported Tasks:**")
-                tasks = [task.task_name.value for task in model.tasks] if hasattr(model, 'tasks') else []
-                st.write(", ".join(tasks) if tasks else "No tasks")
+            # Display related information
+            st.write("**Related Information:**")
+            if hasattr(model, 'tasks'):
+                tasks = [task.task_name.value for task in model.tasks]
+            else:
+                tasks = model.get('tasks', [])
+            
+            if hasattr(model, 'authors'):
+                authors = [author.user_name for author in model.authors]
+            else:
+                authors = model.get('authors', [])
+            
+            if hasattr(model, 'datasets'):
+                datasets = [dataset.ds_name for dataset in model.datasets]
+            else:
+                datasets = model.get('datasets', [])
+            
+            rel_data = {
+                "Supported Tasks": ", ".join(tasks),
+                "Authors": ", ".join(authors),
+                "Related Datasets": ", ".join(datasets)
+            }
+            st.table(pd.DataFrame(list(rel_data.items()), columns=["Type", "Name"]))
             
             # Download button
-            if st.button("Download Model", key=f"download_{model.model_id}"):
-                file_data = db_api.db_get_file(f"{model.model_name}.pt")
+            if st.button("Download Model", key=f"download_{model.model_id if hasattr(model, 'model_id') else model.get('model_id', '')}"):
+                file_data = db_api.db_get_file(model.model_name if hasattr(model, 'model_name') else model.get('model_name', '') + ".pt")
                 if file_data:
                     st.download_button(
                         label="Click to Download",
                         data=file_data,
-                        file_name=f"{model.model_name}.pt",
+                        file_name=f"{model.model_name if hasattr(model, 'model_name') else model.get('model_name', '')}.pt",
                         mime="application/octet-stream"
                     )
                 else:
@@ -462,59 +674,28 @@ def render_models():
             if st.button("Back to List", key="back_to_list"):
                 st.session_state.current_page = "models"
                 st.rerun()
-    
-    # If no search or search has no results, display all models
-    models = db_api.db_list_models()
-    
-    # Show model list
-    df = pd.DataFrame([{
-        "ID": model.model_id,
-        "Name": model.model_name,
-        "Type": model.arch_name.value,
-        "Parameter Count": f"{model.param_num:,}" if hasattr(model, 'param_num') else "Unknown"
-    } for model in models])
-    
-    st.dataframe(
-        df,
-        column_config={
-            "ID": "Model ID",
-            "Name": "Model Name",
-            "Type": "Architecture Type",
-            "Parameter Count": "Parameter Count"
-        },
-        hide_index=True,
-        use_container_width=True
-    )
 
-# Modified dataset management
 def render_datasets():
     """Render dataset management page"""
-    st.title("Dataset Management", 2)
+    st.title("Dataset Management")
     
     # Use unified search section
-    if create_search_section("datasets"):
+    if create_unified_search_section("datasets"):
         return
     
     # Dataset upload
-    with st.expander("Upload New Dataset"):
-        with st.form("dataset_upload"):
-            name = st.text_input("Dataset Name")
+    with st.expander("Upload New Dataset", expanded=False):
+        with st.form("dataset_upload", clear_on_submit=True):
+            name = st.text_input("Dataset Name*")
             desc = st.text_area("Description")
-            file = st.file_uploader("Select Data File", type=["txt"])
-            
-            # Task selection
-            st.write("Select Task Type:")
-            # Predefined task types
-            predefined_tasks = ["classification", "detection", "generation", "segmentation"]
-            selected_tasks = st.multiselect(
-                "Select Task Types",
-                predefined_tasks,
-                default=["classification"],
-                help="You can select multiple task types"
-            )
+            media_type = st.selectbox("Media Type", ["text", "image", "audio", "video"])
+            task_type = st.selectbox("Task Type", ["classification", "detection", "generation"])
+            file = st.file_uploader("Select Data File*", type=["txt", "csv"])
             
             if st.form_submit_button("Submit"):
-                if file:
+                if not name or not file:
+                    st.error("Fields marked with * are required")
+                else:
                     try:
                         # Save file
                         file_path = db_api.db_save_file(file.getvalue(), file.name)
@@ -523,23 +704,20 @@ def render_datasets():
                         dataset_data = {
                             "ds_name": name,
                             "ds_size": len(file.getvalue()),
-                            "media": "text",  # Default type
-                            "task": selected_tasks,  # Use selected tasks
+                            "media": media_type,
+                            "task": [task_type],
                             "columns": [
                                 {"col_name": "content", "col_datatype": "text"}
                             ],
-                            "description": desc,  # Add description field
-                            "created_at": datetime.now()  # Add creation time
+                            "description": desc
                         }
                         db_api.db_create_dataset(name, dataset_data)
                         st.success("Dataset uploaded successfully!")
-                        st.rerun()  # Refresh page to show new dataset
+                        st.rerun()
                     except Exception as e:
                         st.error(f"Upload failed: {str(e)}")
-                else:
-                    st.error("Please select a file")
     
-    # If no search or search has no results, display all datasets
+    # Get all datasets
     datasets = db_api.db_list_datasets()
     
     st.markdown("""
@@ -575,40 +753,41 @@ def render_datasets():
         st.info("No datasets available")
         return
     
-    # Sort datasets by creation time
-    sorted_datasets = sorted(datasets, key=lambda x: x.created_at, reverse=True)
-    
-    # Get current page items
-    create_pagination(sorted_datasets, "datasets")
+    # Display dataset list
+    create_pagination(datasets, "datasets")
     
     # Display dataset details
     if st.session_state.get("current_page") == "dataset_detail":
         dataset = st.session_state.get("selected_dataset")
         if dataset:
             st.markdown("---")
-            st.subheader(f"Dataset Details - {dataset.ds_name}")
+            st.subheader(f"Dataset Details - {dataset.ds_name if hasattr(dataset, 'ds_name') else dataset.get('ds_name', '')}")
             
             # Display description
             st.write("**Description:**")
-            st.write(dataset.description if hasattr(dataset, 'description') else "No description available")
+            st.write(dataset.description if hasattr(dataset, 'description') else dataset.get('description', 'No description available'))
             
             # Display task information
             st.write("**Task Types:**")
-            tasks = [task.task.value for task in dataset.Dataset_TASK]
+            if hasattr(dataset, 'Dataset_TASK'):
+                tasks = [task.task.value for task in dataset.Dataset_TASK]
+            else:
+                tasks = dataset.get('task', [])
             st.write(", ".join(tasks) if tasks else "No tasks")
             
             # Display dataset size
             st.write("**Dataset Size:**")
-            st.write(f"{dataset.ds_size/1024:.1f}KB")
+            size = dataset.ds_size if hasattr(dataset, 'ds_size') else dataset.get('ds_size', 0)
+            st.write(f"{size/1024:.1f}KB")
             
             # Download button
-            if st.button("Download Dataset", key=f"download_{dataset.ds_id}"):
-                file_data = db_api.db_get_file(dataset.ds_name + ".txt")
+            if st.button("Download Dataset", key=f"download_{dataset.ds_id if hasattr(dataset, 'ds_id') else dataset.get('ds_id', '')}"):
+                file_data = db_api.db_get_file(dataset.ds_name if hasattr(dataset, 'ds_name') else dataset.get('ds_name', '') + ".txt")
                 if file_data:
                     st.download_button(
                         label="Click to Download",
                         data=file_data,
-                        file_name=f"{dataset.ds_name}.txt",
+                        file_name=f"{dataset.ds_name if hasattr(dataset, 'ds_name') else dataset.get('ds_name', '')}.txt",
                         mime="text/plain"
                     )
                 else:
@@ -619,7 +798,6 @@ def render_datasets():
                 st.session_state.current_page = "datasets"
                 st.rerun()
 
-# User management (admin function)
 def render_users():
     """Render user management page"""
     user_manager = UserManager()

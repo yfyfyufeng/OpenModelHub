@@ -202,13 +202,8 @@ class UserManager:
         """Render user management interface"""
         st.header("👥 User Management")
         
-<<<<<<< Updated upstream
-        # Use unified search section
-        if create_search_section("users", 3):
-=======
         # Use unified search section and handle search results
         if create_search_section("users"):
->>>>>>> Stashed changes
             return
         
         # Create user form
