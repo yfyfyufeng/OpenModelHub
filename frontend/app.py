@@ -42,12 +42,15 @@ def create_pagination(items, type, page_size=10, page_key="default"):
         page_key: Unique key for pagination state
     """
     # Get current page from session state
-    page_state_key = f'current_page_num_{page_key}'
+    page_state_key = f'current_page_num_{type}'
     if page_state_key not in st.session_state:
         st.session_state[page_state_key] = 1
         
     # Calculate total pages
     total_pages = (len(items) + page_size - 1) // page_size
+    
+    if st.session_state[page_state_key] > total_pages:
+        st.session_state[page_state_key] = 1
     
     # Get items for current page
     start_idx = (st.session_state[page_state_key] - 1) * page_size
@@ -109,7 +112,7 @@ def create_pagination(items, type, page_size=10, page_key="default"):
         
         # Display page numbers
         with col1:
-            st.button(f'{st.session_state[page_state_key]}/{total_pages}', disabled=True, key=f"page_num_{page_key}")
+            st.button(f'{st.session_state[page_state_key]}/{total_pages}', disabled=True, key=f"page_num_{type}")
             
         # Previous page button
         with col2:
@@ -346,93 +349,6 @@ def render_home():
                         st.error(f"Registration error: {str(e)}")
                 else:
                     st.error("Please fill in username and password")
-
-# Pages
-def create_pagination(items, type, page_size=10, page_key="default"):
-    """Create pagination for items"""
-    # Get current page from session state
-    page_state_key = f'current_page_num_{page_key}'
-    if page_state_key not in st.session_state:
-        st.session_state[page_state_key] = 1
-        
-    # Calculate total pages
-    total_pages = (len(items) + page_size - 1) // page_size
-    
-    # Get items for current page
-    start_idx = (st.session_state[page_state_key] - 1) * page_size
-    end_idx = min(start_idx + page_size, len(items))
-    current_items = items[start_idx:end_idx]
-    
-    if (type == "models"):
-        # Display model information (sorted by creation time in descending order)
-        for model in current_items:
-            with st.container(border=True):
-                col1, col2 = st.columns([5, 0.7])
-                with col1:
-                    # Put title and button in the same line
-                    st.write(
-                        f"### {model.model_name} ",
-                        unsafe_allow_html=True
-                    )
-                    # Get model tasks
-                    tasks = [task.task_name.value for task in model.tasks] if hasattr(model, 'tasks') else []
-                    task_str = ", ".join(tasks) if tasks else "No tasks"
-                    st.caption(f"Architecture: {model.arch_name.value} | Media Type: {model.media_type.value} | Parameters: {model.param_num:,}")
-                
-                with col2:
-                    # Hide the actual button but keep functionality
-                    if st.button("View Details", key=f"model_{model.model_id}", use_container_width=True):
-                        st.session_state.selected_model = model
-                        st.session_state.current_page = "model_detail"
-                        
-    elif (type == "datasets"):
-        # Display dataset information (sorted by creation time in descending order)
-        for dataset in current_items:
-            with st.container(border=True):
-                col1, col2 = st.columns([5, 0.7])
-                with col1:
-                    # Put title and button in the same line
-                    st.write(
-                        f"### {dataset.ds_name}",
-                        unsafe_allow_html=True
-                    )
-                    # Get dataset tasks
-                    tasks = [task.task.value for task in dataset.Dataset_TASK]
-                    task_str = ", ".join(tasks) if tasks else "No tasks"
-                    st.caption(
-                        f"Type: {dataset.media} | "
-                        f"Tasks: {task_str} | "
-                        f"Size: {dataset.ds_size/1024:.1f}KB"
-                    )
-                with col2:
-                    if st.button("View Details", key=f"dataset_{dataset.ds_id}", use_container_width=True):
-                        st.session_state.selected_dataset = dataset
-                        st.session_state.current_page = "dataset_detail"
-    
-    # Create pagination controls on the right
-    _, _, col3 = st.columns([10, 10, 3.5])
-    
-    with col3:
-        # Use columns for layout
-        col1, col2, col3 = st.columns([1.8, 1, 1])
-        
-        # Display page numbers
-        with col1:
-            st.button(f'{st.session_state[page_state_key]}/{total_pages}', disabled=True, key=f"page_num_{page_key}")
-            
-        # Previous page button
-        with col2:
-            if st.button("←", key=f"prev_{page_key}") and st.session_state[page_state_key] > 1:
-                st.session_state[page_state_key] -= 1
-                st.rerun()
-        
-        # Next page button
-        with col3:
-            if st.button("→", key=f"next_{page_key}") and st.session_state[page_state_key] < total_pages:
-                st.session_state[page_state_key] += 1
-                st.rerun()
-    
-    st.write("")
 
 def render_models():
     """Render model repository page"""
