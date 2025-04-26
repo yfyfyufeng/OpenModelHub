@@ -7,12 +7,21 @@ import pandas as pd
 import sys
 import asyncio
 from datetime import datetime
+import plotly.express as px
 import nest_asyncio
 current_dir = Path(__file__).parent
 project_root = current_dir.parent
 sys.path.extend([str(project_root), str(project_root/"database")])
 sys.path.extend([str(project_root), str(project_root/"frontend")])
 import frontend.database_api as db_api
+
+from database.database_interface import (
+     get_model_by_id, list_datasets, get_dataset_by_id,
+    list_users, get_user_by_id, list_affiliations, init_database,
+    create_user, update_user, delete_user, get_dataset_info, get_model_info,
+    get_model_ids_by_attribute, get_dataset_ids_by_attribute
+)
+from data_analysis import data_ins
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import select
@@ -25,7 +34,7 @@ from frontend.config import APP_CONFIG
 from frontend.db import get_db_session
 from frontend.auth import AuthManager
 from frontend.components import Sidebar, DatasetUploader, UserManager, ModelUploader, create_search_section
-from database.database_interface import get_user_ids_by_attribute
+
 
 # Allow nested event loops
 nest_asyncio.apply()
@@ -609,6 +618,76 @@ def render_datasets():
                 st.session_state.current_page = "datasets"
                 st.rerun()
 
+
+def render_data_insight():
+    attributes = ["media_type", "arch_name", "trainname"]
+    types = {"media_type":["audio", "image", "text", "video"],
+             "arch_name": ["CNN", "RNN", "Transformer"], 
+             "trainname": ["Trainname.FINETUNE", "Trainname.PRETRAIN", "Trainname.RL"],
+            }
+    output = data_ins()
+
+    st.write("# Model")
+    model = output["model"]
+    for attr in attributes:
+        data = pd.DataFrame({
+            "Category": types[attr],
+            "Value": model[attr].values()
+        })
+        fig = px.pie(
+            data,
+            names="Category",
+            values="Value",
+            title=f"number & percentage of each {attr} of model"
+        )
+        st.plotly_chart(fig)
+
+    fig = px.imshow(
+        pd.DataFrame(model["media_task_relation"]),
+        labels=dict(x="media", y="task", color="Value"),
+        color_continuous_scale="Viridis",
+        title="media_task_relation"
+    )
+    st.plotly_chart(fig, use_container_width=True)
+
+    st.write("## param_num summary:")
+    st.dataframe(model["param_num"])
+
+    # st.write("## AI Summary:")
+    # st.write(model["comment"])
+
+    st.write("---")
+
+    st.write("# dataset")
+    dataset = output["dataset"]
+    fig = px.imshow(
+        pd.DataFrame(dataset["media_task_relation"]),
+        labels=dict(x="media", y="task", color="Value"),
+        color_continuous_scale="Viridis",
+        title="media_task_relation"
+    )
+    st.plotly_chart(fig, use_container_width=True)
+
+    st.write("## param_num summary:")
+    st.dataframe(dataset["ds_size"])
+
+    # st.write("## AI Summary:")
+    # st.write(dataset["comment"])
+
+    st.write("---")
+    
+    st.write("# user")
+    user = output["user"]
+    fig = px.bar(
+        user,
+        x="affiliate",
+        y="count",
+        title="Grouped Bar Chart"
+    )
+    st.plotly_chart(fig)
+    
+# User management (admin function)
+
 def render_users():
     """Render user management page"""
     # 保留原有的UserManager界面
@@ -727,6 +806,12 @@ def main():
         render_datasets()
     elif page == "User Management" and auth_manager.is_admin():
         render_users()
+
+    elif page == "系统管理":
+        st.write("系统管理功能正在开发中...")
+    elif page == "data insight":
+        #st.write("data insight is under developing")
+        render_data_insight()
     elif page == "System Management":
         st.write("System management functionality under development...")
 
