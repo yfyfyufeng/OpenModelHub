@@ -77,7 +77,8 @@ The database schema is as follows:
   - param_num: Number of parameters
   - media_type: Type of media the model handles, in { 'text', 'image', 'audio', 'video' }
   - arch_name: Architecture of the model, in { 'CNN', 'RNN', 'Transformer' }
-  - trainname: Training method (string): can be 'pretrain', 'fine-tune', 'reinforcement learning'
+  - (the table named as the arch_name inherits this "model" table.)
+  - trainname: Training method in {Trainname.PRETRAIN, Trainname.FINETUNE}
   - param: Model parameter binary blob (LargeBinary)
 
 - model_tasks(model_id, task_name)
