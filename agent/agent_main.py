@@ -150,6 +150,7 @@ The database schema is as follows:
 # Synonym Handling:
 - If the user query mentions "language model", treat it as "models where media_type = 'text'".
 - If the user query mentions "vision model", treat it as "models where media_type = 'image'".
+- If the user query mentions "fine-tune", "pretrain" or the like, they are referring to "Trainname.FINETUNE" and "Trainname.FINETUNE" values of the "train_name" attribute of models.
 
 Only return the SQL query. Do not add explanations.
 

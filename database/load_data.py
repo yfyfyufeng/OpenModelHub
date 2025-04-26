@@ -259,6 +259,7 @@ async def load_json_file(session: AsyncSession, file_path: str, current_user: Us
                     continue
                 
         # II. relationships
+        relationship_exist = False
         if relationship_exist:
             print("Relationship already exists, skipping random relationship creation...")
             if 'user_ds' in data:
