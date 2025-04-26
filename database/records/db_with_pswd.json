@@ -14,8 +14,8 @@
         {"affil_name": "University of Chicago"}
     ],
     "user": [
-        {"user_name": "Bradley", "password_hash": "admin", "affiliate": "The Chinese University of Hong Kong", "is_admin": true},
-        {"user_name": "Rosalind", "password_hash": "admin", "affiliate": "The Chinese University of Hong Kong", "is_admin": true},
+        {"user_name": "Bradley", "password_hash": "admin", "affiliate": "The Chinese University of Hong Kong, Shenzhen", "is_admin": true},
+        {"user_name": "Rosalind", "password_hash": "admin", "affiliate": "The Chinese University of Hong Kong, Shenzhen", "is_admin": true},
         {"user_name": "Alice", "password_hash": "admin", "affiliate": "Tsinghua University", "is_admin": false},
         {"user_name": "Bob", "password_hash": "admin", "affiliate": "Tsinghua University", "is_admin": false},
         {"user_name": "Charlie", "password_hash": "admin", "affiliate": "Peking University", "is_admin": false},

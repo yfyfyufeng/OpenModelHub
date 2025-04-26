@@ -694,8 +694,8 @@ def render_data_insight():
     st.write("## param_num summary:")
     st.dataframe(model["param_num"])
 
-    st.write("## AI Summary:")
-    st.write(model["comment"])
+    # st.write("## AI Summary:")
+    # st.write(model["comment"])
 
     st.write("---")
 
@@ -712,8 +712,8 @@ def render_data_insight():
     st.write("## param_num summary:")
     st.dataframe(dataset["ds_size"])
 
-    st.write("## AI Summary:")
-    st.write(dataset["comment"])
+    # st.write("## AI Summary:")
+    # st.write(dataset["comment"])
 
     st.write("---")
     

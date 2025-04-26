@@ -44,8 +44,8 @@ def deal_model(df_model):
     model_param_num = df_model["param_num"]
     output["param_num"] = {"max": model_param_num.max(), "min": model_param_num.min(), "mean": model_param_num.mean(), "std": model_param_num.std()}
 
-    comment = ai_summary("please summary these data respectively", output)
-    output["comment"] = comment
+    # comment = ai_summary("please summary these data respectively", output)
+    # output["comment"] = comment
     return output
 
 def deal_dataset(df_dataset):
@@ -68,8 +68,8 @@ def deal_dataset(df_dataset):
     ds_size = df_dataset["ds_size"]
     output["ds_size"] = {"max": ds_size.max(), "min": ds_size.min(), "mean": ds_size.mean(), "std": ds_size.std()}
     
-    comment = ai_summary("please summary these data respectively", output)
-    output["comment"] = comment
+    # comment = ai_summary("please summary these data respectively", output)
+    # output["comment"] = comment
 
     return output
 
