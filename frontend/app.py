@@ -531,44 +531,42 @@ def render_datasets():
                     except Exception as e:
                         st.error(f"Upload failed: {str(e)}")
     
-    # Get all datasets
-    datasets = db_api.db_list_datasets()
+    # 初始化session state
+    if 'datasets' not in st.session_state:
+        st.session_state.datasets = []
+    if 'loading_complete' not in st.session_state:
+        st.session_state.loading_complete = False
     
-    st.markdown("""
-        <style>
-        /* Reduce model card padding */
-        .stContainer {
-            padding: 1rem !important;
-        }
-        
-        /* Make subheader smaller */
-        .stMarkdown h3 {
-            font-size: 1.5rem !important;
-            margin: 0 !important;
-            padding: 0 !important;
-        }
-        
-        /* Reduce caption size and spacing */
-        .stMarkdown p {
-            font-size: 0.9rem !important;
-            margin: 0.2rem 0 !important;
-            padding: 0 !important;
-        }
-        
-        /* Make buttons smaller */
-        .stButton button {
-            padding: 0.2rem 1rem !important;
-            height: auto !important;
-        }
-        </style>
-    """, unsafe_allow_html=True)
+    # 显示加载状态
+    if not st.session_state.loading_complete:
+        with st.spinner('正在加载数据集...'):
+            # 获取前10个数据集
+            initial_datasets = db_api.db_list_datasets(limit=10)
+            st.session_state.datasets = initial_datasets
+            
+            # 在后台加载剩余数据集
+            def load_remaining_datasets():
+                remaining_datasets = db_api.db_list_datasets(offset=10)
+                st.session_state.datasets.extend(remaining_datasets)
+                st.session_state.loading_complete = True
+            
+            # 使用线程池执行后台加载
+            import concurrent.futures
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                executor.submit(load_remaining_datasets)
     
-    if not datasets:
+    # 显示数据集列表
+    if not st.session_state.datasets:
         st.info("No datasets available")
         return
     
-    # Display dataset list
-    create_pagination(datasets, "datasets")
+    # 显示加载进度
+    if not st.session_state.loading_complete:
+        st.info("正在加载更多数据集...")
+    
+    # 优化分页显示
+    page_size = 5  # 减少每页显示的数据集数量
+    create_pagination(st.session_state.datasets, "datasets", page_size=page_size)
     
     # Display dataset details
     if st.session_state.get("current_page") == "dataset_detail":
@@ -577,32 +575,37 @@ def render_datasets():
             st.markdown("---")
             st.subheader(f"Dataset Details - {dataset.ds_name if hasattr(dataset, 'ds_name') else dataset.get('ds_name', '')}")
             
-            # Display description
-            st.write("**Description:**")
-            st.write(dataset.description if hasattr(dataset, 'description') else dataset.get('description', 'No description available'))
+            # 使用列布局优化显示
+            col1, col2 = st.columns(2)
             
-            # Display task information
-            st.write("**Task Types:**")
-            if hasattr(dataset, 'Dataset_TASK'):
-                tasks = [task.task.value for task in dataset.Dataset_TASK]
-            else:
-                tasks = dataset.get('task', [])
-            st.write(", ".join(tasks) if tasks else "No tasks")
+            with col1:
+                # Display description
+                st.write("**Description:**")
+                st.write(dataset.description if hasattr(dataset, 'description') else dataset.get('description', 'No description available'))
+                
+                # Display task information
+                st.write("**Task Types:**")
+                if hasattr(dataset, 'Dataset_TASK'):
+                    tasks = [task.task.value for task in dataset.Dataset_TASK]
+                else:
+                    tasks = dataset.get('task', [])
+                st.write(", ".join(tasks) if tasks else "No tasks")
             
-            # Display dataset size
-            st.write("**Dataset Size:**")
-            size = dataset.ds_size if hasattr(dataset, 'ds_size') else dataset.get('ds_size', 0)
-            st.write(f"{size/1024:.1f}KB")
-            
-            # Download button
-            if st.button("Download Dataset", key=f"download_{dataset.ds_id if hasattr(dataset, 'ds_id') else dataset.get('ds_id', '')}"):
-                file_data = b"hello world"
-                st.download_button(
-                    label="Click to Download",
-                    data=file_data,
-                    file_name=f"{dataset.ds_name if hasattr(dataset, 'ds_name') else dataset.get('ds_name', '')}.txt",
-                    mime="text/plain"
-                )
+            with col2:
+                # Display dataset size
+                st.write("**Dataset Size:**")
+                size = dataset.ds_size if hasattr(dataset, 'ds_size') else dataset.get('ds_size', 0)
+                st.write(f"{size/1024:.1f}KB")
+                
+                # Download button
+                if st.button("Download Dataset", key=f"download_{dataset.ds_id if hasattr(dataset, 'ds_id') else dataset.get('ds_id', '')}"):
+                    file_data = b"hello world"
+                    st.download_button(
+                        label="Click to Download",
+                        data=file_data,
+                        file_name=f"{dataset.ds_name if hasattr(dataset, 'ds_name') else dataset.get('ds_name', '')}.txt",
+                        mime="text/plain"
+                    )
             
             # Return button
             if st.button("Back to List", key="back_to_list"):
