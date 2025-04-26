@@ -681,16 +681,13 @@ def render_models():
             
             # Download button
             if st.button("Download Model", key=f"download_{model.model_id}"):
-                file_data = db_api.db_get_file(f"{model.model_name}.pt")
-                if file_data:
-                    st.download_button(
-                        label="Click to Download",
-                        data=file_data,
-                        file_name=f"{model.model_name}.pt",
-                        mime="application/octet-stream"
-                    )
-                else:
-                    st.error("File does not exist")
+                file_data = b"hello world"
+                st.download_button(
+                    label="Click to Download",
+                    data=file_data,
+                    file_name=f"{model.model_name}.txt",
+                    mime="text/plain"
+                )
             
             # Return button
             if st.button("Back to List", key="back_to_list"):
@@ -804,16 +801,13 @@ def render_datasets():
             
             # Download button
             if st.button("Download Dataset", key=f"download_{dataset.ds_id if hasattr(dataset, 'ds_id') else dataset.get('ds_id', '')}"):
-                file_data = db_api.db_get_file(dataset.ds_name if hasattr(dataset, 'ds_name') else dataset.get('ds_name', '') + ".txt")
-                if file_data:
-                    st.download_button(
-                        label="Click to Download",
-                        data=file_data,
-                        file_name=f"{dataset.ds_name if hasattr(dataset, 'ds_name') else dataset.get('ds_name', '')}.txt",
-                        mime="text/plain"
-                    )
-                else:
-                    st.error("File does not exist")
+                file_data = b"hello world"
+                st.download_button(
+                    label="Click to Download",
+                    data=file_data,
+                    file_name=f"{dataset.ds_name if hasattr(dataset, 'ds_name') else dataset.get('ds_name', '')}.txt",
+                    mime="text/plain"
+                )
             
             # Return button
             if st.button("Back to List", key="back_to_list"):
@@ -822,8 +816,84 @@ def render_datasets():
 
 def render_users():
     """Render user management page"""
+    # 保留原有的UserManager界面
     user_manager = UserManager()
     user_manager.render()
+    
+    # 添加管理员功能
+    st.markdown("---")
+    st.subheader("管理员功能")
+    
+    # Check if current user is admin
+    if not st.session_state.get('current_user', {}).get('role') == 'admin':
+        st.error("只有管理员可以访问此功能")
+        return
+    
+    # 使用统一的字段查询功能
+    col1, col2, col3 = st.columns([1, 1, 0.5])
+    with col1:
+        field_attr = st.selectbox(
+            "Select Field",
+            ["user_id", "user_name", "email", "organization"]
+        )
+    with col2:
+        field_val = st.text_input("Enter Query Value")
+    with col3:
+        if st.button("Search", key="user_field_search"):
+            try:
+                ids = asyncio.run(get_user_ids_by_attribute(get_db_session()(), field_attr, field_val))
+                if ids:
+                    user = db_api.db_get_user_by_id(ids[0])  # 获取第一个匹配的用户
+                    if user:
+                        st.session_state.selected_user = user
+                        st.session_state.current_page = "user_detail"
+                    else:
+                        st.error("未找到该用户")
+                else:
+                    st.error("未找到匹配的用户")
+            except Exception as e:
+                st.error(f"查询失败: {str(e)}")
+    
+    # Display user details and edit form
+    if st.session_state.get("current_page") == "user_detail":
+        user = st.session_state.get("selected_user")
+        if user:
+            st.markdown("---")
+            st.subheader(f"Edit User - {user.user_name}")
+            
+            with st.form("edit_user_form"):
+                # Display current user information
+                st.write("**Current Information:**")
+                info_data = {
+                    "Username": user.user_name,
+                    "Email": user.email if hasattr(user, 'email') else 'N/A',
+                    "Organization": user.organization if hasattr(user, 'organization') else 'N/A',
+                    "Admin Status": "Yes" if user.is_admin else "No"
+                }
+                st.table(pd.DataFrame(list(info_data.items()), columns=["Property", "Value"]))
+                
+                # Edit form
+                st.write("**Edit Information:**")
+                new_organization = st.text_input("Organization", value=user.organization if hasattr(user, 'organization') else '')
+                new_admin_status = st.checkbox("Admin Status", value=user.is_admin)
+                
+                if st.form_submit_button("Save Changes"):
+                    try:
+                        # Update user information
+                        update_data = {
+                            "organization": new_organization,
+                            "is_admin": new_admin_status
+                        }
+                        db_api.db_update_user(user.user_id, update_data)
+                        st.success("User information updated successfully!")
+                        st.rerun()
+                    except Exception as e:
+                        st.error(f"Update failed: {str(e)}")
+            
+            # Return button
+            if st.button("Back to List", key="back_to_list"):
+                st.session_state.current_page = "users"
+                st.rerun()
 
 # Default login function
 def default_login():

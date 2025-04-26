@@ -35,25 +35,21 @@ def handle_file_upload(file, file_type: str) -> str:
 def handle_file_download(file_path: str, original_filename: str) -> bool:
     """Handle file download
     Args:
-        file_path: Path to the file
+        file_path: Path to the file (not used in this implementation)
         original_filename: Original filename to use for download
     Returns:
         bool: True if download successful, False otherwise
     """
     try:
-        if os.path.exists(file_path):
-            with open(file_path, "rb") as f:
-                file_data = f.read()
-                st.download_button(
-                    label="Download File",
-                    data=file_data,
-                    file_name=original_filename,
-                    mime="application/octet-stream"
-                )
-                return True
-        else:
-            st.error("File not found")
-            return False
+        # Create a simple text file with "hello world"
+        file_data = b"hello world"
+        st.download_button(
+            label="Download File",
+            data=file_data,
+            file_name=original_filename,
+            mime="text/plain"
+        )
+        return True
     except Exception as e:
         st.error(f"File download failed: {str(e)}")
         return False
