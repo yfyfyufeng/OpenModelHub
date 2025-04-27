@@ -25,12 +25,12 @@ def format_file_size(size_bytes: int) -> str:
 def validate_file_upload(file, allowed_types: List[str], max_size: int) -> tuple[bool, str]:
     """验证上传文件"""
     if not file:
-        return False, "请选择文件"
+        return False, "Please select your file."
     
     if file.name.split('.')[-1].lower() not in allowed_types:
-        return False, f"不支持的文件类型，仅支持: {', '.join(allowed_types)}"
+        return False, f"Unsupported file type. Supported file types are: {', '.join(allowed_types)}"
     
     if file.size > max_size:
-        return False, f"文件大小超过限制 ({format_file_size(max_size)})"
+        return False, f"File size exceeds the limit ({format_file_size(max_size)})"
     
     return True, "" 

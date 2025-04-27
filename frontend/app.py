@@ -34,7 +34,7 @@ from frontend.config import APP_CONFIG
 from frontend.db import get_db_session
 from frontend.auth import AuthManager
 from frontend.components import Sidebar, DatasetUploader, UserManager, ModelUploader, create_search_section
-
+from frontend.database_api import pending_invitations
 
 # Allow nested event loops
 nest_asyncio.apply()
@@ -275,9 +275,10 @@ def sidebar():
                 st.session_state.current_user = None
                 st.rerun()
             
-        menu_items = ["Home", "Model Repository", "Datasets", "User Management"]
-        # if st.session_state.current_user and st.session_state.current_user["role"] == "admin":
-        #     menu_items += ["System Management"]
+        menu_items = ["Home", "Model Repository", "Datasets"]
+        if st.session_state.current_user and st.session_state.current_user["role"] == "admin":
+            menu_items.append("User Management")
+            menu_items.append("data insight")
             
         return st.radio("Navigation Menu", menu_items)
 
@@ -539,7 +540,7 @@ def render_datasets():
     
     # 显示加载状态
     if not st.session_state.loading_complete:
-        with st.spinner('正在加载数据集...'):
+        with st.spinner('Loading datasets...'):
             # 获取所有数据集
             all_datasets = db_api.db_list_datasets()
             # 只显示前10个
@@ -562,7 +563,7 @@ def render_datasets():
     
     # 显示加载进度
     if not st.session_state.loading_complete:
-        st.info("正在加载更多数据集...")
+        st.info("Loading more datasets...")
     
     # 优化分页显示
     page_size = 5  # 减少每页显示的数据集数量
@@ -690,11 +691,11 @@ def render_users():
     
     # 添加管理员功能
     st.markdown("---")
-    st.subheader("管理员功能")
+    st.subheader("Admin features")
     
     # Check if current user is admin
     if not st.session_state.get('current_user', {}).get('role') == 'admin':
-        st.error("只有管理员可以访问此功能")
+        st.error("Only admin can access these features.")
         return
     
     # 使用统一的字段查询功能
@@ -716,11 +717,11 @@ def render_users():
                         st.session_state.selected_user = user
                         st.session_state.current_page = "user_detail"
                     else:
-                        st.error("未找到该用户")
+                        st.error("User not found.")
                 else:
-                    st.error("未找到匹配的用户")
+                    st.error("User not found.")
             except Exception as e:
-                st.error(f"查询失败: {str(e)}")
+                st.error(f"Error when searching: {str(e)}")
     
     # Display user details and edit form
     if st.session_state.get("current_page") == "user_detail":

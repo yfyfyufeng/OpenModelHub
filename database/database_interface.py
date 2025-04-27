@@ -222,7 +222,7 @@ async def delete_model(session: AsyncSession, model_id: int) -> bool:
 # 🔧 Dataset-related Operations
 # --------------------------------------
 async def create_dataset(session: AsyncSession, dataset_data: dict) -> Dataset:
-    print(f"创建数据集，数据: {dataset_data}")  # 调试信息
+    print(f"Creating dataset: {dataset_data}")  # 调试信息
     
     dataset = Dataset(
         ds_name=dataset_data["ds_name"],
@@ -234,7 +234,7 @@ async def create_dataset(session: AsyncSession, dataset_data: dict) -> Dataset:
     session.add(dataset)
     await session.flush()
     
-    print(f"数据集已创建，ID: {dataset.ds_id}")  # 调试信息
+    print(f"Dataset is created, ID: {dataset.ds_id}")  # 调试信息
 
     for task in dataset_data.get("task", []):
         task_rel = Dataset_TASK(
@@ -325,7 +325,7 @@ async def update_dataset(session: AsyncSession, ds_id: int, update_data: dict) -
 async def create_user(session: AsyncSession, user_data: dict) -> User:
     existing = await session.execute(select(User).where(User.user_name == user_data["user_name"]))
     if existing.scalar_one_or_none():
-        raise ValueError("用户名已存在")
+        raise ValueError("Username already exists. Please choose another one.")
     
     # 确保密码字段名称正确
     if "password" in user_data:
@@ -477,20 +477,20 @@ async def init_database():
         await cursor.execute(f"SHOW DATABASES LIKE '{TARGET_DB}'")
         result = await cursor.fetchone()
         if not result:
-            print(f"📦 数据库 `{TARGET_DB}` 不存在，正在创建...")
+            print(f"📦 Database `{TARGET_DB}` doesn't exist. Creating ...")
             await cursor.execute(
                 f"CREATE DATABASE {TARGET_DB} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
             )
-            print(f"✅ 数据库 `{TARGET_DB}` 创建成功！")
+            print(f"✅ Finish creating database `{TARGET_DB}`!")
         else:
-            print(f"✅ 数据库 `{TARGET_DB}` 已存在")
+            print(f"✅ Database `{TARGET_DB}` already exists.")
             # 删除数据库并重新创建
             print(f"🔄 正在重新创建数据库 `{TARGET_DB}`...")
             await cursor.execute(f"DROP DATABASE {TARGET_DB};")
             await cursor.execute(
                 f"CREATE DATABASE {TARGET_DB} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
             )
-            print(f"✅ 数据库 `{TARGET_DB}` 重新创建成功！")
+            print(f"✅ Database `{TARGET_DB}` successfully recreated.")
 
     conn.close()
 
@@ -504,7 +504,7 @@ async def init_database():
     # 创建 Session
     Session = sessionmaker(bind=engine)
 
-    print("✅ 所有表结构已初始化完成")
+    print("✅ All tables initialized.")
 
     return Session()
 
@@ -532,17 +532,17 @@ async def drop_database():
             result = await cursor.fetchone()
 
             if result:
-                print(f"📦 数据库 `{TARGET_DB}` 存在，正在删除...")
+                print(f"📦 Database `{TARGET_DB}` already exists. Deleting ...")
                 await cursor.execute(f"DROP DATABASE {TARGET_DB};")
-                print(f"✅ 数据库 `{TARGET_DB}` 删除成功！")
+                print(f"✅ Finished deleting `{TARGET_DB}`!")
             else:
-                print(f"❌ 数据库 `{TARGET_DB}` 不存在，无法删除。")
+                print(f"❌ Fail to delete database `{TARGET_DB}` which does not exist.")
 
         conn.close()
         await conn.wait_closed()
 
     except Exception as e:
-        print(f"❌ 发生错误: {e}")
+        print(f"❌ Error: {e}")
 
 
 async def run_all():
