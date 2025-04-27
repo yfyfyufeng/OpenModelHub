@@ -11,11 +11,11 @@ sys.path.extend([str(project_root), str(project_root/"database")])
 sys.path.extend([str(project_root), str(project_root/"frontend")])
 from frontend.database_api import db_export_all_data
 
-client = AsyncOpenAI(
-    api_key=os.getenv("OPENAI_API_KEY"),
-    base_url=os.getenv("OPENAI_BASE_URL"),
-    # proxies= None
-)
+# client = AsyncOpenAI(
+#     api_key=os.getenv("OPENAI_API_KEY"),
+#     base_url=os.getenv("OPENAI_BASE_URL"),
+#     # proxies= None
+# )
 
 
 def deal_model(df_model):
