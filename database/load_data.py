@@ -166,7 +166,7 @@ async def extract_names(session: AsyncSession, file_path):
 
 async def load_json_file(session: AsyncSession, file_path: str, current_user: User = None):
     """加载单个 JSON 文件并插入数据"""
-    print(f"正在加载文件: {file_path}")
+    print(f"Loading file: {file_path}")
 
     with open(file_path, 'r', encoding='utf-8') as f:
         data = json.load(f)
@@ -259,6 +259,7 @@ async def load_json_file(session: AsyncSession, file_path: str, current_user: Us
                     continue
                 
         # II. relationships
+        relationship_exist = False
         if relationship_exist:
             print("Relationship already exists, skipping random relationship creation...")
             if 'user_ds' in data:
@@ -355,18 +356,21 @@ async def load_json_file(session: AsyncSession, file_path: str, current_user: Us
             data['model_author'] = model_author_recs
             data['model_dataset'] = model_dataset_recs
             # write to file
-            output_path = file_path[:-5]+"_RELATIONSHIP.json"
-            with open(output_path, 'w', encoding='utf-8') as f:
-                json.dump(
-                    data,
-                    f,
-                    ensure_ascii=False,
-                    indent=4,
-                    default=lambda o: o.value if isinstance(o, enum.Enum) else str(o)
-                )
-            print("Relationships written to file:", output_path)
 
-    print(f"文件 {file_path} 加载完成")
+            write_to_file = False
+            if write_to_file:
+                output_path = file_path[:-5]+"_RELATIONSHIP.json"
+                with open(output_path, 'w', encoding='utf-8') as f:
+                    json.dump(
+                        data,
+                        f,
+                        ensure_ascii=False,
+                        indent=4,
+                        default=lambda o: o.value if isinstance(o, enum.Enum) else str(o)
+                    )
+                print("Relationships written to file:", output_path)
+
+    print(f"File {file_path} is loaded.")
 
 async def load_all_records(session: AsyncSession, current_user: User = None):
     
@@ -414,7 +418,7 @@ async def load_all_records(session: AsyncSession, current_user: User = None):
     
     
     await load_json_file(session, str(chosen_file), current_user)    
-    print("数据加载完成")
+    print("Finish loading json file.")
 
 async def main():
 

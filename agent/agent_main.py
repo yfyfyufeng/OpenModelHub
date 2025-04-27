@@ -77,7 +77,8 @@ The database schema is as follows:
   - param_num: Number of parameters
   - media_type: Type of media the model handles, in { 'text', 'image', 'audio', 'video' }
   - arch_name: Architecture of the model, in { 'CNN', 'RNN', 'Transformer' }
-  - trainname: Training method (string): can be 'pretrain', 'fine-tune', 'reinforcement learning'
+  - (the table named as the arch_name inherits this "model" table.)
+  - trainname: Training method in {Trainname.PRETRAIN, Trainname.FINETUNE}
   - param: Model parameter binary blob (LargeBinary)
 
 - model_tasks(model_id, task_name)
@@ -150,6 +151,7 @@ The database schema is as follows:
 # Synonym Handling:
 - If the user query mentions "language model", treat it as "models where media_type = 'text'".
 - If the user query mentions "vision model", treat it as "models where media_type = 'image'".
+- If the user query mentions "fine-tune", "pretrain" or the like, they are referring to "Trainname.FINETUNE" and "Trainname.FINETUNE" values of the "train_name" attribute of models.
 
 Only return the SQL query. Do not add explanations.
 
@@ -235,7 +237,7 @@ async def query_agent(nl_input: str, verbose = False, session = None, instance_t
     
     instance_dict = {
       1: 'model',
-      2: 'Dataset',
+      2: 'dataset',
       3: 'user',
       4: 'affiliation'
     }
@@ -243,8 +245,7 @@ async def query_agent(nl_input: str, verbose = False, session = None, instance_t
     if verbose: print("🎯 User input:", nl_input)
     
     # preprocess user input: input from different pages
-    if instance_type in instance_dict:
-      
+    if instance_type != 0 and instance_type in instance_dict:
       nl_input += f"\nUser wants to search for {instance_dict[instance_type]} instances."
     
     if verbose: print("🎯 Preprocessed input:", nl_input)

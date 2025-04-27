@@ -21,136 +21,127 @@ from database.database_interface import get_model_ids_by_attribute, get_dataset_
 nest_asyncio.apply()
 
 def create_search_section(page_type: str = "all"):
-    """Create unified search section for different pages
-    Args:
-        page_type: Type of page (all, models, datasets, users)
-    Returns:
-        bool: True if search was performed, False otherwise
-    """
-    # Search section
+    """Create unified search section for different pages, supporting Enter key search"""
     entity_types = ["all", "models", "datasets", "users"]
-    
     entity_dict = {
         "all": 0,
         "models": 1,
         "datasets": 2,
         "users": 3
     }
-    
+
     st.markdown("""
         <style>
         .stButton > button {
-            margin-top: 25px;  /* Adjust this value to match your input height */
+            margin-top: 25px;
         }
         div.row-widget.stSelectbox {
-            margin-top: 25px;  /* Match the button margin */
+            margin-top: 25px;
         }
         </style>
     """, unsafe_allow_html=True)
-    
+
     default_index = entity_dict.get(page_type, 0)
-    
+
     with st.container():
-        # First row
-        col1, col2, col3 = st.columns([3.9, 0.7, 0.5])
-        with col1:
-            search_query = st.text_input(
-                f"Search {page_type.capitalize() if page_type else ''}", 
-                placeholder="Enter natural language query"
-            )
-        with col2:
-            # Add type selection dropdown
-            selected_type = st.selectbox(
-                "Select Type",
-                entity_types,
-                key=f"type_select_{page_type}",
-                index=default_index,
-            )
-        with col3:
-            search_clicked = st.button(
-                "Search", 
-                key=f"{page_type}_search", 
-                use_container_width=True
-            )
-        
-        if selected_type != "all":
-            # Second row
-            col1, col2 = st.columns([1.9, 3.2])
+        with st.form(f"search_form_{page_type}"):
+            # 第一行
+            col1, col2, col3 = st.columns([3.9, 0.7, 0.5])
             with col1:
-                # Get appropriate field options based on page type
+                search_query = st.text_input(
+                    f"Search {page_type.capitalize() if page_type else ''}", 
+                    placeholder="Enter natural language query",
+                    key=f"search_input_{page_type}"
+                )
+            with col2:
+                selected_type = st.selectbox(
+                    "Select Type",
+                    entity_types,
+                    key=f"type_select_{page_type}",
+                    index=default_index,
+                )
+            with col3:
+                pass  # 空着，按钮放最后统一处理
+
+            # 第二行
+            if selected_type == "models":
+                field_options = ["model_id", "model_name", "param_num", "media_type", "arch_name", "trainname"]
+            elif selected_type == "datasets":
+                field_options = ["ds_id", "ds_name", "ds_size", "media", "created_at"]
+            elif selected_type == "users":
+                field_options = ["user_id", "user_name", "email", "role"]
+            else:
+                field_options = ["id", "name", "created_at"]
+
+            field_col1, field_col2, field_col3 = st.columns([0.7, 0.7, 0.5])
+            with field_col1:
+                field_attr = st.selectbox(
+                    "Select Field",
+                    options=field_options,
+                    key=f"field_select_{selected_type}",
+                )
+            with field_col2:
+                field_val = st.text_input(
+                    "Enter Query Value",
+                    key=f"field_input_{selected_type}",
+                )
+            with field_col3:
+                pass
+
+            # ✅ 最后统一的提交按钮
+            submit_clicked = st.form_submit_button("Search", use_container_width=True)
+
+    if submit_clicked:
+        try:
+            if field_val:  # 字段搜索
                 if selected_type == "models":
-                    field_options = ["model_id", "model_name", "param_num", "media_type", "arch_name", "trainname"]
+                    ids = asyncio.run(get_model_ids_by_attribute(get_db_session()(), field_attr, field_val))
                 elif selected_type == "datasets":
-                    field_options = ["ds_id", "ds_name", "ds_size", "media", "created_at"]
+                    ids = asyncio.run(get_dataset_ids_by_attribute(get_db_session()(), field_attr, field_val))
+                elif selected_type == "users":
+                    ids = asyncio.run(get_user_ids_by_attribute(get_db_session()(), field_attr, field_val))
                 else:
-                    field_options = ["user_id", "user_name", "email", "role"]
-                
-                # Create three columns for field selection, query value and search button
-                field_col1, field_col2, field_col3 = st.columns([0.7, 0.7, 0.5])
-                with field_col1:
-                    field_attr = st.selectbox(
-                        "Select Field",
-                        options=field_options,
-                        key=f"field_select_{selected_type}",
-                    )
-                with field_col2:
-                    field_val = st.text_input(
-                        "Enter Query Value",
-                        key=f"field_input_{selected_type}",
-                    )
-                with field_col3:
-                    field_search_clicked = st.button(
-                        "Search", 
-                        key=f"{page_type}_field_search", 
-                        use_container_width=True
-                    )
-        
-            if field_search_clicked and field_val:  # Attribute search
-                try:
-                    # Use asyncio.run to create new event loop
-                    if selected_type == "models":
-                        ids = asyncio.run(get_model_ids_by_attribute(get_db_session()(), field_attr, field_val))
-                    elif selected_type == "datasets":
-                        ids = asyncio.run(get_dataset_ids_by_attribute(get_db_session()(), field_attr, field_val))
-                    elif selected_type == "users":
-                        ids = asyncio.run(get_user_ids_by_attribute(get_db_session()(), field_attr, field_val))
-                    
-                    if not ids:
-                        st.info(f"No {page_type} found matching the criteria")
-                    else:
-                        st.session_state.filtered_ids = ids
+                    model_ids = asyncio.run(get_model_ids_by_attribute(get_db_session()(), field_attr, field_val))
+                    dataset_ids = asyncio.run(get_dataset_ids_by_attribute(get_db_session()(), field_attr, field_val))
+                    user_ids = asyncio.run(get_user_ids_by_attribute(get_db_session()(), field_attr, field_val))
+                    ids = model_ids + dataset_ids + user_ids
+
+                if not ids:
+                    st.info(f"No {page_type} found matching the criteria")
+                else:
+                    st.session_state.filtered_ids = ids
+                return True
+
+            elif search_query:  # 自然语言搜索
+                results, query_info = db_api.db_agent_query(search_query, instance_type=entity_dict.get(selected_type, 0))
+                if results:
+                    df = pd.DataFrame(results)
+                    st.dataframe(df)
+
+                    st.markdown("---")
+                    st.subheader("Query Details")
+                    st.json({
+                        'Natural Language Query': query_info['natural_language_query'],
+                        'Generated SQL': query_info['generated_sql'],
+                        'Error Code': query_info['error_code'],
+                        'Has Results': query_info['has_results'],
+                        'Error Message': query_info.get('error', None),
+                        'Query Results': results
+                    })
                     return True
-                except Exception as e:
-                    st.error(f"Search failed: {str(e)}")
+                else:
+                    st.info("No results found")
                     return True
-                
-    # Handle search logic
-    if search_clicked and search_query:  # Natural language search
-        results, query_info = db_api.db_agent_query(search_query, instance_type=page_type)
-        
-        if results:
-            # First show results table
-            df = pd.DataFrame(results)
-            st.dataframe(df)
-            
-            # Then show query details
-            st.markdown("---")
-            st.subheader("Query Details")
-            st.json({
-                'Natural Language Query': query_info['natural_language_query'],
-                'Generated SQL': query_info['generated_sql'],
-                'Error Code': query_info['error_code'],
-                'Has Results': query_info['has_results'],
-                'Error Message': query_info.get('error', None),
-                'Query Results': results
-            })
-            return True
-        else:
-            st.info("No results found")
+
+            else:
+                st.warning("Please enter a search query or field value")
+                return False
+
+        except Exception as e:
+            st.error(f"Search failed: {str(e)}")
             return True
 
     return False
-
 
 class Sidebar:
     def __init__(self, auth_manager):
@@ -188,10 +179,12 @@ class Sidebar:
             st.rerun()
 
     def _render_navigation(self):
+
         """Render navigation menu"""
         menu_items = ["Home", "Model Repository", "Datasets", "User Management"]
         if self.auth_manager.is_admin():
-            menu_items += ["System Management"]
+            menu_items.append("System Management")
+            menu_items.append("data insight")
         return st.radio("Navigation Menu", menu_items)
 
 class UserManager:
