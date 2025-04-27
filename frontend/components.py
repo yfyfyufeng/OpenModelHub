@@ -301,7 +301,7 @@ class DatasetUploader:
                             print(f"Error creating invitation for {user}: {str(e)}")
             
             db_api.db_create_dataset(name, dataset_data)
-            st.success("Dataset uploaded successfully!")
+            st.toast("... uploaded successfully! 🎉", duration=5000)  # 显示5秒
             return True
         except Exception as e:
             st.error(f"Upload failed: {str(e)}")
@@ -394,7 +394,7 @@ class ModelUploader:
                             print(f"Error creating invitation for {user}: {str(e)}")
             
             db_api.db_create_model(model_data)
-            st.success("Model uploaded successfully!")
+            st.toast("... uploaded successfully! 🎉", duration=5000)  # 显示5秒
             return True
             
         except Exception as e:
