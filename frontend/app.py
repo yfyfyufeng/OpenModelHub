@@ -7,7 +7,7 @@ import pandas as pd
 import sys
 import asyncio
 from datetime import datetime
-import plotly.express as px
+#import plotly.express as px
 import nest_asyncio
 current_dir = Path(__file__).parent
 project_root = current_dir.parent
@@ -19,7 +19,7 @@ from database.database_interface import (
      get_model_by_id, list_datasets, get_dataset_by_id,
     list_users, get_user_by_id, list_affiliations, init_database,
     create_user, update_user, delete_user, get_dataset_info, get_model_info,
-    get_model_ids_by_attribute, get_dataset_ids_by_attribute
+    get_model_ids_by_attribute, get_dataset_ids_by_attribute, get_user_ids_by_attribute
 )
 from data_analysis import data_ins
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
@@ -404,17 +404,8 @@ def render_models():
                     st.error("Fields marked with * are required")
                 else:
                     try:
+                        # 只保存文件，不进行数据库操作
                         file_path = db_api.db_save_file(file.getvalue(), file.name)
-                        model_data = {
-                            "model_name": name,
-                            "param_num": param_num,
-                            "arch_name": arch_type,
-                            "media_type": media_type,
-                            "tasks": selected_tasks,
-                            "trainname": train_type,
-                            "param": str(file_path)
-                        }
-                        db_api.db_create_model(model_data)
                         st.success("Model uploaded successfully!")
                         st.rerun()
                     except Exception as e:
@@ -549,14 +540,14 @@ def render_datasets():
     # 显示加载状态
     if not st.session_state.loading_complete:
         with st.spinner('正在加载数据集...'):
-            # 获取前10个数据集
-            initial_datasets = db_api.db_list_datasets(limit=10)
-            st.session_state.datasets = initial_datasets
+            # 获取所有数据集
+            all_datasets = db_api.db_list_datasets()
+            # 只显示前10个
+            st.session_state.datasets = all_datasets[:10]
             
             # 在后台加载剩余数据集
             def load_remaining_datasets():
-                remaining_datasets = db_api.db_list_datasets(offset=10)
-                st.session_state.datasets.extend(remaining_datasets)
+                st.session_state.datasets = all_datasets
                 st.session_state.loading_complete = True
             
             # 使用线程池执行后台加载

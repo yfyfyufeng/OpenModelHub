@@ -32,11 +32,18 @@ async def create_model(session: AsyncSession, model_data: Dict, retChild: bool =
     if not model_data.get("task"):
         raise ValueError("A model must have at least one task")
 
+    # 处理媒体类型
+    media_type = model_data["media_type"]
+    if hasattr(media_type, 'value'):
+        media_type = media_type.value
+    elif isinstance(media_type, str) and '.' in media_type:
+        media_type = media_type.split('.')[-1]
+
     # Create the base Model
     model = Model(
         model_name=model_data["model_name"],
         param_num=model_data["param_num"],
-        media_type=model_data["media_type"],
+        media_type=media_type,
         arch_name=model_data["arch_name"],
         trainname=model_data["trainname"],
         param=model_data["param"]
