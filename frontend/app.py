@@ -593,7 +593,7 @@ def render_models():
                     default=["CLASSIFICATION"]
                 )
             
-            file = st.file_uploader("Select Model File*", type=["pt", "pth", "ckpt"])
+            file = st.file_uploader("Select Model File*", type=["pt", "pth", "ckpt", "txt"])
             
             if st.form_submit_button("Submit"):
                 if not name or not file:
