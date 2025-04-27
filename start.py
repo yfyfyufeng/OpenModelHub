@@ -47,14 +47,14 @@ async def main():
         )
         
         # 等待应用启动
-        print("✅ 应用启动成功")
-        print("\n=== OpenModelHub 已就绪 ===")
+        print("✅ Successfully started the application.")
+        print("\n=== OpenModelHub is ready ===")
         
         # 保持进程运行
         process.wait()
         
     except Exception as e:
-        print(f"❌ 应用启动失败: {str(e)}")
+        print(f"❌ Failed to start the application: {str(e)}")
         return
 
 if __name__ == "__main__":
