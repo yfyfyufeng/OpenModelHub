@@ -47,9 +47,11 @@ streamlit run frontend/app.py
       - create user ![create user](material/mng_create.png)
       - [edit user](material/page_userMng.pdf)
 
-   5. [data insight](material/page_analysis.pdf)
+   5. **(Admin Privilege)** Data Insights
 
       - (presenter: Linyong Gan)
+      - ![page1](material/anlys_p1.png)
+      - ![page2](material/anlys_p2.png)
 
 #### LLM assisted search
 
