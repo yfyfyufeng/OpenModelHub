@@ -398,6 +398,12 @@ def render_models():
                     default=["CLASSIFICATION"]
                 )
             
+            # 添加Accessible Users字段
+            accessible_users = st.text_input(
+                "Accessible Users (comma-separated)",
+                help="输入可以访问此模型的用户名，用逗号分隔"
+            )
+            
             file = st.file_uploader("Select Model File*", type=["pt", "pth", "ckpt", "txt"])
             
             if st.form_submit_button("Submit"):
@@ -505,6 +511,13 @@ def render_datasets():
             desc = st.text_area("Description")
             media_type = st.selectbox("Media Type", ["text", "image", "audio", "video"])
             task_type = st.selectbox("Task Type", ["classification", "detection", "generation"])
+            
+            # 添加Accessible Users字段
+            accessible_users = st.text_input(
+                "Accessible Users (comma-separated)",
+                help="输入可以访问此数据集的用户名，用逗号分隔"
+            )
+            
             file = st.file_uploader("Select Data File*", type=["txt", "csv"])
             
             if st.form_submit_button("Submit"):
