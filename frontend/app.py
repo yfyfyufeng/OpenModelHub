@@ -539,7 +539,7 @@ def render_datasets():
     
     # 显示加载状态
     if not st.session_state.loading_complete:
-        with st.spinner('正在加载数据集...'):
+        with st.spinner('Loading datasets...'):
             # 获取所有数据集
             all_datasets = db_api.db_list_datasets()
             # 只显示前10个
@@ -690,11 +690,11 @@ def render_users():
     
     # 添加管理员功能
     st.markdown("---")
-    st.subheader("管理员功能")
+    st.subheader("Admin features")
     
     # Check if current user is admin
     if not st.session_state.get('current_user', {}).get('role') == 'admin':
-        st.error("只有管理员可以访问此功能")
+        st.error("Only admin can access these features.")
         return
     
     # 使用统一的字段查询功能
@@ -716,11 +716,11 @@ def render_users():
                         st.session_state.selected_user = user
                         st.session_state.current_page = "user_detail"
                     else:
-                        st.error("未找到该用户")
+                        st.error("User not found.")
                 else:
-                    st.error("未找到匹配的用户")
+                    st.error("User not found.")
             except Exception as e:
-                st.error(f"查询失败: {str(e)}")
+                st.error(f"Error when searching: {str(e)}")
     
     # Display user details and edit form
     if st.session_state.get("current_page") == "user_detail":

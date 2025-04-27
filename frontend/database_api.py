@@ -405,7 +405,7 @@ async def db_export_all_data():
             
             return json_data
         except Exception as e:
-            print(f"导出数据时出错: {str(e)}")
+            print(f"Error when exporting data: {str(e)}")
             return None
 
 @async_to_sync

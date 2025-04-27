@@ -87,7 +87,7 @@ async def run_tests(session: AsyncSession):
     # choice = input("Record creation is completed. Do you want to empty the dataset? y/n: ")
     choice = 'n'
     if choice != 'y':
-        print("\n✅ 所有测试已成功通过,数据库未清空。")
+        print("\n✅ All test has been passed. Database is not emptied.")
         return
 
 async def run_all():
