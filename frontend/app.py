@@ -7,7 +7,7 @@ import pandas as pd
 import sys
 import asyncio
 from datetime import datetime
-#import plotly.express as px
+import plotly.express as px
 import nest_asyncio
 current_dir = Path(__file__).parent
 project_root = current_dir.parent
