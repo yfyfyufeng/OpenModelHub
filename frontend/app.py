@@ -13,6 +13,8 @@ project_root = current_dir.parent
 sys.path.extend([str(project_root), str(project_root/"database")])
 sys.path.extend([str(project_root), str(project_root/"frontend")])
 import frontend.database_api as db_api
+
+from database.database_interface import get_user_ids_by_attribute
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import select
