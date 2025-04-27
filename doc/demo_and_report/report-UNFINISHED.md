@@ -141,7 +141,7 @@
 
 - the following screenshots are from the model page; but the dataset page is very similar.
    
-| **[LLM assisted search, with specifying the entity in the drop-down box](#4-agent)** |upload model|click "view details", and 2 tables representing the detailed information of that model will be displayed. paging are implemented for improved user experiment.|
+| **[LLM assisted search, with specifying the entity in the drop-down box](#4-agent)** |upload model|click "view details", and 2 tables representing the detailed information of that model will be displayed. Can also download the model. Paging is also implemented for improved user experiment. |
 |--------------------------------------------------------------------------------------|-|-|
 | ![LLM search](material/llm_cls.png)                                                  |![upload](material/model_upload.png)|![view details](material/model_detail.png)|
 
