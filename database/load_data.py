@@ -380,13 +380,13 @@ async def load_all_records(session: AsyncSession, current_user: User = None):
     records_dir = Path(__file__).parent / "records"
     
     if not records_dir.exists():
-        print(f"目录 {records_dir} 不存在")
+        print(f"Directory doesn't exist: {records_dir}.")
         return
     
     # 获取所有JSON文件并按修改时间排序
     json_files = list(records_dir.glob("*.json"))
     if not json_files:
-        print(f"在 {records_dir} 中没有找到数据文件")
+        print(f"Find no json files in {records_dir}.")
         return
     
     # 按修改时间排序，获取最新的文件

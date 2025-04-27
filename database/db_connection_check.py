@@ -12,7 +12,7 @@ DB_HOST = os.getenv("DB_HOST", "127.0.0.1")
 DB_PORT = int(os.getenv("DB_PORT", 3306))
 TARGET_DB = os.getenv("TARGET_DB")
 
-print("\n🔍 正在使用以下配置尝试连接数据库：")
+print("\n🔍 Attempting reconnecting the database with configuration:")
 print(f"Host: {DB_HOST}")
 print(f"Port: {DB_PORT}")
 print(f"User: {DB_USERNAME}")
@@ -27,10 +27,10 @@ try:
         password=DB_PASSWORD,
         database=TARGET_DB
     )
-    print("✅ [pymysql] 成功连接数据库！")
+    print("✅ [pymysql] Successfully connected to database.")
     conn.close()
 except Exception as e:
-    print("❌ [pymysql] 无法连接：", e)
+    print("❌ [pymysql] Failed to connect: ", e)
 
 
 # ---------- 异步 aiomysql 测试 ----------
@@ -43,10 +43,10 @@ async def test_aiomysql():
             password=DB_PASSWORD,
             db=TARGET_DB
         )
-        print("✅ [aiomysql] 成功连接数据库！")
+        print("✅ [aiomysql] Successfully connected to database.")
         conn.close()
     except Exception as e:
-        print("❌ [aiomysql] 无法连接：", e)
+        print("❌ [aiomysql] Failed to connect: ", e)
 
 
 if __name__ == "__main__":
