@@ -34,7 +34,7 @@ from frontend.config import APP_CONFIG
 from frontend.db import get_db_session
 from frontend.auth import AuthManager
 from frontend.components import Sidebar, DatasetUploader, UserManager, ModelUploader, create_search_section
-
+from frontend.database_api import pending_invitations
 
 # Allow nested event loops
 nest_asyncio.apply()

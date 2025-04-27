@@ -35,6 +35,7 @@ except (ImportError, ConnectionRefusedError):
 
 curr_username = None
 curr_password = None
+pending_invitations = []    # (UUID, sender, receiver, filename)
 
 def safe_get_value(obj, attr_name):
     if hasattr(obj, attr_name):
@@ -195,6 +196,14 @@ async def db_authenticate_user(username: str, password: str):
             return None
     curr_username = username
     curr_password = password
+
+    # Auto accept invitations
+    for invitation in pending_invitations:
+        try:
+            AcceptInvitation(username, invitation[0])
+        except Exception as e:
+            print("Error in security: AcceptInvitation:", str(e))
+
     async with get_db_session()() as session:
         stmt = select(User).where(User.user_name == username)
         result = await session.execute(stmt)

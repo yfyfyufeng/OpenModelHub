@@ -17,6 +17,9 @@ from frontend.db import get_db_session
 from database.database_schema import ArchType, Media_type, Task_name, Trainname
 from database.database_interface import get_model_ids_by_attribute, get_dataset_ids_by_attribute, get_user_ids_by_attribute
 
+from security.conn import CreateInvitation
+from frontend.database_api import curr_username, curr_password, pending_invitations
+
 # Allow nested event loops
 nest_asyncio.apply()
 
@@ -255,13 +258,14 @@ class DatasetUploader:
                 desc = st.text_area("Description")
                 media_type = st.selectbox("Media Type", ["text", "image", "audio", "video"])
                 task_type = st.selectbox("Task Type", ["classification", "detection", "generation"])
+                accessible_users = st.text_input("Accessible Users (comma-separated)")
                 file = st.file_uploader("Select Data File*", type=self.allowed_types)
                 
                 if st.form_submit_button("Submit"):
-                    return self._handle_submit(name, desc, media_type, task_type, file)
+                    return self._handle_submit(name, desc, media_type, task_type, accessible_users, file)
         return False
 
-    def _handle_submit(self, name: str, desc: str, media_type: str, task_type: str, file):
+    def _handle_submit(self, name: str, desc: str, media_type: str, task_type: str, accessible_users: str, file):
         """Handle form submission"""
         if not name or not file:
             st.error("Fields marked with * are required")
@@ -285,6 +289,14 @@ class DatasetUploader:
                 "task": task_type,
                 "columns": columns
             }
+
+            for user in accessible_users.split(","):
+                if user:
+                    try:
+                        uuid = CreateInvitation(curr_username, curr_password, name, user)
+                        pending_invitations.append((uuid, curr_username, user, name))
+                    except Exception as e:
+                        print(f"Error creating invitation for {user}: {str(e)}")
             
             db_api.db_create_dataset(name, dataset_data)
             st.success("Dataset uploaded successfully!")
@@ -327,6 +339,8 @@ class ModelUploader:
                     "Training Type*",
                     options=[train.value for train in Trainname]
                 )
+
+                accessible_users = st.text_input("Accessible Users (comma-separated)")
                 
                 # File Upload
                 model_file = st.file_uploader("Select Model File*", type=self.allowed_types)
@@ -339,11 +353,12 @@ class ModelUploader:
                         media_type=media_type,
                         tasks=tasks,
                         train_type=train_type,
+                        accessible_users=accessible_users,
                         file=model_file
                     )
         return False
 
-    def _handle_submit(self, name, param_num, arch_type, media_type, tasks, train_type, file):
+    def _handle_submit(self, name, param_num, arch_type, media_type, tasks, train_type, accessible_users, file):
         """Handle form submission"""
         if not all([name, arch_type, media_type, tasks, file]):
             st.error("Fields marked with * are required")
@@ -366,6 +381,14 @@ class ModelUploader:
                 "trainname": train_type,
                 "param": file_path
             }
+
+            for user in accessible_users.split(","):
+                if user:
+                    try:
+                        uuid = CreateInvitation(curr_username, curr_password, name, user)
+                        pending_invitations.append((uuid, curr_username, user, name))
+                    except Exception as e:
+                        print(f"Error creating invitation for {user}: {str(e)}")
             
             db_api.db_create_model(model_data)
             st.success("Model uploaded successfully!")
