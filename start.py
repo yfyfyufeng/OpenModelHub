@@ -14,25 +14,26 @@ from database.load_data import main as load_data
 from database.database_interface import *
 async def main():
     """主函数：加载数据并启动应用"""
-    print("=== 开始启动 OpenModelHub ===")
+    print("=== Starting OpenModelHub ===")
+
     # 1. 清空数据
-    print("\n1.正在清空旧数据...")
+    print("\n1. Clearing old data...")
     try:
         await drop_database()
     except Exception as e:
-        print(f"❌ 数据清楚失败: {str(e)}")
+        print(f"❌ Error when clearing old data: {str(e)}")
         return
     # 2. 加载数据
-    print("\n2. 正在加载数据...")
+    print("\n2. Loading data...")
     try:
         await load_data()
-        print("✅ 数据加载完成")
+        print("✅ finish loading")
     except Exception as e:
-        print(f"❌ 数据加载失败: {str(e)}")
+        print(f"❌ Error when loading data: {str(e)}")
         return
     
     # 3. 启动Streamlit应用
-    print("\n3. 正在启动应用...")
+    print("\n3. Starting the app...")
     try:
         # 获取app.py的绝对路径
         app_path = str(project_root / "frontend" / "app.py")

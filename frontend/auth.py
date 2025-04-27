@@ -32,10 +32,10 @@ class AuthManager:
             admin = db_api.db_get_user_by_username("admin")
             if not admin:
                 # 如果不存在，创建管理员账户
-                db_api.db_create_user("admin", "admin", "系统管理员", is_admin=True)
-                st.info("已创建默认管理员账户：admin/admin")
+                db_api.db_create_user("admin", "admin", "SYSTEM MANAGER", is_admin=True)
+                st.info("Created default admin account: admin/admin")
         except Exception as e:
-            st.error(f"初始化管理员账户失败：{str(e)}")
+            st.error(f"Error when initializing default admin: {str(e)}")
 
     async def login(self, username: str, password: str) -> bool:
         """用户登录"""
@@ -51,7 +51,7 @@ class AuthManager:
                 return True
             return False
         except Exception as e:
-            st.error(f"登录失败：{str(e)}")
+            st.error(f"Login failed: {str(e)}")
             return False
 
     def logout(self):
