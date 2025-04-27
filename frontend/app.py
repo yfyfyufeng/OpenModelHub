@@ -562,7 +562,7 @@ def render_datasets():
     
     # 显示加载进度
     if not st.session_state.loading_complete:
-        st.info("正在加载更多数据集...")
+        st.info("Loading more datasets...")
     
     # 优化分页显示
     page_size = 5  # 减少每页显示的数据集数量
