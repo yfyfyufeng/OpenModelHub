@@ -181,9 +181,9 @@ class Sidebar:
     def _render_navigation(self):
 
         """Render navigation menu"""
-        menu_items = ["Home", "Model Repository", "Datasets", "User Management"]
+        menu_items = ["Home", "Model Repository", "Datasets"]
         if self.auth_manager.is_admin():
-            # menu_items.append("System Management")
+            menu_items.append("User Management")
             menu_items.append("data insight")
         return st.radio("Navigation Menu", menu_items)
 

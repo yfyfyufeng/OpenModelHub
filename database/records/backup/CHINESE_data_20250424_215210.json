@@ -21,7 +21,7 @@
             "user_id": 1,
             "user_name": "admin",
             "password_hash": "123456",
-            "affiliate": "系统管理员",
+            "affiliate": "SYS_MNG",
             "is_admin": true
         },
         {

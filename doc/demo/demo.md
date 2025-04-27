@@ -23,12 +23,17 @@ streamlit run frontend/app.py
    2. common user register and login
    3. admin login: has some pages that common users don't have
 
+|sidebar|user|admin|
+|-------|----|-----|
+![img.png](material/side_admin.png)
+
 2. page types
-    1. home page
-    2. model page
-    3. dataset page
-    4. user page
-    5. admin page
+    1. Home
+    2. Model Repository
+    3. Datasets
+    4. User Management
+    5. data insight
+      - (presenter: Linyong Gan)
 
 
 
@@ -39,7 +44,7 @@ streamlit run frontend/app.py
 
 ## urgent
 
-- [ ] translate all code
+- [x] translate all code
 - [ ] "LLM refined schema"
 - [ ] powerpoint
 - [ ] code demo

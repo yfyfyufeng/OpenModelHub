@@ -275,9 +275,10 @@ def sidebar():
                 st.session_state.current_user = None
                 st.rerun()
             
-        menu_items = ["Home", "Model Repository", "Datasets", "User Management"]
-        # if st.session_state.current_user and st.session_state.current_user["role"] == "admin":
-        #     menu_items += ["System Management"]
+        menu_items = ["Home", "Model Repository", "Datasets"]
+        if st.session_state.current_user and st.session_state.current_user["role"] == "admin":
+            menu_items.append("User Management")
+            menu_items.append("data insight")
             
         return st.radio("Navigation Menu", menu_items)
 

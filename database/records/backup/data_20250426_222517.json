@@ -238,7 +238,7 @@
             "user_id": 29,
             "user_name": "admin",
             "password_hash": "admin",
-            "affiliate": "系统管理员",
+            "affiliate": "SYSTEM-MANAGER",
             "is_admin": true
         }
     ],
