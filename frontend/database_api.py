@@ -22,7 +22,7 @@ from database.database_interface import (
 from database.database_interface import User
 from sqlalchemy import select, text
 from sqlalchemy.orm import selectinload
-# from agent.agent_main import query_agent
+from agent.agent_main import query_agent
 from frontend.config import DATA_CONFIG
 
 try:
