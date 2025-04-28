@@ -1,0 +1,14 @@
+{
+"model_name": "Deepseek-V3",
+"param_num": 7000000000,
+"media_type": "text",
+"arch_name": "Transformer",
+"trainname": "pretrain",
+"task": ["classification","generation","segmentation"],
+"decoder_num": 16,
+"attn_size": 512,
+"up_size": 2048,
+"down_size": 1024,
+"embed_size": 512,
+"param": 10
+},
