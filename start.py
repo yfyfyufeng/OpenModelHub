@@ -1,65 +1,73 @@
-import asyncio
 import subprocess
-import sys
-from pathlib import Path
-import os
+import time
+import shutil
+import socket
 
-# 添加项目根目录到系统路径
-current_dir = Path(__file__).parent
-project_root = current_dir
-sys.path.extend([str(project_root), str(project_root/"database")])
-sys.path.extend([str(project_root), str(project_root/"frontend")])
 
-from database.load_data import main as load_data
-from database.database_interface import *
-async def main():
-    """主函数：加载数据并启动应用"""
-    print("=== Starting OpenModelHub ===")
+def run_command(cmd, cwd=None, input_text=None, wait=True):
+    print(f"开始执行: {cmd} 🚀")
+    try:
+        if wait:
+            subprocess.run(
+                cmd,
+                shell=True,
+                check=True,
+                text=True,
+                cwd=cwd,
+                input=input_text
+            )
+        else:
+            subprocess.Popen(
+                cmd,
+                shell=True,
+                cwd=cwd,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL
+            )
+        print(f"完成: {cmd} ✅\n")
+    except subprocess.CalledProcessError as e:
+        print(f"指令失败: {cmd} ❌")
+        print(f"错误信息: {e}")
+        exit(1)
 
-    # 1. 清空数据
-    print("\n1. Clearing old data...")
+
+def get_local_ip():
+    """获取本机局域网IP"""
     try:
-        await drop_database()
+        # 建立一个UDP连接，只是为了拿到本地IP（不发送数据）
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(('8.8.8.8', 80))  # 连接外网，不发送数据
+        ip = s.getsockname()[0]
+        s.close()
+        return ip
     except Exception as e:
-        print(f"❌ Error when clearing old data: {str(e)}")
-        return
-    # 2. 加载数据
-    print("\n2. Loading data...")
-    try:
-        await load_data()
-        print("✅ finish loading")
-    except Exception as e:
-        print(f"❌ Error when loading data: {str(e)}")
-        return
-    
-    # 3. 启动Streamlit应用
-    print("\n3. Starting the app...")
-    try:
-        # 获取app.py的绝对路径
-        app_path = str(project_root / "frontend" / "app.py")
-        
-        # 启动Streamlit
-        process = subprocess.Popen(
-            ["streamlit", "run", app_path],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True
-        )
-        
-        # 等待应用启动
-        print("✅ Successfully started the application.")
-        print("\n=== OpenModelHub is ready ===")
-        
-        # 保持进程运行
-        process.wait()
-        
-    except Exception as e:
-        print(f"❌ Failed to start the application: {str(e)}")
-        return
+        print(f"获取本机IP失败: {e} ❌")
+        return "127.0.0.1"  # 退回本地环回地址
+
 
 if __name__ == "__main__":
-    # 设置工作目录为项目根目录
-    os.chdir(str(project_root))
-    
-    # 运行主函数
-    asyncio.run(main()) 
+    # 检测python3或者python
+    python_cmd = None
+    if shutil.which("python3"):
+        python_cmd = "python3"
+    elif shutil.which("python"):
+        python_cmd = "python"
+    else:
+        print("错误：找不到 python3 或 python 命令 ❌")
+        exit(1)
+
+    # 获取本机局域网IP
+    local_ip = get_local_ip()
+    print(f"本机IP地址: {local_ip} 🌟")
+
+    # 第一步：运行 load_data.py，并输入"1"
+    run_command(f"{python_cmd} database/load_data.py", input_text="1\n")
+
+    # 第二步：进入 security 目录，后台运行 Go 程序
+    run_command("go run main.go", cwd="security", wait=False)
+
+    # 给 go 程序一点时间启动
+    time.sleep(5)
+
+    # 第三步：运行 Streamlit 应用，绑定到本机IP
+    run_command(f"streamlit run ./frontend/app.py --server.address {local_ip}")
