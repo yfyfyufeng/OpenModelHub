@@ -17,8 +17,9 @@ from frontend.db import get_db_session
 from database.database_schema import ArchType, Media_type, Task_name, Trainname
 from database.database_interface import get_model_ids_by_attribute, get_dataset_ids_by_attribute, get_user_ids_by_attribute
 
-from security.conn import CreateInvitation
-from frontend.database_api import curr_username, curr_password, pending_invitations
+from frontend.database_api import curr_username, curr_password, pending_invitations, SECURITY_AVAILABLE
+if SECURITY_AVAILABLE:
+    from security.conn import CreateInvitation
 
 # Allow nested event loops
 nest_asyncio.apply()
@@ -290,13 +291,14 @@ class DatasetUploader:
                 "columns": columns
             }
 
-            for user in accessible_users.split(","):
-                if user:
-                    try:
-                        uuid = CreateInvitation(curr_username, curr_password, name, user)
-                        pending_invitations.append((uuid, curr_username, user, name))
-                    except Exception as e:
-                        print(f"Error creating invitation for {user}: {str(e)}")
+            if SECURITY_AVAILABLE:
+                for user in accessible_users.split(","):
+                    if user:
+                        try:
+                            uuid = CreateInvitation(curr_username, curr_password, name, user)
+                            pending_invitations.append((uuid, curr_username, user, name))
+                        except Exception as e:
+                            print(f"Error creating invitation for {user}: {str(e)}")
             
             db_api.db_create_dataset(name, dataset_data)
             st.toast("... uploaded successfully! 🎉", duration=5000)  # 显示5秒
@@ -382,13 +384,14 @@ class ModelUploader:
                 "param": file_path
             }
 
-            for user in accessible_users.split(","):
-                if user:
-                    try:
-                        uuid = CreateInvitation(curr_username, curr_password, name, user)
-                        pending_invitations.append((uuid, curr_username, user, name))
-                    except Exception as e:
-                        print(f"Error creating invitation for {user}: {str(e)}")
+            if SECURITY_AVAILABLE:
+                for user in accessible_users.split(","):
+                    if user:
+                        try:
+                            uuid = CreateInvitation(curr_username, curr_password, name, user)
+                            pending_invitations.append((uuid, curr_username, user, name))
+                        except Exception as e:
+                            print(f"Error creating invitation for {user}: {str(e)}")
             
             db_api.db_create_model(model_data)
             st.toast("... uploaded successfully! 🎉", duration=5000)  # 显示5秒
