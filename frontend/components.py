@@ -114,6 +114,37 @@ def create_search_section(page_type: str = "all"):
                     st.info(f"No {page_type} found matching the criteria")
                 else:
                     st.session_state.filtered_ids = ids
+                    if selected_type == "models":
+                        models = [db_api.db_get_model_by_id(id) for id in ids]
+                        if models:
+                            df = pd.DataFrame([{
+                                "ID": model.model_id,
+                                "Name": model.model_name,
+                                "Architecture": model.arch_name.value if hasattr(model.arch_name, 'value') else model.arch_name,
+                                "Media Type": model.media_type.value if hasattr(model.media_type, 'value') else model.media_type,
+                                "Parameters": f"{model.param_num:,}"
+                            } for model in models])
+                            st.dataframe(df)
+                    elif selected_type == "datasets":
+                        datasets = [db_api.db_get_dataset_by_id(id) for id in ids]
+                        if datasets:
+                            df = pd.DataFrame([{
+                                "ID": dataset.ds_id,
+                                "Name": dataset.ds_name,
+                                "Size": f"{dataset.ds_size/1024:.1f}KB",
+                                "Media Type": dataset.media
+                            } for dataset in datasets])
+                            st.dataframe(df)
+                    elif selected_type == "users":
+                        users = [db_api.db_get_user_by_id(id) for id in ids]
+                        if users:
+                            df = pd.DataFrame([{
+                                "ID": user.user_id,
+                                "Username": user.user_name,
+                                "Organization": user.affiliate,
+                                "Admin": "✅" if user.is_admin else "❌"
+                            } for user in users])
+                            st.dataframe(df)
                 return True
 
             elif search_query:  # 自然语言搜索
@@ -342,6 +373,7 @@ class ModelUploader:
                     options=[train.value for train in Trainname]
                 )
 
+                # Accessible Users
                 accessible_users = st.text_input("Accessible Users (comma-separated)")
                 
                 # File Upload

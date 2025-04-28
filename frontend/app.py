@@ -397,7 +397,7 @@ def render_models():
                     default=["CLASSIFICATION"]
                 )
             
-            # 添加Accessible Users字段
+            # Accessible Users
             accessible_users = st.text_input(
                 "Accessible Users (comma-separated)",
                 help="输入可以访问此模型的用户名，用逗号分隔"
