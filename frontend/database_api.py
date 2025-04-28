@@ -109,7 +109,7 @@ async def db_list_models():
             return []
 
 @async_to_sync
-async def db_get_model(model_id: int):
+async def db_get_model_by_id(model_id: int):
     """获取指定ID的模型"""
     async with get_db_session()() as session:
         stmt = select(Model).options(
