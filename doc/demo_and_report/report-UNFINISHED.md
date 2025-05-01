@@ -222,19 +222,19 @@ streamlit run frontend/app.py
 #### Hybrid Encryption
 Utilizes a combination of symmetric (AES-CBC) and asymmetric (RSA) encryption to protect sensitive data such as user credentials and model/dataset metadata. Files and database entries are encrypted at rest.  
 #### Authentication & Integrity
-Implements Argon2Key for secure password hashing and HMAC and RSA for data integrity verification. User sessions are validated via challenge-response mechanisms.
+Implements Argon2Key for secure password derivation and HMAC and RSA for data integrity verification. User sessions are validated via challenge-response mechanisms.
 #### Access Control
-Role-based access (user/admin) with granular permissions. Critical operations (e.g., dataset deletion) require re-authentication.  
+Role-based access (user/admin) with granular permissions.
 #### Secure Data Sharing
-Inspired by the invitation system in the prior project, users can share models/datasets via encrypted invitations, revocable by owners.  
+Users can share models/datasets via encrypted invitations, revocable by owners.  
 #### Audit Trails
 All user actions (uploads, downloads, modifications) are logged with timestamps and hashed to prevent tampering.  
 
 #### Realization
-- User passwords are hashed with Argon2Key and stored alongside public keys.  
-- Database fields containing sensitive data (e.g., model parameters) are encrypted using hybrid encryption.  
-- The frontend integrates with the security module to enforce role-based UI rendering and API access.  
-- Security checks are embedded in the database interface layer to prevent SQL injection and unauthorized queries.  
+- User passwords are hashed with Argon2Key and stored.  
+- Database fields containing sensitive data (e.g., model parameters) are encrypted using symmetric encryption.  
+- The frontend integrates with the security module to enforce role-based UI rendering and API access.
+- Security schema designed to guarantee data security, retrievability, and timely revocation.
 
 This section aligns with the project’s focus on usability while ensuring compliance with confidentiality, integrity, and availability principles.
 
