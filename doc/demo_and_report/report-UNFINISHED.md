@@ -234,7 +234,7 @@ All user actions (uploads, downloads, modifications) are logged with timestamps 
 - User passwords are hashed with Argon2Key and stored.  
 - Database fields containing sensitive data (e.g., model parameters) are encrypted using symmetric encryption.  
 - The frontend integrates with the security module to enforce role-based UI rendering and API access.
-- Security schema designed to guarantee data security, retrievability, and timely revocation.
+- Security schema designed to guarantee data security, retrievability, and timely revocation. ![](./material/securitt_schema.png)
 
 This section aligns with the project’s focus on usability while ensuring compliance with confidentiality, integrity, and availability principles.
 
