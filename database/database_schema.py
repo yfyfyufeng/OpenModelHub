@@ -157,7 +157,7 @@ class Dataset(Base):
     ds_size = Column(Integer, nullable=False)
     media = Column(Enum(Media_type), nullable=False)
     created_at = Column(DateTime, default=datetime.now)
-    description = Column(String(1000))  # 添加描述字段
+    description = Column(String(1000))
     
     __table_args__ = (
         CheckConstraint('ds_size >= 0', name='ds_size'),
