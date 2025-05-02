@@ -370,6 +370,15 @@ This section aligns with the project’s focus on usability while ensuring compl
 - Collaborated with Wentao Lin in implementing a data loader that load json files and insert records to the database. Designed the first version and help completed the final version.
 - Participated in the formulation of the database schema (but not the implementation).
 
+#### Yufeng Lin
+- Collaborated with all members in designing database schema.
+- Implement the entire database schema part.
+- Implement the entire database interface part.
+- Collaborated with Wentao Lin, Zirun Zheng, and Yuxuan Liu in fixing bugs in frontend.
+- Manage the github repository and handle pull requests.
+- Manage the project, communicate with members and assign taks.
+- Group leader
+
 ## 4. References
 
 - https://huggingface.co/
