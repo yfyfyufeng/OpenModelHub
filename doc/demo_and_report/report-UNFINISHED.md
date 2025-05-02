@@ -34,7 +34,9 @@
 - [q] _update this part after startup.py is finished._
 
 1. Install dependencies according to `requirement.txt` [?]
+
 2. Create an `.env` file at the root directory of the project, and add the following lines to it (repalce `$your_api_key` and `$your_base_url` with your own values):
+
    ```bash
    # -----database-----
     DB_USERNAME=root
@@ -46,12 +48,14 @@
    API_KEY=$your_api_key
    BASE_URL=$your_base_url
    ```
+
 3. Test connection by running `database/db_connection_check.py`.
+
 4. Initialize the database with the records stored in `database/records/demo.json`, by running:
 
 ```shell
 database/load_data.py
-```
+​```
 
 - then you'll be asked to choose a .json file stored in `database/records` to intialize it; just choose `demo.json`.
 
@@ -59,7 +63,7 @@ database/load_data.py
 
 ```shell
 streamlit run frontend/app.py
-```
+​```
 
 6. Login as common user or admin
 
@@ -99,6 +103,10 @@ streamlit run frontend/app.py
 - In `database/database_interface.py`, we have encapsulated interfaces to perform SQL operations safely. Therefore, in other programs where we have to execute SQL, we can call an encapsulated functions instead of executing the SQL operations directly.
 
 ### 2.2. Data
+
+#### Data Fetching
+
+Initially, all the data for the models and datasets are obtained from HuggingFace.co. Other data, such as users and relations, are generated randomly. Therefore, we did not look at all the information related to users and relations.  
 
 #### Initialization
 
@@ -170,13 +178,13 @@ streamlit run frontend/app.py
 - the following screenshots are from the model page; but the dataset page is very similar.
 
 | **[LLM assisted search, with specifying the entity in the drop-down box](#4-agent)** | upload model                         | click "view details", and 2 tables representing the detailed information of that model will be displayed. paging are implemented for improved user experiment. |
-| ------------------------------------------------------------------------------------ | ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| ![LLM search](material/llm_cls.png)                                                  | ![upload](material/model_upload.png) | ![view details](material/model_detail.png)                                                                                                                     |
+| ------------------------------------------------------------ | ------------------------------------ | ------------------------------------------------------------ |
+| ![LLM search](material/llm_cls.png)                          | ![upload](material/model_upload.png) | ![view details](material/model_detail.png)                   |
 
 #### **(Admin Privilege)** User Management / Data Insight
 
-| 4. **(Admin Privilege)** User Management                 | 5. **(Admin Privilege)** [Data Insights](#6-data-insight)                                 | data insight, page 2                               |
-| -------------------------------------------------------- | ----------------------------------------------------------------------------------------- | -------------------------------------------------- |
+| 4. **(Admin Privilege)** User Management                 | 5. **(Admin Privilege)** [Data Insights](#6-data-insight)    | data insight, page 2                               |
+| -------------------------------------------------------- | ------------------------------------------------------------ | -------------------------------------------------- |
 | create/edit user ![create user](material/mng_create.png) | illustration of the analysis on the data in the database. ![page1](material/anlys_p1.png) | Also illustration. ![page2](material/anlys_p2.png) |
 
 ### 2.4. Agent
@@ -214,23 +222,34 @@ streamlit run frontend/app.py
 
 - other queries
 
-  | Query  | Find all transformer models                                              | (same as previous)                                                                       | top 10 users with the most published datasets                                       |
-  | ------ | ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+  | Query  | Find all transformer models                                  | (same as previous)                                           | top 10 users with the most published datasets                |
+  | ------ | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
   | Result | Result can be represented in a table. ![query: LLM](material/llm_tf.png) | Can also view the corresponding SQL query. ![query details in SQL](material/llm_sql.png) | More complicated queries can also be executed. ![rank users](material/llm_rank.png) |
 
 ### 2.5. Security
+
 #### Hybrid Encryption
+
 Utilizes a combination of symmetric (AES-CBC) and asymmetric (RSA) encryption to protect sensitive data such as user credentials and model/dataset metadata. Files and database entries are encrypted at rest.  
+
 #### Authentication & Integrity
+
 Implements Argon2Key for secure password derivation and HMAC and RSA for data integrity verification. User sessions are validated via challenge-response mechanisms.
+
 #### Access Control
+
 Role-based access (user/admin) with granular permissions.
+
 #### Secure Data Sharing
+
 Users can share models/datasets via encrypted invitations, revocable by owners.  
+
 #### Audit Trails
+
 All user actions (uploads, downloads, modifications) are logged with timestamps and hashed to prevent tampering.  
 
 #### Realization
+
 - User passwords are hashed with Argon2Key and stored.  
 - Database fields containing sensitive data (e.g., model parameters) are encrypted using symmetric encryption.  
 - The frontend integrates with the security module to enforce role-based UI rendering and API access.
@@ -240,7 +259,13 @@ This section aligns with the project’s focus on usability while ensuring compl
 
 ### 2.6. Data Insight
 
-- [i]
+We dynamically analyze the database when the user renders to the `Data Insight` page. The database will be analyzed in three aspects: models, datasets, and users stored in the database. 
+
+For the model part, we summarize the percentage of different media types, architecture names, and training types. We also investigate the relation between media types and tasks using the heat map. Moreover, we summarized the parameter numbers by their maximum, minimum, mean, and standard deviation. 
+
+For the dataset part, we summarize the relation between media types and tasks using a heat map. Also, we summarized the parameter numbers by their maximum, minimum, mean, and standard deviation. 
+
+For the user part, we count the total number of users for each affiliation. 
 
 ## 3. Conclusion and self-evaluation
 
@@ -251,6 +276,8 @@ This section aligns with the project’s focus on usability while ensuring compl
 
 ### 3.2. Self-Evaluation
 
+[?]
+
 - Work division is as follows: (members' names follows alphabetical order)
 
 #### Yimeng Teng
@@ -259,6 +286,12 @@ This section aligns with the project’s focus on usability while ensuring compl
 - Collaborated with Linyong Gan to generate `demo.json`, which contains sufficient amounts of records for initializing the database.
 - Collaborated with Wentao Lin in implementing a data loader that load json files and insert records to the database. Designed the first version and help completed the final version.
 - Participated in the formulation of the database schema (but not the implementation).
+
+#### Linyong Gan
+
+* Implemented the entire `Data Insights` part. 
+* Generated the demo data for the database obtained from HuggingFace. 
+* Fix some type constraints of attributes. 
 
 ## 4. References
 
@@ -269,3 +302,5 @@ This section aligns with the project’s focus on usability while ensuring compl
 ## 5. Appendices
 
 [?] what to include
+
+[THE WHOLE PART needs fact-checking!! whether my description is accurate?]: 
