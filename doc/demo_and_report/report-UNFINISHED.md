@@ -52,8 +52,13 @@
   ```shell
   database/load_data.py
   ```
+<<<<<<< Updated upstream
   
   - then you'll be asked to choose a .json file stored in `database/records` to intialize it; just choose `demo.json`.
+=======
+
+- then you'll be asked to choose a .json file stored in `database/records` to intialize it; just choose `demo.json`.
+>>>>>>> Stashed changes
 
 5. Run the GUI:
 
@@ -135,7 +140,7 @@
 
 #### Home page
 
-- can export and download ata.
+- export and download data.
 
 #### Model/Dataset Repository page
 
