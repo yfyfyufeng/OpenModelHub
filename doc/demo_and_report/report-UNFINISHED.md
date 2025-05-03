@@ -54,7 +54,7 @@
 
 ```shell
 database/load_data.py
-​```
+```
 
 - then you'll be asked to choose a .json file stored in `database/records` to intialize it; just choose `demo.json`.
 
@@ -62,7 +62,7 @@ database/load_data.py
 
 ```shell
 streamlit run frontend/app.py
-​```
+```
 
 6. Login as common user or admin
 
@@ -280,7 +280,7 @@ Initially, all the data for the models and datasets are obtained from HuggingFac
 
 #### Home page
 
-- can export and download ata.
+- export and download data.
 
 #### Model/Dataset Repository page
 
