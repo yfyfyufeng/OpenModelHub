@@ -411,6 +411,12 @@ For the user part, we count the total number of users for each affiliation.
 - Manage the project, communicate with members and assign taks.
 - Group leader
 
+#### Zirun Zheng
+- Collaborated with Wentao Lin, Yuxuan Liu, and Yufeng Lin in refining the `frontend` part.
+- Integrate with the agent and datebase part to implement the frontend's search functionality and pagination functionality, and further refine with Wentao Lin.
+- Collaborated with Wentao Lin in implementing the data upload and download functionality.
+- Translate the frontend's texts into English.
+
 ## 4. References
 
 - https://huggingface.co/
