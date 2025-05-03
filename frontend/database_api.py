@@ -148,7 +148,7 @@ async def db_create_dataset(name: str, dataset_data: dict):
 
 # User operations
 @async_to_sync
-async def db_get_dataset(dataset_id: int):
+async def db_get_dataset_by_id(dataset_id: int):
     """获取指定ID的数据集"""
     async with get_db_session()() as session:
         stmt = select(Dataset).options(
