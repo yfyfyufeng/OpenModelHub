@@ -54,7 +54,7 @@
 
 ```shell
 database/load_data.py
-​```
+```
 
 - then you'll be asked to choose a .json file stored in `database/records` to intialize it; just choose `demo.json`.
 
@@ -62,7 +62,7 @@ database/load_data.py
 
 ```shell
 streamlit run frontend/app.py
-​```
+```
 
 6. Login as common user or admin
 
@@ -280,7 +280,7 @@ Initially, all the data for the models and datasets are obtained from HuggingFac
 
 #### Home page
 
-- can export and download ata.
+- export and download data.
 
 #### Model/Dataset Repository page
 
@@ -410,6 +410,12 @@ For the user part, we count the total number of users for each affiliation.
 - Manage the github repository and handle pull requests.
 - Manage the project, communicate with members and assign taks.
 - Group leader
+
+#### Zirun Zheng
+- Collaborated with Wentao Lin, Yuxuan Liu, and Yufeng Lin in refining the `frontend` part.
+- Integrate with the agent and datebase part to implement the frontend's search functionality and pagination functionality, and further refine with Wentao Lin.
+- Collaborated with Wentao Lin in implementing the data upload and download functionality.
+- Translate the frontend's texts into English.
 
 ## 4. References
 
