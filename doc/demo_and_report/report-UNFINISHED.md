@@ -92,14 +92,14 @@ streamlit run frontend/app.py
 #### **Model**
 
 | **Attribute**       | **Description**                                                                        | **Data Type**   | **Example**  |
-| ------------------- | -------------------------------------------------------------------------------------- | --------------- | ------------ | ---- |
+| ------------------- | -------------------------------------------------------------------------------------- | --------------- | ------------ |
 | **model_id (PK)**   | A unique identifier for the model (Primary Key).                                       | int             | 1001         |
 | **model_name**      | Name of the model.                                                                     | varchar         | gpt_4_13b    |
 | **param_num**       | The number of parameters in the model.                                                 | bigint unsigned | 175000000000 |
 | **media_type**      | Foreign Key that links to a table that defines the type of media the model deals with. | enum            | text         |
 | **arch_name (FK)**  | Foreign Key linking to the architecture name.                                          | enum            | transformer  |
 | **train_name (FK)** | Foreign Key linking to the training process or dataset used for training.              | varchar         | pretrained   |
-| **param**           | binary parameter of the model                                                          |                 | blob         | x... |
+| **param**           | binary parameter of the model                                                          | blob            | x...         |
 
 #### **ModelTask**
 
