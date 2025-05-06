@@ -425,8 +425,6 @@ HAVING
 
 ### 3.2. Self-Evaluation
 
-[?]
-
 - Work division is as follows: (members' names follows alphabetical order)
 
 #### Linyong Gan
@@ -434,6 +432,7 @@ HAVING
 - Implemented the entire `Data Insights` part.
 - Generated the demo data for the database obtained from HuggingFace.
 - Fix some type constraints of attributes.
+- Drafted the answers to seven questions of this project and designed the powerpoint slides of presentation. 
 
 #### Yimeng Teng
 
