@@ -31,7 +31,6 @@
 ### 1.3. How to run our code
 
 - **Step 1-3 has to be done ONLY when running it at the first time; if it's not the first time, you can skip 1-3, and also can skip 4 if you don't need to initialize the database.**
-- [q] _update this part after startup.py is finished._
 
 1. Install dependencies according to `requirements.txt`
 2. Create an `.env` file at the root directory of the project, and add the following lines to it (repalce `$your_api_key` and `$your_base_url` with your own values):
@@ -52,7 +51,7 @@
 
 4. Initialize the database with the records stored in `database/records/demo.json`, by running:
 
-```shell
+````shell
 database/load_data.py
 ```
 
@@ -91,116 +90,130 @@ streamlit run frontend/app.py
 - Our schema are as follows:
 
 #### **Model**
-| **Attribute**       | **Description**                                                                                                       | **Data Type**    | **Example**  |
-|---------------------|-----------------------------------------------------------------------------------------------------------------------|------------------|--------------|
-| **model_id (PK)**   | A unique identifier for the model (Primary Key).                                                                       | int              | 1001         |
-| **model_name**      | Name of the model.                                                                                                     | varchar          | gpt_4_13b    |
-| **param_num**       | The number of parameters in the model.                                                                                  | bigint unsigned | 175000000000 |
-| **media_type**      | Foreign Key that links to a table that defines the type of media the model deals with.                                  | enum            | text         |
-| **arch_name (FK)**  | Foreign Key linking to the architecture name.                                                                          | enum             | transformer  |
-| **train_name (FK)** | Foreign Key linking to the training process or dataset used for training.                                              | varchar          | pretrained   |
- | **param**           |   binary parameter of the model|                                                                                       |blob             |x...         |  
+
+| **Attribute**       | **Description**                                                                        | **Data Type**   | **Example**  |
+| ------------------- | -------------------------------------------------------------------------------------- | --------------- | ------------ |
+| **model_id (PK)**   | A unique identifier for the model (Primary Key).                                       | int             | 1001         |
+| **model_name**      | Name of the model.                                                                     | varchar         | gpt_4_13b    |
+| **param_num**       | The number of parameters in the model.                                                 | bigint unsigned | 175000000000 |
+| **media_type**      | Foreign Key that links to a table that defines the type of media the model deals with. | enum            | text         |
+| **arch_name (FK)**  | Foreign Key linking to the architecture name.                                          | enum            | transformer  |
+| **train_name (FK)** | Foreign Key linking to the training process or dataset used for training.              | varchar         | pretrained   |
+| **param**           | binary parameter of the model                                                          | blob            | x...         |
 
 #### **ModelTask**
-| **Attribute**       | **Description**                                                                                                       | **Data Type**    | **Example**  |
-|---------------------|-----------------------------------------------------------------------------------------------------------------------|------------------|--------------|
-| **model_id (PK,FK)**    | Foreign Key referencing **model_id** in the model table.                                                                | int              | 1001         |
-| **task_name(PK)**        | The task associated with the model (e.g., classification, translation).                                                 | enum       | classification |
+
+| **Attribute**        | **Description**                                                         | **Data Type** | **Example**    |
+| -------------------- | ----------------------------------------------------------------------- | ------------- | -------------- |
+| **model_id (PK,FK)** | Foreign Key referencing **model_id** in the model table.                | int           | 1001           |
+| **task_name(PK)**    | The task associated with the model (e.g., classification, translation). | enum          | classification |
 
 #### **Transformer**
-| **Attribute**       | **Description**                                                                                                       | **Data Type**    | **Example**  |
-|---------------------|-----------------------------------------------------------------------------------------------------------------------|------------------|--------------|
-| **model_id (PK, FK)**| Primary Key, Foreign Key referencing **model_id** in the model table.                                                   | int              | 1001         |
-| **decoder_num**      | Number of decoders used in the model.                                                                                   | int              | 12           |
-| **attn_size**        | Size of the attention mechanism used in the model.                                                                    | int              | 64           |
-| **up_size**          | The upsampling size in the model.                                                                                      | int              | 256          |
-| **down_size**        | The downsampling size in the model.                                                                                    | int              | 64           |
-| **embed_size**       | The size of the embedding layer in the model.                                                                          | int              | 128          |
+
+| **Attribute**         | **Description**                                                       | **Data Type** | **Example** |
+| --------------------- | --------------------------------------------------------------------- | ------------- | ----------- |
+| **model_id (PK, FK)** | Primary Key, Foreign Key referencing **model_id** in the model table. | int           | 1001        |
+| **decoder_num**       | Number of decoders used in the model.                                 | int           | 12          |
+| **attn_size**         | Size of the attention mechanism used in the model.                    | int           | 64          |
+| **up_size**           | The upsampling size in the model.                                     | int           | 256         |
+| **down_size**         | The downsampling size in the model.                                   | int           | 64          |
+| **embed_size**        | The size of the embedding layer in the model.                         | int           | 128         |
 
 #### **CNN**
-| **Attribute**       | **Description**                                                                                                       | **Data Type**    | **Example**  |
-|---------------------|-----------------------------------------------------------------------------------------------------------------------|------------------|--------------|
-| **model_id (PK, FK)**| Primary Key, Foreign Key referencing **model_id** in the model table.                                                   | int              | 1001         |
-| **module_num**       | The number of modules (e.g., convolution layers) in the model.                                                         | int              | 3            |
+
+| **Attribute**         | **Description**                                                       | **Data Type** | **Example** |
+| --------------------- | --------------------------------------------------------------------- | ------------- | ----------- |
+| **model_id (PK, FK)** | Primary Key, Foreign Key referencing **model_id** in the model table. | int           | 1001        |
+| **module_num**        | The number of modules (e.g., convolution layers) in the model.        | int           | 3           |
 
 #### **Module**
-| **Attribute**       | **Description**                                                                                                       | **Data Type**    | **Example**  |
-|---------------------|-----------------------------------------------------------------------------------------------------------------------|------------------|--------------|
-| **id (PK)**          | auto increasement primary key                                                                                         | int              | 1            |
-| **model_id (FK)**    | Foreign Key referencing **model_id** in the cnn table.                                                                | int              | 1001         |
-| **conv_size**        | The size of the convolution layers in the model.                                                                      | int              | 3            |
-| **pool_type**        | The type of pooling used in the model (e.g., max pooling, average pooling).                                            | enum       | max          |
+
+| **Attribute**     | **Description**                                                             | **Data Type** | **Example** |
+| ----------------- | --------------------------------------------------------------------------- | ------------- | ----------- |
+| **id (PK)**       | auto increasement primary key                                               | int           | 1           |
+| **model_id (FK)** | Foreign Key referencing **model_id** in the cnn table.                      | int           | 1001        |
+| **conv_size**     | The size of the convolution layers in the model.                            | int           | 3           |
+| **pool_type**     | The type of pooling used in the model (e.g., max pooling, average pooling). | enum          | max         |
 
 #### **RNN**
-| **Attribute**       | **Description**                                                                                                       | **Data Type**    | **Example**  |
-|---------------------|-----------------------------------------------------------------------------------------------------------------------|------------------|--------------|
-| **model_id (PK, FK)**| Primary Key, Foreign Key referencing **model_id** in the model table.                                                   | int              | 1001         |
-| **criteria**         | The training criteria or loss function used by the RNN model.                                                           | varchar          | cross_entropy|
-| **batch_size**       | The number of data samples processed together in one pass through the model (used in training).                         | int              | 64           |
-| **input_size**       | The size of the input data (e.g., number of features for each data point).                                              | int              | 256          |
+
+| **Attribute**         | **Description**                                                                                 | **Data Type** | **Example**   |
+| --------------------- | ----------------------------------------------------------------------------------------------- | ------------- | ------------- |
+| **model_id (PK, FK)** | Primary Key, Foreign Key referencing **model_id** in the model table.                           | int           | 1001          |
+| **criteria**          | The training criteria or loss function used by the RNN model.                                   | varchar       | cross_entropy |
+| **batch_size**        | The number of data samples processed together in one pass through the model (used in training). | int           | 64            |
+| **input_size**        | The size of the input data (e.g., number of features for each data point).                      | int           | 256           |
 
 #### **Dataset**
-| **Attribute**       | **Description**                                                                                                       | **Data Type**    | **Example**  |
-|---------------------|-----------------------------------------------------------------------------------------------------------------------|------------------|--------------|
-| **ds_id (PK)**       | Unique identifier for the dataset.                                                                                     | int              | 1            |
-| **ds_name**          | The name of the dataset (e.g., "Coco", "ImageNet").                                                                    | varchar          | Coco         |
-| **ds_size**          | The size of the dataset (e.g., number of images or data points).                                                       | int              | 1000000      |
-| **media**            | The type of media in the dataset (e.g., image, text, video).                                                           | enum              | image        |
-| **created_at**       | The date and time when the dataset was created.                                                                         | datetime         | 2025-04-01   |
-| **description**       |The description of the dataset                                                                                         | varchar           | This dataset...|
+
+| **Attribute**   | **Description**                                                  | **Data Type** | **Example**     |
+| --------------- | ---------------------------------------------------------------- | ------------- | --------------- |
+| **ds_id (PK)**  | Unique identifier for the dataset.                               | int           | 1               |
+| **ds_name**     | The name of the dataset (e.g., "Coco", "ImageNet").              | varchar       | Coco            |
+| **ds_size**     | The size of the dataset (e.g., number of images or data points). | int           | 1000000         |
+| **media**       | The type of media in the dataset (e.g., image, text, video).     | enum          | image           |
+| **created_at**  | The date and time when the dataset was created.                  | datetime      | 2025-04-01      |
+| **description** | The description of the dataset                                   | varchar       | This dataset... |
 
 #### **Dataset_TASK**
-| **Attribute**       | **Description**                                                                                                       | **Data Type**    | **Example**  |
-|---------------------|-----------------------------------------------------------------------------------------------------------------------|------------------|--------------|
-| **ds_id (PK,FK)**       | Foreign Key referencing **ds_id** in the dataset table.                                                               | int              | 1            |
-| **task (PK)**             | The task associated with the dataset (e.g., classification, segmentation).                                             | enum           | 1            |
+
+| **Attribute**     | **Description**                                                            | **Data Type** | **Example** |
+| ----------------- | -------------------------------------------------------------------------- | ------------- | ----------- |
+| **ds_id (PK,FK)** | Foreign Key referencing **ds_id** in the dataset table.                    | int           | 1           |
+| **task (PK)**     | The task associated with the dataset (e.g., classification, segmentation). | enum          | 1           |
 
 #### **DsCol**
-| **Attribute**       | **Description**                                                                                                       | **Data Type**    | **Example**  |
-|---------------------|-----------------------------------------------------------------------------------------------------------------------|------------------|--------------|
-| **ds_id (PK,FK)**       | Foreign Key referencing **ds_id** in the dataset table.                                                               | int              | 1            |
-| **col_name (PK)**         | Name of the column within the dataset (e.g., "image_id", "label").                                                      | varchar          | image_id     |
-| **col_datatype (PK)**     | The data type of the column (e.g., integer, float, text).                                                              | varchar          | integer      |
+
+| **Attribute**         | **Description**                                                    | **Data Type** | **Example** |
+| --------------------- | ------------------------------------------------------------------ | ------------- | ----------- |
+| **ds_id (PK,FK)**     | Foreign Key referencing **ds_id** in the dataset table.            | int           | 1           |
+| **col_name (PK)**     | Name of the column within the dataset (e.g., "image_id", "label"). | varchar       | image_id    |
+| **col_datatype (PK)** | The data type of the column (e.g., integer, float, text).          | varchar       | integer     |
 
 #### **user**
-| **Attribute**       | **Description**                                                                                                       | **Data Type**    | **Example**  |
-|---------------------|-----------------------------------------------------------------------------------------------------------------------|------------------|--------------|
-| **user_id (PK,FK)**  | Unique identifier for the user.                                                                                         | int              | 123090342    |
-| **user_name**        | The name of the user (e.g., "JohnDoe").                                                                                  | varchar          | JohnDoe      |
-| **affiliate**        | A reference to the affiliate company or group the user is associated with.                                             | varchar          | AffiliateX   |
-| **password_hash**     || The hashed password of the user.                                                                                         | varchar          | $2b$12$...   |
-| **is_admin**          | | Boolean flag indicating if the user has admin privileges.                                                             | boolean          | true         |   
+
+| **Attribute**       | **Description**                                                            | **Data Type**                                             | **Example** |
+| ------------------- | -------------------------------------------------------------------------- | --------------------------------------------------------- | ----------- | ---------- |
+| **user_id (PK,FK)** | Unique identifier for the user.                                            | int                                                       | 123090342   |
+| **user_name**       | The name of the user (e.g., "JohnDoe").                                    | varchar                                                   | JohnDoe     |
+| **affiliate**       | A reference to the affiliate company or group the user is associated with. | varchar                                                   | AffiliateX  |
+| **password_hash**   |                                                                            | The hashed password of the user.                          | varchar     | $2b$12$... |
+| **is_admin**        |                                                                            | Boolean flag indicating if the user has admin privileges. | boolean     | true       |
 
 #### **Affil**
-| **Attribute**       | **Description**                                                                                                       | **Data Type**    | **Example**  |
-|---------------------|-----------------------------------------------------------------------------------------------------------------------|------------------|--------------|
-| **affil_id (PK,FK)**    | Unique identifier for the affiliate.                                                                                   | int              | 1            |
-| **affil_name**       | Name of the affiliate organization.                                                                                     | varchar          | AffiliateX   |
+
+| **Attribute**        | **Description**                      | **Data Type** | **Example** |
+| -------------------- | ------------------------------------ | ------------- | ----------- |
+| **affil_id (PK,FK)** | Unique identifier for the affiliate. | int           | 1           |
+| **affil_name**       | Name of the affiliate organization.  | varchar       | AffiliateX  |
 
 #### **UserAffil**
-| **Attribute**       | **Description**                                                                                                       | **Data Type**    | **Example**  |
-|---------------------|-----------------------------------------------------------------------------------------------------------------------|------------------|--------------|
-| **user_id (PK,FK)**     | Foreign key referencing `user_id` in the **user** table                                                                | int              | 123090342    |
-| **affil_id (PK,FK)**    | Foreign Key referencing `affil_id` in the **affli** table.                                                               | int              | 1            |
+
+| **Attribute**        | **Description**                                            | **Data Type** | **Example** |
+| -------------------- | ---------------------------------------------------------- | ------------- | ----------- |
+| **user_id (PK,FK)**  | Foreign key referencing `user_id` in the **user** table    | int           | 123090342   |
+| **affil_id (PK,FK)** | Foreign Key referencing `affil_id` in the **affli** table. | int           | 1           |
 
 #### **UserDataset**
-| **Attribute**   | **Description**                                                                  | **Data Type**   | **Example** |
-|-----------------|----------------------------------------------------------------------------------|-----------------|-------------|
-| **user_id (PK,FK)** | Foreign key referencing `user_id` in the **user** table                       | int             | 123090342   |
-| **ds_id (PK,FK)**   | Foreign key referencing `ds_id` in the **dataset** table                      | 1           |
+
+| **Attribute**       | **Description**                                          | **Data Type** | **Example** |
+| ------------------- | -------------------------------------------------------- | ------------- | ----------- |
+| **user_id (PK,FK)** | Foreign key referencing `user_id` in the **user** table  | int           | 123090342   |
+| **ds_id (PK,FK)**   | Foreign key referencing `ds_id` in the **dataset** table | 1             |
 
 #### **ModelAuthor**
-| **Attribute**   | **Description**                                                                  | **Data Type**   | **Example** |
-|-----------------|----------------------------------------------------------------------------------|-----------------|-------------|
-| **model_id (PK,FK)**| Foreign key referencing `model_id` in the **model** table                | int             | 1001        |
-| **user_id (PK,FK)** | Foreign key referencing `user_id` in the **user** table                  | int             | 123090342   |
+
+| **Attribute**        | **Description**                                           | **Data Type** | **Example** |
+| -------------------- | --------------------------------------------------------- | ------------- | ----------- |
+| **model_id (PK,FK)** | Foreign key referencing `model_id` in the **model** table | int           | 1001        |
+| **user_id (PK,FK)**  | Foreign key referencing `user_id` in the **user** table   | int           | 123090342   |
 
 #### **ModelDataset**
 
-| **Attribute**   | **Description**                                                                  | **Data Type**   | **Example** |
-|-----------------|----------------------------------------------------------------------------------|-----------------|-------------|
-| **model_id (PK,FK)**| Foreign key referencing `model_id` in the **model** table                | int             | 1001        |
-| **ds_id (PK,FK)**   | Foreign key referencing `ds_id` in the **dataset** table                | int             | 1           |
+| **Attribute**        | **Description**                                           | **Data Type** | **Example** |
+| -------------------- | --------------------------------------------------------- | ------------- | ----------- |
+| **model_id (PK,FK)** | Foreign key referencing `model_id` in the **model** table | int           | 1001        |
+| **ds_id (PK,FK)**    | Foreign key referencing `ds_id` in the **dataset** table  | int           | 1           |
 
 ---
 
@@ -215,7 +228,7 @@ streamlit run frontend/app.py
 
 #### Data Fetching
 
-Initially, all the data for the models and datasets are obtained from HuggingFace.co. Other data, such as users and relations, are generated randomly. Therefore, we did not look at all the information related to users and relations.  
+Initially, all the data for the models and datasets are obtained from HuggingFace.co. Other data, such as users and relations, are generated randomly. Therefore, we did not look at all the information related to users and relations.
 
 #### Initialization
 
@@ -287,13 +300,13 @@ Initially, all the data for the models and datasets are obtained from HuggingFac
 - the following screenshots are from the model page; but the dataset page is very similar.
 
 | **[LLM assisted search, with specifying the entity in the drop-down box](#4-agent)** | upload model                         | click "view details", and 2 tables representing the detailed information of that model will be displayed. paging are implemented for improved user experiment. |
-| ------------------------------------------------------------ | ------------------------------------ | ------------------------------------------------------------ |
-| ![LLM search](material/llm_cls.png)                          | ![upload](material/model_upload.png) | ![view details](material/model_detail.png)                   |
+| ------------------------------------------------------------------------------------ | ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ![LLM search](material/llm_cls.png)                                                  | ![upload](material/model_upload.png) | ![view details](material/model_detail.png)                                                                                                                     |
 
 #### **(Admin Privilege)** User Management / Data Insight
 
-| 4. **(Admin Privilege)** User Management                 | 5. **(Admin Privilege)** [Data Insights](#6-data-insight)    | data insight, page 2                               |
-| -------------------------------------------------------- | ------------------------------------------------------------ | -------------------------------------------------- |
+| 4. **(Admin Privilege)** User Management                 | 5. **(Admin Privilege)** [Data Insights](#6-data-insight)                                 | data insight, page 2                               |
+| -------------------------------------------------------- | ----------------------------------------------------------------------------------------- | -------------------------------------------------- |
 | create/edit user ![create user](material/mng_create.png) | illustration of the analysis on the data in the database. ![page1](material/anlys_p1.png) | Also illustration. ![page2](material/anlys_p2.png) |
 
 ### 2.4. Agent
@@ -331,15 +344,15 @@ Initially, all the data for the models and datasets are obtained from HuggingFac
 
 - other queries
 
-  | Query  | Find all transformer models                                  | (same as previous)                                           | top 10 users with the most published datasets                |
-  | ------ | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
+  | Query  | Find all transformer models                                              | (same as previous)                                                                       | top 10 users with the most published datasets                                       |
+  | ------ | ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
   | Result | Result can be represented in a table. ![query: LLM](material/llm_tf.png) | Can also view the corresponding SQL query. ![query details in SQL](material/llm_sql.png) | More complicated queries can also be executed. ![rank users](material/llm_rank.png) |
 
 ### 2.5. Security
 
 #### Hybrid Encryption
 
-Utilizes a combination of symmetric (AES-CBC) and asymmetric (RSA) encryption to protect sensitive data such as user credentials and model/dataset metadata. Files and database entries are encrypted at rest.  
+Utilizes a combination of symmetric (AES-CBC) and asymmetric (RSA) encryption to protect sensitive data such as user credentials and model/dataset metadata. Files and database entries are encrypted at rest.
 
 #### Authentication & Integrity
 
@@ -351,30 +364,30 @@ Role-based access (user/admin) with granular permissions.
 
 #### Secure Data Sharing
 
-Users can share models/datasets via encrypted invitations, revocable by owners.  
+Users can share models/datasets via encrypted invitations, revocable by owners.
 
 #### Audit Trails
 
-All user actions (uploads, downloads, modifications) are logged with timestamps and hashed to prevent tampering.  
+All user actions (uploads, downloads, modifications) are logged with timestamps and hashed to prevent tampering.
 
 #### Realization
 
-- User passwords are hashed with Argon2Key and stored.  
-- Database fields containing sensitive data (e.g., model parameters) are encrypted using symmetric encryption.  
+- User passwords are hashed with Argon2Key and stored.
+- Database fields containing sensitive data (e.g., model parameters) are encrypted using symmetric encryption.
 - The frontend integrates with the security module to enforce role-based UI rendering and API access.
 - Security schema designed to guarantee data security, retrievability, and timely revocation. ![](./material/securitt_schema.png)
 
-This section aligns with the project’s focus on usability while ensuring compliance with confidentiality, integrity, and availability principles.
+This section aligns with the project's focus on usability while ensuring compliance with confidentiality, integrity, and availability principles.
 
 ### 2.6. Data Insight
 
-We dynamically analyze the database when the user renders to the `Data Insight` page. The database will be analyzed in three aspects: models, datasets, and users stored in the database. 
+We dynamically analyze the database when the user renders to the `Data Insight` page. The database will be analyzed in three aspects: models, datasets, and users stored in the database.
 
-For the model part, we summarize the percentage of different media types, architecture names, and training types. We also investigate the relation between media types and tasks using the heat map. Moreover, we summarized the parameter numbers by their maximum, minimum, mean, and standard deviation. 
+For the model part, we summarize the percentage of different media types, architecture names, and training types. We also investigate the relation between media types and tasks using the heat map. Moreover, we summarized the parameter numbers by their maximum, minimum, mean, and standard deviation.
 
-For the dataset part, we summarize the relation between media types and tasks using a heat map. Also, we summarized the parameter numbers by their maximum, minimum, mean, and standard deviation. 
+For the dataset part, we summarize the relation between media types and tasks using a heat map. Also, we summarized the parameter numbers by their maximum, minimum, mean, and standard deviation.
 
-For the user part, we count the total number of users for each affiliation. 
+For the user part, we count the total number of users for each affiliation.
 
 ## 3. Conclusion and self-evaluation
 
@@ -391,9 +404,9 @@ For the user part, we count the total number of users for each affiliation.
 
 #### Linyong Gan
 
-* Implemented the entire `Data Insights` part. 
-* Generated the demo data for the database obtained from HuggingFace. 
-* Fix some type constraints of attributes. 
+- Implemented the entire `Data Insights` part.
+- Generated the demo data for the database obtained from HuggingFace.
+- Fix some type constraints of attributes.
 
 #### Yimeng Teng
 
@@ -403,6 +416,7 @@ For the user part, we count the total number of users for each affiliation.
 - Participated in the formulation of the database schema (but not the implementation).
 
 #### Yufeng Lin
+
 - Collaborated with all members in designing database schema.
 - Implement the entire database schema part.
 - Implement the entire database interface part.
@@ -417,6 +431,15 @@ For the user part, we count the total number of users for each affiliation.
 - Collaborated with Wentao Lin in implementing the data upload and download functionality.
 - Translate the frontend's texts into English.
 
+#### Wentao Lin
+
+- Designed and implemented the core frontend architecture using Streamlit framework.
+- Developed the database API middleware layer for secure and efficient data operations.
+- Created modular components for user authentication, file upload/download, and search functionality.
+- Implemented the pagination system with Zirun Zheng and data visualization components.
+- Integrated the LLM agent with the frontend search interface with YuXuan Liu.
+- Collaborated with Zirun Zheng in refining the user interface and implementing file operations.
+
 ## 4. References
 
 - https://huggingface.co/
@@ -427,4 +450,5 @@ For the user part, we count the total number of users for each affiliation.
 
 [?] what to include
 
-[THE WHOLE PART needs fact-checking!! whether my description is accurate?]: 
+[THE WHOLE PART needs fact-checking!! whether my description is accurate?]:
+````
