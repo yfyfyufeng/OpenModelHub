@@ -37,7 +37,6 @@
 ### 1.4. How to run our code
 
 - **Step 1-3 has to be done ONLY when running it at the first time; if it's not the first time, you can skip 1-3, and also can skip 4 if you don't need to initialize the database.**
-- [q] _update this part after startup.py is finished._
 
 1. Install dependencies according to `requirements.txt`
 2. Create an `.env` file at the root directory of the project, and add the following lines to it (repalce `$your_api_key` and `$your_base_url` with your own values):
@@ -206,10 +205,10 @@ streamlit run frontend/app.py
 
 #### **ModelDataset(model_id FK, ds_id FK)**
 
-| **Attribute**   | **Description**                                                                  | **Data Type**   | **Example** |
-|-----------------|----------------------------------------------------------------------------------|-----------------|-------------|
-| **model_id (PK,FK)**| Foreign key referencing `model_id` in the **model** table                | int             | 1001        |
-| **ds_id (PK,FK)**   | Foreign key referencing `ds_id` in the **dataset** table                | int             | 1           |
+| **Attribute**        | **Description**                                           | **Data Type** | **Example** |
+| -------------------- | --------------------------------------------------------- | ------------- | ----------- |
+| **model_id (PK,FK)** | Foreign key referencing `model_id` in the **model** table | int           | 1001        |
+| **ds_id (PK,FK)**    | Foreign key referencing `ds_id` in the **dataset** table  | int           | 1           |
 
 ---
 
@@ -224,7 +223,7 @@ streamlit run frontend/app.py
 
 #### Data Fetching
 
-Initially, all the data for the models and datasets are obtained from HuggingFace.co. Other data, such as users and relations, are generated randomly. Therefore, we did not look at all the information related to users and relations.  
+Initially, all the data for the models and datasets are obtained from HuggingFace.co. Other data, such as users and relations, are generated randomly. Therefore, we did not look at all the information related to users and relations.
 
 #### Initialization
 
@@ -296,13 +295,13 @@ Initially, all the data for the models and datasets are obtained from HuggingFac
 - the following screenshots are from the model page; but the dataset page is very similar.
 
 | **[LLM assisted search, with specifying the entity in the drop-down box](#4-agent)** | upload model                         | click "view details", and 2 tables representing the detailed information of that model will be displayed. paging are implemented for improved user experiment. |
-| ------------------------------------------------------------ | ------------------------------------ | ------------------------------------------------------------ |
-| ![LLM search](material/llm_cls.png)                          | ![upload](material/model_upload.png) | ![view details](material/model_detail.png)                   |
+| ------------------------------------------------------------------------------------ | ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ![LLM search](material/llm_cls.png)                                                  | ![upload](material/model_upload.png) | ![view details](material/model_detail.png)                                                                                                                     |
 
 #### **(Admin Privilege)** User Management / Data Insight
 
-| 4. **(Admin Privilege)** User Management                 | 5. **(Admin Privilege)** [Data Insights](#6-data-insight)    | data insight, page 2                               |
-| -------------------------------------------------------- | ------------------------------------------------------------ | -------------------------------------------------- |
+| 4. **(Admin Privilege)** User Management                 | 5. **(Admin Privilege)** [Data Insights](#6-data-insight)                                 | data insight, page 2                               |
+| -------------------------------------------------------- | ----------------------------------------------------------------------------------------- | -------------------------------------------------- |
 | create/edit user ![create user](material/mng_create.png) | illustration of the analysis on the data in the database. ![page1](material/anlys_p1.png) | Also illustration. ![page2](material/anlys_p2.png) |
 
 ### 2.4. Agent
@@ -340,15 +339,15 @@ Initially, all the data for the models and datasets are obtained from HuggingFac
 
 - other queries
 
-  | Query  | Find all transformer models                                  | (same as previous)                                           | top 10 users with the most published datasets                |
-  | ------ | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
+  | Query  | Find all transformer models                                              | (same as previous)                                                                       | top 10 users with the most published datasets                                       |
+  | ------ | ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
   | Result | Result can be represented in a table. ![query: LLM](material/llm_tf.png) | Can also view the corresponding SQL query. ![query details in SQL](material/llm_sql.png) | More complicated queries can also be executed. ![rank users](material/llm_rank.png) |
 
 ### 2.5. Security
 
 #### Hybrid Encryption
 
-Utilizes a combination of symmetric (AES-CBC) and asymmetric (RSA) encryption to protect sensitive data such as user credentials and model/dataset metadata. Files and database entries are encrypted at rest.  
+Utilizes a combination of symmetric (AES-CBC) and asymmetric (RSA) encryption to protect sensitive data such as user credentials and model/dataset metadata. Files and database entries are encrypted at rest.
 
 #### Authentication & Integrity
 
@@ -360,30 +359,30 @@ Role-based access (user/admin) with granular permissions.
 
 #### Secure Data Sharing
 
-Users can share models/datasets via encrypted invitations, revocable by owners.  
+Users can share models/datasets via encrypted invitations, revocable by owners.
 
 #### Audit Trails
 
-All user actions (uploads, downloads, modifications) are logged with timestamps and hashed to prevent tampering.  
+All user actions (uploads, downloads, modifications) are logged with timestamps and hashed to prevent tampering.
 
 #### Realization
 
-- User passwords are hashed with Argon2Key and stored.  
-- Database fields containing sensitive data (e.g., model parameters) are encrypted using symmetric encryption.  
+- User passwords are hashed with Argon2Key and stored.
+- Database fields containing sensitive data (e.g., model parameters) are encrypted using symmetric encryption.
 - The frontend integrates with the security module to enforce role-based UI rendering and API access.
 - Security schema designed to guarantee data security, retrievability, and timely revocation. ![](./material/securitt_schema.png)
 
-This section aligns with the project’s focus on usability while ensuring compliance with confidentiality, integrity, and availability principles.
+This section aligns with the project's focus on usability while ensuring compliance with confidentiality, integrity, and availability principles.
 
 ### 2.6. Data Insight
 
-We dynamically analyze the database when the user renders to the `Data Insight` page. The database will be analyzed in three aspects: models, datasets, and users stored in the database. 
+We dynamically analyze the database when the user renders to the `Data Insight` page. The database will be analyzed in three aspects: models, datasets, and users stored in the database.
 
-For the model part, we summarize the percentage of different media types, architecture names, and training types. We also investigate the relation between media types and tasks using the heat map. Moreover, we summarized the parameter numbers by their maximum, minimum, mean, and standard deviation. 
+For the model part, we summarize the percentage of different media types, architecture names, and training types. We also investigate the relation between media types and tasks using the heat map. Moreover, we summarized the parameter numbers by their maximum, minimum, mean, and standard deviation.
 
-For the dataset part, we summarize the relation between media types and tasks using a heat map. Also, we summarized the parameter numbers by their maximum, minimum, mean, and standard deviation. 
+For the dataset part, we summarize the relation between media types and tasks using a heat map. Also, we summarized the parameter numbers by their maximum, minimum, mean, and standard deviation.
 
-For the user part, we count the total number of users for each affiliation. 
+For the user part, we count the total number of users for each affiliation.
 
 ### 2.7. Sample SQL Queries
 
@@ -432,9 +431,9 @@ HAVING
 
 #### Linyong Gan
 
-* Implemented the entire `Data Insights` part. 
-* Generated the demo data for the database obtained from HuggingFace. 
-* Fix some type constraints of attributes. 
+- Implemented the entire `Data Insights` part.
+- Generated the demo data for the database obtained from HuggingFace.
+- Fix some type constraints of attributes.
 
 #### Yimeng Teng
 
@@ -444,6 +443,7 @@ HAVING
 - Participated in the formulation of the database schema (but not the implementation).
 
 #### Yufeng Lin
+
 - Collaborated with all members in designing database schema.
 - Implement the entire database schema part.
 - Implement the entire database interface part.
@@ -463,14 +463,34 @@ HAVING
 - Collaborated with Wentao Lin in implementing the data upload and download functionality.
 - Translate the frontend's texts into English.
 
+#### Wentao Lin
+
+- Designed and implemented the core frontend architecture using Streamlit framework.
+- Developed the database API middleware layer for secure and efficient data operations.
+- Created modular components for user authentication, file upload/download, and search functionality.
+- Implemented the pagination system with Zirun Zheng and data visualization components.
+- Integrated the LLM agent with the frontend search interface with YuXuan Liu.
+- Collaborated with Zirun Zheng in refining the user interface and implementing file operations.
+
+#### Shuhan Zhang
+- Designed the security schema upon database schema.
+- Designed the security code architecture.
+- Implemented symmetric and asymmetric encryption and signature algorithms.
+- Implemented user, invitation, and key operation functions.
+- Implemented python-Go socket connector.
+- Implemented encryption and decryption logics in frontend.
+
 ## 4. References
 
 - https://huggingface.co/
+- Biryukov, A., Dinu, D., & Khovratovich, D. (2016, March). Argon2: new generation of memory-hard functions for password hashing and other applications. In 2016 IEEE European Symposium on Security and Privacy (EuroS&P) (pp. 292-302). IEEE.
 - Feistel, H. (1973). Cryptography and computer privacy. Scientific american, 228(5), 15-23.
+- Krawczyk, H., Bellare, M., & Canetti, R. (1997). HMAC: Keyed-hashing for message authentication (No. rfc2104).
 - Rivest, R. L., Shamir, A., & Adleman, L. (1978). A method for obtaining digital signatures and public-key cryptosystems. Communications of the ACM, 21(2), 120-126.
 
 ## 5. Appendices
 
 [?] what to include
 
-[THE WHOLE PART needs fact-checking!! whether my description is accurate?]: 
+[THE WHOLE PART needs fact-checking!! whether my description is accurate?]:
+````
