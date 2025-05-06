@@ -51,7 +51,7 @@
 
 4. Initialize the database with the records stored in `database/records/demo.json`, by running:
 
-````shell
+```shell
 database/load_data.py
 ```
 
@@ -440,10 +440,20 @@ For the user part, we count the total number of users for each affiliation.
 - Integrated the LLM agent with the frontend search interface with YuXuan Liu.
 - Collaborated with Zirun Zheng in refining the user interface and implementing file operations.
 
+#### Shuhan Zhang
+- Designed the security schema upon database schema.
+- Designed the security code architecture.
+- Implemented symmetric and asymmetric encryption and signature algorithms.
+- Implemented user, invitation, and key operation functions.
+- Implemented python-Go socket connector.
+- Implemented encryption and decryption logics in frontend.
+
 ## 4. References
 
 - https://huggingface.co/
+- Biryukov, A., Dinu, D., & Khovratovich, D. (2016, March). Argon2: new generation of memory-hard functions for password hashing and other applications. In 2016 IEEE European Symposium on Security and Privacy (EuroS&P) (pp. 292-302). IEEE.
 - Feistel, H. (1973). Cryptography and computer privacy. Scientific american, 228(5), 15-23.
+- Krawczyk, H., Bellare, M., & Canetti, R. (1997). HMAC: Keyed-hashing for message authentication (No. rfc2104).
 - Rivest, R. L., Shamir, A., & Adleman, L. (1978). A method for obtaining digital signatures and public-key cryptosystems. Communications of the ACM, 21(2), 120-126.
 
 ## 5. Appendices
