@@ -467,7 +467,17 @@ HAVING
 
 ##### LLM refined database architecture
 
-[?]
+- Comparison
+
+  | Version | Previous | Current |
+  | ------- | -------- | ------- |
+  | ER Diagram | ![previous ER Diagram](material/ER-diagram-previous.png) | ![current ER Diagram](material/ER-diagram.png) |
+
+- Refinements:
+
+  - Decompose the multivalued attribute task_list from the Dataset and Model schemas into two independent schemas, dataset_task and model_task, to ensure the new database satisfies 4NF.
+  - Introduce a new affiliate schema to transform the user-affiliation relationship from many-to-one to many-to-many, better aligning with real-world scenarios.
+  - Separate cone_size and pool_size from the CNN schema, which offers advantages such as enhanced modularity (allowing independent configuration of convolutional and pooling operations), improved parameter reusability across network layers, and simplified maintenance of neural architecture components.
 
 ### 3.2. Self-Evaluation
 
@@ -479,6 +489,24 @@ HAVING
 - Generated the demo data for the database obtained from HuggingFace.
 - Fix some type constraints of attributes.
 - Drafted the answers to seven questions of this project and designed the powerpoint slides of presentation. 
+
+#### Shuhan Zhang
+
+- Designed the security schema upon database schema.
+- Designed the security code architecture.
+- Implemented symmetric and asymmetric encryption and signature algorithms.
+- Implemented user, invitation, and key operation functions.
+- Implemented python-Go socket connector.
+- Implemented encryption and decryption logics in frontend.
+
+#### Wentao Lin
+
+- Designed and implemented the core frontend architecture using Streamlit framework.
+- Developed the database API middleware layer for secure and efficient data operations.
+- Created modular components for user authentication, file upload/download, and search functionality.
+- Implemented the pagination system with Zirun Zheng and data visualization components.
+- Integrated the LLM agent with the frontend search interface with YuXuan Liu.
+- Collaborated with Zirun Zheng in refining the user interface and implementing file operations.
 
 #### Yimeng Teng
 
@@ -508,24 +536,6 @@ HAVING
 - Integrate with the agent and datebase part to implement the frontend's search functionality and pagination functionality, and further refine with Wentao Lin.
 - Collaborated with Wentao Lin in implementing the data upload and download functionality.
 - Translate the frontend's texts into English.
-
-#### Wentao Lin
-
-- Designed and implemented the core frontend architecture using Streamlit framework.
-- Developed the database API middleware layer for secure and efficient data operations.
-- Created modular components for user authentication, file upload/download, and search functionality.
-- Implemented the pagination system with Zirun Zheng and data visualization components.
-- Integrated the LLM agent with the frontend search interface with YuXuan Liu.
-- Collaborated with Zirun Zheng in refining the user interface and implementing file operations.
-
-#### Shuhan Zhang
-
-- Designed the security schema upon database schema.
-- Designed the security code architecture.
-- Implemented symmetric and asymmetric encryption and signature algorithms.
-- Implemented user, invitation, and key operation functions.
-- Implemented python-Go socket connector.
-- Implemented encryption and decryption logics in frontend.
 
 ## 4. References
 
