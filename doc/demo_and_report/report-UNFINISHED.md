@@ -357,7 +357,14 @@ All user actions (uploads, downloads, modifications) are logged with timestamps 
 - The frontend integrates with the security module to enforce role-based UI rendering and API access.
 - Security schema designed to guarantee data security, retrievability, and timely revocation. 
 
-![](./material/securitt_schema.png)
+| DataStore Name      | DataStore Value                            | KeyStore Name         | KeyStore Value              |
+|---------------------|--------------------------------------------|------------------------|-----------------------------|
+| UserID UUID         | UserData struct user                       | Username+"Enc" string | EncPublicKey PKEEncKey      |
+| FileID UUID         | FileData File                              | Username+"Ver" string | VerPublicKey DSVerifyKey    |
+| FileContentID UUID  | EncFileContent FileContent                 |                        |                             |
+| FileNode UUID       | EncFileNode FileNode                       |                        |                             |
+| KeyManagerID UUID   | EncFileKeyManager KeyManager               |                        |                             |
+| InvitationID UUID   | EncInvitationData Invitation               |                        |                             |
 
 This section aligns with the project's focus on usability while ensuring compliance with confidentiality, integrity, and availability principles.
 
