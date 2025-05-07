@@ -1,40 +1,6 @@
-# CSC3170 Project: Database for Models and Datasets (Draft)
+# CSC3170 Project: Database for Models and Datasets
 
-- Notation: different parts to complete.
-
-  - [s] secure
-  - [d] database schema
-  - [f] frontend
-  - [i] data insight
-  - [?] other todo list
-
-## 1. Introduction and motivation
-
-### 1.1. Introduction
-
-- Our project is a database for machine learning models and datasets.
-
-  - **Basic database operations:** It allows users to browse the information about the models and datasets, upload and download models and datasets.
-
-  - **Schema:** Apart from the basic schemas such as dataset, model, user, we also included schemas that are especially helpful for machine learning developers, such as tables describing the modular structures of different architecture of models (CNN, RNN, Transformer).
-
-  - **GUI:** A beautifully designed graphic user interface is implemented, where users and administrators can perform multiple types of operations.
-
-  - **LLM:** An LLM agent is implemented, to translate user's natural language query into SQL language. User can also customize their query by selecting different tables and different fields.
-
-  - **Security:** Methods are implemented to protect data security.
-
-### 1.2. Motivation
-
-- We are motivated by [huggingface](https://huggingface.co/), one of the most influential platform in the AI community that facilitates the sharing and collaboration of machine learning models and datasets.
-
-### 1.3 Analysis of the requirements of the organization
-- Data Storage: The system must store models and datasets along with their metadata in a structured database.
-- User Interface: A graphical interface should allow users and administrators to upload, download, and manage resources.
-- AI-Assisted Querying: An AI agent should help users perform efficient and intelligent queries.
-- Security and Privacy: Encryption and access control mechanisms must ensure data confidentiality and security.
-
-### 1.4. How to run our code
+## 0. How to run our code
 
 - **Step 1-3 has to be done ONLY when running it at the first time; if it's not the first time, you can skip 1-3, and also can skip 4 if you don't need to initialize the database.**
 
@@ -76,6 +42,28 @@ streamlit run frontend/app.py
 - Every user's password is admin.
 - You can register your own user, too.
 
+
+## 1. Introduction and motivation
+
+### 1.1. Introduction
+
+- Our project is a database for machine learning models and datasets.
+
+  - **Basic database operations:** It allows users to browse the information about the models and datasets, upload and download models and datasets.
+
+  - **Schema:** Apart from the basic schemas such as dataset, model, user, we also included schemas that are especially helpful for machine learning developers, such as tables describing the modular structures of different architecture of models (CNN, RNN, Transformer).
+
+  - **GUI:** A beautifully designed graphic user interface is implemented, where users and administrators can perform multiple types of operations.
+
+  - **LLM:** An LLM agent is implemented, to translate user's natural language query into SQL language. User can also customize their query by selecting different tables and different fields.
+
+  - **Security:** Methods are implemented to protect data security.
+
+### 1.2. Motivation
+
+- We are motivated by [huggingface](https://huggingface.co/), one of the most influential platform in the AI community that facilitates the sharing and collaboration of machine learning models and datasets.
+
+
 ## 2. Design and implementation
 
 ### 2.0. Project Structure
@@ -90,8 +78,9 @@ streamlit run frontend/app.py
 
 ### 2.1. Database
 
-#### E-R Diagram
-![ER-diagram.png](material/ER-diagram.png)
+|ER Diagram|Relational Schema|
+|----------|-----------------|
+|![ER-diagram.png](material/ER-diagram.png)|![relational schema](material/relational_schema.jpg)|
 
 #### Schema Design
 
@@ -209,10 +198,6 @@ streamlit run frontend/app.py
 | -------------------- | --------------------------------------------------------- | ------------- | ----------- |
 | **model_id (PK,FK)** | Foreign key referencing `model_id` in the **model** table | int           | 1001        |
 | **ds_id (PK,FK)**    | Foreign key referencing `ds_id` in the **dataset** table  | int           | 1           |
-
----
-
-- [?] llm optimized design
 
 #### Implmentation
 
@@ -370,7 +355,9 @@ All user actions (uploads, downloads, modifications) are logged with timestamps 
 - User passwords are hashed with Argon2Key and stored.
 - Database fields containing sensitive data (e.g., model parameters) are encrypted using symmetric encryption.
 - The frontend integrates with the security module to enforce role-based UI rendering and API access.
-- Security schema designed to guarantee data security, retrievability, and timely revocation. ![](./material/securitt_schema.png)
+- Security schema designed to guarantee data security, retrievability, and timely revocation. 
+
+![](./material/securitt_schema.png)
 
 This section aligns with the project's focus on usability while ensuring compliance with confidentiality, integrity, and availability principles.
 
@@ -420,8 +407,60 @@ HAVING
 
 ### 3.1. Conclusion
 
-- We has completed task [?] indicated in the project guideline.
-- [?] mention detailed implementation here.
+- We finished task 1-7 as mentioned in the project guideline.
+
+#### Req. 1: Analyze the requirments of the organization.
+
+- Data Storage: The system must store models and datasets along with their metadata in a structured database.
+- User Interface: A graphical interface should allow users and administrators to upload, download, and manage resources.
+- AI-Assisted Querying: An AI agent should help users perform efficient and intelligent queries.
+
+- Security and Privacy: Encryption and access control mechanisms must ensure data confidentiality and security.
+
+
+#### Req. 2: Identify the relevant entities, attributes, and relationships together with any constraints and properties
+
+- This has been displayed in our [database implementation part](#21-database).
+
+- For example:
+
+  - entities: model (inherited by transformer, RNN, CNN entities), dataset, user, affiliation ...
+  
+  - relationship: model_user, ds_user (in the sense that a user may be an author), user_affil, ...
+  
+  - constraints: can only choose from several machine learning tasks; can only choose from several model architectures.
+
+#### Req. 3: ER Diagram for the database; Req. 4: Convert ER Diagram to Relational Schema
+
+- [refer to the database section's beginning](#21-database)
+
+#### Req. 5: Populate the schemas with a reasonable amount of realistic data
+
+- data are stored in: `database/records/demo.json`, including: 92 models; 100 datasets; 28 users; 12 affiliations; etc.
+- Relaionships are generated by the program when loading the data.
+- model name and corresponding architecture, media type; dataset name and media type are real data from huggingface.
+
+#### Req. 6:  Produce sample SQL queries on these relations that are used for practical daily operations and activities
+
+- [refer to corresponding content: sql for daily operations](#sql-queries-used-for-practical-daily-operations-and-activities)
+
+#### Req. 7: Produce sample SQL queries on these relations which are of an analytic or data mining nature
+
+- [refer to corresponding content: sql for analysis](#sql-queries-used-for-data-analysis)
+
+#### Req. 8: Suggest which data fields of the relational schemas should be indexed or hashed, and explain your decision
+
+- [refer to the security part](#25-security)
+
+#### Bonus 1: LLM + Database
+
+##### LLM generated SQL
+
+- [refer to the implementation of LLM agent](#24-agent)
+
+##### LLM refined database architecture
+
+[?]
 
 ### 3.2. Self-Evaluation
 
@@ -439,7 +478,8 @@ HAVING
 - Implemented the entire `agent` part. Generated test cases to evaluate and refine it.
 - Collaborated with Linyong Gan to generate `demo.json`, which contains sufficient amounts of records for initializing the database.
 - Collaborated with Wentao Lin in implementing a data loader that load json files and insert records to the database. Designed the first version and help completed the final version.
-- Participated in the formulation of the database schema (but not the implementation).
+- Participated in the formulation of the database schema (but not the implementation). Provided some knowledge about the real-life scenario (machine learning) that our database is trying to capture.
+- Designed the powerpoint for presentation with Linyong Gan; did the presentation. Designed the project demonstration in the presentation. Completed major parts of the report.
 
 #### Yufeng Lin
 
@@ -472,6 +512,7 @@ HAVING
 - Collaborated with Zirun Zheng in refining the user interface and implementing file operations.
 
 #### Shuhan Zhang
+
 - Designed the security schema upon database schema.
 - Designed the security code architecture.
 - Implemented symmetric and asymmetric encryption and signature algorithms.
@@ -486,10 +527,3 @@ HAVING
 - Feistel, H. (1973). Cryptography and computer privacy. Scientific american, 228(5), 15-23.
 - Krawczyk, H., Bellare, M., & Canetti, R. (1997). HMAC: Keyed-hashing for message authentication (No. rfc2104).
 - Rivest, R. L., Shamir, A., & Adleman, L. (1978). A method for obtaining digital signatures and public-key cryptosystems. Communications of the ACM, 21(2), 120-126.
-
-## 5. Appendices
-
-[?] what to include
-
-[THE WHOLE PART needs fact-checking!! whether my description is accurate?]:
-````
